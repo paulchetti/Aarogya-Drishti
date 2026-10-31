@@ -1,7 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BellIcon } from '../Icons';
 
 export default function DashboardNavbar({ notificationCount = 3 }) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.warn('Fullscreen request failed:', err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch((err) => {
+        console.warn('Exit fullscreen failed:', err);
+      });
+    }
+  };
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
   return (
     <header className="dash-navbar">
       {/* Orange artistic gradient swoosh in background */}
@@ -22,6 +48,17 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
 
       {/* Right side actions */}
       <div className="dash-top-actions">
+        {/* Full Screen Toggle Button */}
+        <button
+          type="button"
+          className={`fullscreen-btn ${isFullscreen ? 'active' : ''}`}
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit Full Screen' : 'Set Display Full Screen'}
+        >
+          <span className="fs-icon">{isFullscreen ? '🗗' : '⛶'}</span>
+          <span className="fs-text">{isFullscreen ? 'Exit Full Screen' : 'Full Screen'}</span>
+        </button>
+
         {/* Notification Bell */}
         <button
           type="button"

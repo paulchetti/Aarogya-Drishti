@@ -13,6 +13,7 @@ import '../../styles/dashboard.css';
 
 export default function DashboardView({ onToast }) {
   const [activeNav, setActiveNav] = useState('Dashboard');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
 
@@ -69,16 +70,21 @@ export default function DashboardView({ onToast }) {
 
   return (
     <div className="dashboard-root">
-      {/* Top Navbar */}
+      {/* Top Navbar with Full Screen toggle */}
       <DashboardNavbar notificationCount={3} />
 
       {/* Main Body Grid */}
       <div className="dash-main-layout">
-        {/* Left Sidebar */}
-        <Sidebar activeNav={activeNav} onNavSelect={handleNavSelect} />
+        {/* Left Sidebar with Home icon 'Menu' toggle */}
+        <Sidebar
+          activeNav={activeNav}
+          onNavSelect={handleNavSelect}
+          isMenuOpen={isMenuOpen}
+          onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+        />
 
-        {/* Central Canvas Area */}
-        <main className="dash-content-canvas">
+        {/* Central Canvas Area - Full Screen Responsive */}
+        <main className={`dash-content-canvas ${isMenuOpen ? 'menu-expanded' : 'menu-collapsed'}`}>
           <div className="dash-center-col">
             {/* Welcome Banner with Doctor & Dental Examination Background */}
             <WelcomeBanner doctorName="Dr. Sandeep Kumar" />
