@@ -13,7 +13,7 @@ import {
   Activity
 } from 'lucide-react';
 
-export default function Sidebar({
+export default function ClinicalSidebar({
   currentView,
   onNavigate,
   onLogout,
@@ -113,4 +113,3 @@ export default function Sidebar({
     </aside>
   );
 }
-

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import './dashboard.css';
-import Sidebar from './Sidebar';
+import './clinicalDashboard.css';
+import ClinicalSidebar from './ClinicalSidebar';
 import TopNavbar from './TopNavbar';
 import DashboardOverview from './DashboardOverview';
 import PatientIntakeView from './PatientIntakeView';
@@ -49,7 +49,7 @@ export default function DashboardLayout({ user, onLogout, onSwitchToPatientPorta
   return (
     <div className="dashboard-root">
       {/* Left Navigation Sidebar */}
-      <Sidebar
+      <ClinicalSidebar
         currentView={currentView}
         onNavigate={setCurrentView}
         onLogout={onLogout}
