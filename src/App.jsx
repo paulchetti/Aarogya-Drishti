@@ -4,6 +4,7 @@ import Footer from './components/Footer';
 import AuthCard from './components/AuthCard';
 import Toast from './components/Toast';
 import DashboardLayout from './components/clinical/DashboardLayout';
+import DashboardView from './components/Dashboard/DashboardView';
 import PatientPortalLayout from './components/patient/PatientPortalLayout';
 
 export default function App() {
@@ -15,7 +16,7 @@ export default function App() {
     role: 'citizen',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
   });
-  const [viewMode, setViewMode] = useState('patient'); // 'patient' (User's sketch layout) | 'doctor' (Clinical dashboard)
+  const [viewMode, setViewMode] = useState('patient'); // 'patient' (User's sketch layout) | 'doctor' (Clinical dashboard) | 'oral_screening' (Oral health screening platform)
   const [toast, setToast] = useState({ message: '', visible: false });
   const toastTimerRef = useRef(null);
 
@@ -107,6 +108,39 @@ export default function App() {
           />
           <Toast message={toast.message} visible={toast.visible} />
         </>
+      );
+    }
+
+    if (viewMode === 'oral_screening') {
+      return (
+        <div style={{ position: 'relative' }}>
+          <div
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: '24px',
+              zIndex: 999
+            }}
+          >
+            <button
+              onClick={() => setViewMode('patient')}
+              style={{
+                background: '#16536e',
+                color: '#ffffff',
+                border: '2px solid #388fb4',
+                padding: '10px 20px',
+                borderRadius: '24px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.35)'
+              }}
+            >
+              ← Back to Patient Portal
+            </button>
+          </div>
+          <DashboardView onToast={showToast} />
+          <Toast message={toast.message} visible={toast.visible} />
+        </div>
       );
     }
 
