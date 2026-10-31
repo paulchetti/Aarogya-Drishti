@@ -1,6 +1,6 @@
 import React from 'react';
 
-const patients = [
+const admissions = [
   {
     id: 'ADP-001248',
     name: 'Lakshmi Devi',
@@ -57,7 +57,7 @@ export default function RecentPatientsTable({ onViewPatient }) {
   return (
     <div className="table-card">
       <div className="table-header">
-        <h3>Recent Patients</h3>
+        <h3>Recent Admissions / Registrations</h3>
         <a
           href="#view-all"
           className="view-all-link"
@@ -66,7 +66,7 @@ export default function RecentPatientsTable({ onViewPatient }) {
             if (onViewPatient) onViewPatient(null);
           }}
         >
-          View All Patients <span>→</span>
+          View All Admissions / Registrations <span>→</span>
         </a>
       </div>
 
@@ -84,7 +84,7 @@ export default function RecentPatientsTable({ onViewPatient }) {
             </tr>
           </thead>
           <tbody>
-            {patients.map((p) => (
+            {admissions.map((p) => (
               <tr key={p.id}>
                 <td style={{ fontWeight: 600, color: '#475569' }}>{p.id}</td>
                 <td>
@@ -111,7 +111,7 @@ export default function RecentPatientsTable({ onViewPatient }) {
                   <button
                     type="button"
                     className="action-dots-btn"
-                    aria-label="Patient options"
+                    aria-label="Options"
                     onClick={() => onViewPatient && onViewPatient(p)}
                   >
                     ⋮

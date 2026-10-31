@@ -13,12 +13,12 @@ import {
 export default function RightSidebar({ onActionClick }) {
   return (
     <aside className="dash-right-col">
-      {/* Hero Card: Misty Paderu Hills + Tribal Child smiling matching Source Image 2 */}
+      {/* Hero Card: Care Outreach */}
       <div className="early-detection-hero">
         <div className="hero-photo-layer">
           <img
             src="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=600&q=85"
-            alt="Rural community child"
+            alt="Rural health community"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=600&q=85";
@@ -37,16 +37,17 @@ export default function RightSidebar({ onActionClick }) {
         </div>
       </div>
 
-      {/* 4 Action Buttons - Single Line, Clean Spacing, Exact Match */}
+      {/* 4 Action Buttons mapped to exact requested terms */}
       <div className="action-buttons-group">
         <button
           type="button"
           className="btn-action-hero orange-grad"
-          onClick={() => onActionClick('register-patient')}
+          onClick={() => onActionClick('direct-registration')}
+          title="Direct / Walk-in Registration"
         >
           <div className="btn-left">
             <UserPlusIcon className="w-4 h-4" />
-            <span>Register New Patient</span>
+            <span>Direct / Walk-in Registration</span>
           </div>
           <span className="btn-chevron">›</span>
         </button>
@@ -54,11 +55,12 @@ export default function RightSidebar({ onActionClick }) {
         <button
           type="button"
           className="btn-action-hero teal-grad"
-          onClick={() => onActionClick('start-screening')}
+          onClick={() => onActionClick('diagnostic-triage')}
+          title="Diagnostic & Triage Assessment"
         >
           <div className="btn-left">
             <CameraIcon className="w-4 h-4" />
-            <span>Start Screening</span>
+            <span>Diagnostic & Triage Assessment</span>
           </div>
           <span className="btn-chevron">›</span>
         </button>
@@ -66,11 +68,12 @@ export default function RightSidebar({ onActionClick }) {
         <button
           type="button"
           className="btn-action-hero white-card"
-          onClick={() => onActionClick('view-referrals')}
+          onClick={() => onActionClick('initiate-referral')}
+          title="Initiate Referral Request"
         >
           <div className="btn-left">
             <SearchIcon className="w-4 h-4" style={{ color: '#0d9488' }} />
-            <span>View Referrals</span>
+            <span>Initiate Referral Request</span>
           </div>
           <span className="btn-chevron" style={{ color: '#94a3b8' }}>›</span>
         </button>
@@ -78,64 +81,68 @@ export default function RightSidebar({ onActionClick }) {
         <button
           type="button"
           className="btn-action-hero white-card"
-          onClick={() => onActionClick('check-appointments')}
+          onClick={() => onActionClick('appointment-scheduling')}
+          title="Appointment Scheduling & Slot Management"
         >
           <div className="btn-left">
             <CalendarIcon className="w-4 h-4" style={{ color: '#ea580c' }} />
-            <span>Check Appointments</span>
+            <span>Appointment Scheduling & Slot Management</span>
           </div>
           <span className="btn-chevron" style={{ color: '#94a3b8' }}>›</span>
         </button>
       </div>
 
-      {/* Quick Links Card */}
+      {/* Quick Links Card mapped to exact terms */}
       <div className="quick-links-card">
         <h4>Quick Links</h4>
         <div className="quick-links-list">
           <button
             type="button"
             className="quick-link-row"
-            onClick={() => onActionClick('ai-analysis')}
+            onClick={() => onActionClick('virtual-consultation-queue')}
+            title="Virtual Consultation Queue"
           >
             <div className="quick-link-icon-circle">
               <AIIcon className="w-4 h-4" />
             </div>
-            <span>AI Analysis</span>
+            <span>Virtual Consultation Queue</span>
           </button>
 
           <button
             type="button"
             className="quick-link-row"
-            onClick={() => onActionClick('reports')}
+            onClick={() => onActionClick('facility-reports')}
+            title="Facility Utilization & Clinical Reports"
           >
             <div className="quick-link-icon-circle">
               <ReportsIcon className="w-4 h-4" />
             </div>
-            <span>Reports</span>
+            <span>Facility Utilization & Clinical Reports</span>
           </button>
 
           <button
             type="button"
             className="quick-link-row"
-            onClick={() => onActionClick('help')}
+            onClick={() => onActionClick('clinician-profile')}
+            title="Clinician Profile & Credentials"
           >
             <div className="quick-link-icon-circle">
               <HelpIcon className="w-4 h-4" />
             </div>
-            <span>Help & Support</span>
+            <span>Clinician Profile & Credentials</span>
           </button>
         </div>
       </div>
 
-      {/* Healthy Smiles Promo Card */}
+      {/* Care Continuity Tracking Card */}
       <div className="healthy-smiles-card">
         <div className="smiles-bg-wave" />
         <div className="smiles-icon-box">
           <HeartPulseIcon className="w-5 h-5" />
         </div>
         <div className="smiles-text">
-          <strong>Healthy Smiles</strong>
-          <span>Stronger Communities</span>
+          <strong>Care Continuity Tracking</strong>
+          <span>Primary Health Centre Network</span>
         </div>
       </div>
     </aside>

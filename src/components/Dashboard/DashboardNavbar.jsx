@@ -16,7 +16,7 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
         />
         <div className="dash-brand-text">
           <h1>AAROGYA DRISHTI</h1>
-          <p>AI Assisted Oral Health Screening Platform</p>
+          <p>Primary Health Centre (PHC) / Medical Officer Dashboard</p>
         </div>
       </div>
 
@@ -26,14 +26,15 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
         <button
           type="button"
           className="notif-btn"
-          aria-label="Notifications"
+          aria-label="Virtual Consultation Queue Notifications"
+          title="Virtual Consultation Queue (3 Pending)"
         >
           <BellIcon className="w-5 h-5" />
           {notificationCount > 0 && <span className="notif-badge">{notificationCount}</span>}
         </button>
 
         {/* Doctor Profile */}
-        <div className="doctor-profile">
+        <div className="doctor-profile" title="Clinician Profile & Credentials">
           <div className="doctor-avatar-wrap">
             <img
               src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=120&q=80"

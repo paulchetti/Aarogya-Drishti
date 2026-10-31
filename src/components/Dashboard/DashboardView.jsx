@@ -18,37 +18,37 @@ export default function DashboardView({ onToast }) {
 
   const handleNavSelect = (navName) => {
     setActiveNav(navName);
-    if (navName === 'Patient Registration') {
+    if (navName === 'Direct / Walk-in Registration') {
       setIsPatientModalOpen(true);
-    } else if (navName === 'Oral Screening') {
+    } else if (navName === 'Diagnostic & Triage Assessment') {
       setIsScreeningModalOpen(true);
     } else if (onToast) {
-      onToast(`Viewing ${navName}`);
+      onToast(`Navigating to ${navName}`);
     }
   };
 
   const handleActionClick = (action) => {
     switch (action) {
-      case 'register-patient':
+      case 'direct-registration':
         setIsPatientModalOpen(true);
         break;
-      case 'start-screening':
+      case 'diagnostic-triage':
         setIsScreeningModalOpen(true);
         break;
-      case 'view-referrals':
-        if (onToast) onToast('Opening Specialist Referral Queue for Paderu District Hospital...');
+      case 'initiate-referral':
+        if (onToast) onToast('Initiating Referral Request to Area Hospital / Oncology Specialist...');
         break;
-      case 'check-appointments':
-        if (onToast) onToast('Loading Upcoming Telemedicine & Clinic Appointments...');
+      case 'appointment-scheduling':
+        if (onToast) onToast('Opening Appointment Scheduling & Slot Management...');
         break;
-      case 'ai-analysis':
-        setIsScreeningModalOpen(true);
+      case 'virtual-consultation-queue':
+        if (onToast) onToast('Loading Virtual Consultation Queue (3 Pending Clinician Reviews)...');
         break;
-      case 'reports':
-        if (onToast) onToast('Exporting Screening & Lesion Analysis Report (PDF/Excel)...');
+      case 'facility-reports':
+        if (onToast) onToast('Generating Facility Utilization & Clinical Reports...');
         break;
-      case 'help':
-        if (onToast) onToast('Aarogya Drishti Helpline: 1800-425-4252 (ITDA Paderu Cell)');
+      case 'clinician-profile':
+        if (onToast) onToast('Viewing Clinician Profile & Credentials for Dr. Sandeep Kumar...');
         break;
       default:
         break;
@@ -56,14 +56,14 @@ export default function DashboardView({ onToast }) {
   };
 
   const handlePatientSaved = (patient) => {
-    if (onToast) onToast(`Patient ${patient.name} (${patient.id}) registered successfully!`);
+    if (onToast) onToast(`Registration complete for ${patient.name} (${patient.id})`);
   };
 
   const handleScreeningComplete = (action) => {
     if (action === 'refer') {
-      if (onToast) onToast('Urgent Specialist Referral dispatched to Paderu Area Hospital!');
+      if (onToast) onToast('Initiated Outbound Referral Request to Area Hospital!');
     } else {
-      if (onToast) onToast('Routine Follow-up scheduled in 30 days.');
+      if (onToast) onToast('Care Continuity Tracking: Follow-up scheduled.');
     }
   };
 
@@ -110,7 +110,7 @@ export default function DashboardView({ onToast }) {
       <footer className="dash-bottom-footer">
         <div className="footer-swoosh" />
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <strong>AAROGYA DRISHTI</strong> &nbsp;|&nbsp; AI Assisted Oral Health Screening Platform
+          <strong>AAROGYA DRISHTI</strong> &nbsp;|&nbsp; Primary Health Centre (PHC) / Medical Officer Dashboard
         </div>
         <div style={{ position: 'relative', zIndex: 2 }}>
           © 2025 AAROGYA DRISHTI. All rights reserved.

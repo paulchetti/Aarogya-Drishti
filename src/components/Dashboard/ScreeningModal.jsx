@@ -26,9 +26,9 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
       <div className="dash-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '620px' }}>
         <div className="dash-modal-header">
           <div>
-            <h2>Oral Health Screening & AI Assessment</h2>
+            <h2>Diagnostic & Triage Assessment</h2>
             <span style={{ fontSize: '11px', color: '#0d9488', fontWeight: 600 }}>
-              Module B & C: Quality Checked Photographic Documentation
+              Primary Health Centre (PHC) Clinical Protocol
             </span>
           </div>
           <button type="button" className="close-modal-btn" onClick={onClose}>

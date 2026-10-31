@@ -4,7 +4,7 @@ import { UserIcon, TargetIcon, WarningIcon, CalendarIcon } from '../Icons';
 export default function StatCards() {
   const cards = [
     {
-      title: 'Total Patients',
+      title: 'Recent Admissions / Registrations',
       value: '248',
       trend: '↑ 12%',
       trendColor: 'green',
@@ -14,7 +14,7 @@ export default function StatCards() {
       cardBorder: 'orange-bottom',
     },
     {
-      title: 'Screened Today',
+      title: 'Total Outbound Referrals',
       value: '32',
       trend: '↑ 18%',
       trendColor: 'green',
@@ -24,7 +24,7 @@ export default function StatCards() {
       cardBorder: 'teal-bottom',
     },
     {
-      title: 'Suspicious Findings',
+      title: 'Pending Follow-ups',
       value: '7',
       trend: '↑ 3%',
       trendColor: 'amber',
@@ -34,7 +34,7 @@ export default function StatCards() {
       cardBorder: 'amber-bottom',
     },
     {
-      title: 'Follow-ups Due',
+      title: 'Completed Follow-ups',
       value: '18',
       trend: '↑ 5%',
       trendColor: 'green',
@@ -51,7 +51,7 @@ export default function StatCards() {
         <div key={i} className={`metric-card ${card.cardBorder}`}>
           <div>
             <div className={`metric-icon-circle ${card.colorClass}`}>{card.icon}</div>
-            <div className="metric-title">{card.title}</div>
+            <div className="metric-title" title={card.title}>{card.title}</div>
           </div>
           <div className="metric-value-row">
             <span className="metric-number">{card.value}</span>

@@ -52,7 +52,7 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
     <div className="dash-modal-backdrop" onClick={onClose}>
       <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
         <div className="dash-modal-header">
-          <h2>Register New Patient (ITDA Paderu)</h2>
+          <h2>Direct / Walk-in Registration</h2>
           <button type="button" className="close-modal-btn" onClick={onClose}>
             ✕
           </button>

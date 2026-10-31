@@ -14,14 +14,14 @@ import {
 export default function Sidebar({ activeNav = 'Dashboard', onNavSelect }) {
   const navItems = [
     { name: 'Dashboard', icon: <DashboardIcon /> },
-    { name: 'Patient Registration', icon: <UserPlusIcon /> },
-    { name: 'Medical History', icon: <HistoryIcon /> },
-    { name: 'Oral Screening', icon: <CameraIcon /> },
-    { name: 'Referrals & Follow-ups', icon: <ReferralIcon /> },
-    { name: 'Appointments', icon: <CalendarIcon /> },
-    { name: 'Reports', icon: <ReportsIcon /> },
-    { name: 'AI Analysis', icon: <AIIcon /> },
-    { name: 'Settings', icon: <SettingsIcon /> },
+    { name: 'Direct / Walk-in Registration', icon: <UserPlusIcon /> },
+    { name: 'EHR Clinical Documentation', icon: <HistoryIcon /> },
+    { name: 'Diagnostic & Triage Assessment', icon: <CameraIcon /> },
+    { name: 'Care Continuity Tracking', icon: <ReferralIcon /> },
+    { name: 'Appointment Scheduling & Slot Management', icon: <CalendarIcon /> },
+    { name: 'Facility Utilization & Clinical Reports', icon: <ReportsIcon /> },
+    { name: 'Virtual Consultation Queue', icon: <AIIcon /> },
+    { name: 'Clinician Profile & Credentials', icon: <SettingsIcon /> },
   ];
 
   return (
@@ -33,9 +33,10 @@ export default function Sidebar({ activeNav = 'Dashboard', onNavSelect }) {
             type="button"
             className={`nav-item ${activeNav === item.name ? 'active' : ''}`}
             onClick={() => onNavSelect(item.name)}
+            title={item.name}
           >
             {item.icon}
-            <span>{item.name}</span>
+            <span className="nav-item-text">{item.name}</span>
           </button>
         ))}
       </nav>
@@ -53,8 +54,8 @@ export default function Sidebar({ activeNav = 'Dashboard', onNavSelect }) {
           />
         </div>
         <div className="sidebar-slogan">
-          Better Oral Health<br />
-          for a Healthier Tomorrow
+          Primary Health Centre (PHC)<br />
+          Care Continuity Network
         </div>
       </div>
     </aside>

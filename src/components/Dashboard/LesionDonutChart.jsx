@@ -1,6 +1,6 @@
 import React from 'react';
 
-const lesionData = [
+const triageData = [
   { label: 'White Patch', percentage: 32, color: '#0d9488' },
   { label: 'Red Patch', percentage: 24, color: '#f97316' },
   { label: 'Ulcer', percentage: 18, color: '#eab308' },
@@ -19,14 +19,14 @@ export default function LesionDonutChart() {
   return (
     <div className="chart-card">
       <div className="chart-header">
-        <h3>Lesion Types</h3>
+        <h3>Diagnostic & Triage Assessment</h3>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flex: 1, paddingTop: '4px' }}>
         {/* Donut Graphic */}
         <div style={{ position: 'relative', width: `${size}px`, height: `${size}px`, flexShrink: 0 }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            {lesionData.map((item, index) => {
+            {triageData.map((item, index) => {
               const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`;
               const strokeDashoffset = -((cumulativePercent / 100) * circumference);
               cumulativePercent += item.percentage;
@@ -69,7 +69,7 @@ export default function LesionDonutChart() {
 
         {/* Legend Listing */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-          {lesionData.map((item, index) => (
+          {triageData.map((item, index) => (
             <div
               key={index}
               style={{

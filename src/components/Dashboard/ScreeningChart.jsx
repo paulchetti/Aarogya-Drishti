@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const totalScreenings = [19, 24, 23, 27, 30, 35, 34, 29, 31, 30, 32, 36];
-const suspiciousFindings = [6, 9, 8, 11, 13, 15, 14, 11, 13, 11, 14, 16];
+const completedFollowUps = [19, 24, 23, 27, 30, 35, 34, 29, 31, 30, 32, 36];
+const pendingFollowUps = [6, 9, 8, 11, 13, 15, 14, 11, 13, 11, 14, 16];
 
 export default function ScreeningChart() {
   const [hoverIndex, setHoverIndex] = useState(null);
@@ -28,24 +28,24 @@ export default function ScreeningChart() {
     }, '');
   };
 
-  const lineTotal = makeSmoothCurve(totalScreenings);
-  const lineSuspicious = makeSmoothCurve(suspiciousFindings);
+  const lineCompleted = makeSmoothCurve(completedFollowUps);
+  const linePending = makeSmoothCurve(pendingFollowUps);
 
-  const areaTotal = `${lineTotal} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
-  const areaSuspicious = `${lineSuspicious} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
+  const areaCompleted = `${lineCompleted} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
+  const areaPending = `${linePending} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
 
   return (
     <div className="chart-card">
       <div className="chart-header">
-        <h3>Screening Overview</h3>
+        <h3>Cumulative Follow-up Volume</h3>
         <div className="chart-legend">
           <div className="legend-item">
             <span className="legend-dot teal"></span>
-            <span>Total Screenings</span>
+            <span>Completed Follow-ups</span>
           </div>
           <div className="legend-item">
             <span className="legend-dot orange"></span>
-            <span>Suspicious Findings</span>
+            <span>Pending Follow-ups</span>
           </div>
         </div>
       </div>
@@ -88,15 +88,15 @@ export default function ScreeningChart() {
           ))}
 
           {/* Area Fills */}
-          <path d={areaTotal} fill="url(#chartTealGrad)" />
-          <path d={areaSuspicious} fill="url(#chartOrangeGrad)" />
+          <path d={areaCompleted} fill="url(#chartTealGrad)" />
+          <path d={areaPending} fill="url(#chartOrangeGrad)" />
 
           {/* Curves */}
-          <path d={lineTotal} fill="none" stroke="#0d9488" strokeWidth="2.2" strokeLinecap="round" />
-          <path d={lineSuspicious} fill="none" stroke="#f97316" strokeWidth="2.2" strokeLinecap="round" />
+          <path d={lineCompleted} fill="none" stroke="#0d9488" strokeWidth="2.2" strokeLinecap="round" />
+          <path d={linePending} fill="none" stroke="#f97316" strokeWidth="2.2" strokeLinecap="round" />
 
           {/* Points */}
-          {totalScreenings.map((val, i) => (
+          {completedFollowUps.map((val, i) => (
             <circle
               key={`tot-${i}`}
               cx={getX(i)}
@@ -111,7 +111,7 @@ export default function ScreeningChart() {
             />
           ))}
 
-          {suspiciousFindings.map((val, i) => (
+          {pendingFollowUps.map((val, i) => (
             <circle
               key={`sus-${i}`}
               cx={getX(i)}
@@ -160,7 +160,7 @@ export default function ScreeningChart() {
               whiteSpace: 'nowrap',
             }}
           >
-            <strong>{months[hoverIndex]}</strong>: Screenings {totalScreenings[hoverIndex]} | Suspicious {suspiciousFindings[hoverIndex]}
+            <strong>{months[hoverIndex]}</strong>: Completed {completedFollowUps[hoverIndex]} | Pending {pendingFollowUps[hoverIndex]}
           </div>
         )}
       </div>
