@@ -10,7 +10,7 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
       {/* Brand logo placed in top left corner */}
       <div className="dash-brand">
         <img
-          src="/logo.jpg"
+          src="/logo.png"
           alt="Aarogya Drishti Emblem"
           className="dash-brand-logo-img"
         />

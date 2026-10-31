@@ -5,9 +5,9 @@ export default function Header() {
     <header className="topbar">
       <a className="brand" href="#" aria-label="Aarogya Drishti home" onClick={(e) => e.preventDefault()}>
         <img
-          src="/logo.jpg"
+          src="/logo.png"
           alt="Aarogya Drishti Logo"
-          style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '50%' }}
+          style={{ width: '54px', height: '54px', objectFit: 'contain' }}
         />
         <span className="brand-copy">
           <strong>AAROGYA <b>DRISHTI</b></strong>
