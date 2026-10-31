@@ -9,7 +9,7 @@ const patients = [
     date: '15 Apr 2025',
     status: 'Normal',
     statusClass: 'normal',
-    avatarColor: '#f43f5e',
+    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80',
   },
   {
     id: 'ADP-001247',
@@ -19,7 +19,7 @@ const patients = [
     date: '15 Apr 2025',
     status: 'Under Review',
     statusClass: 'under-review',
-    avatarColor: '#0284c7',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80',
   },
   {
     id: 'ADP-001246',
@@ -29,7 +29,7 @@ const patients = [
     date: '14 Apr 2025',
     status: 'Suspicious',
     statusClass: 'suspicious',
-    avatarColor: '#e11d48',
+    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80',
   },
   {
     id: 'ADP-001245',
@@ -39,7 +39,7 @@ const patients = [
     date: '14 Apr 2025',
     status: 'Normal',
     statusClass: 'normal',
-    avatarColor: '#059669',
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80',
   },
   {
     id: 'ADP-001244',
@@ -49,7 +49,7 @@ const patients = [
     date: '13 Apr 2025',
     status: 'Follow-up',
     statusClass: 'follow-up',
-    avatarColor: '#8b5cf6',
+    photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80',
   },
 ];
 
@@ -89,10 +89,14 @@ export default function RecentPatientsTable({ onViewPatient }) {
                 <td style={{ fontWeight: 600, color: '#475569' }}>{p.id}</td>
                 <td>
                   <div className="patient-name-col">
-                    <div className="patient-avatar-thumb" style={{ backgroundColor: '#e0f2fe' }}>
-                      <svg viewBox="0 0 24 24" fill={p.avatarColor} style={{ width: '18px', height: '18px' }}>
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                      </svg>
+                    <div className="patient-avatar-thumb">
+                      <img
+                        src={p.photo}
+                        alt={p.name}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
                     </div>
                     <span>{p.name}</span>
                   </div>

@@ -9,9 +9,8 @@ const lesionData = [
 ];
 
 export default function LesionDonutChart() {
-  // SVG Donut calculation
-  const size = 160;
-  const strokeWidth = 24;
+  const size = 140;
+  const strokeWidth = 22;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
@@ -23,8 +22,8 @@ export default function LesionDonutChart() {
         <h3>Lesion Types</h3>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flex: 1 }}>
-        {/* Donut graphic */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flex: 1, paddingTop: '4px' }}>
+        {/* Donut Graphic */}
         <div style={{ position: 'relative', width: `${size}px`, height: `${size}px`, flexShrink: 0 }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
             {lesionData.map((item, index) => {
@@ -44,13 +43,12 @@ export default function LesionDonutChart() {
                   strokeDasharray={strokeDasharray}
                   strokeDashoffset={strokeDashoffset}
                   transform={`rotate(-90 ${size / 2} ${size / 2})`}
-                  style={{ transition: 'all 0.3s' }}
                 />
               );
             })}
           </svg>
 
-          {/* Center text */}
+          {/* Center Text */}
           <div
             style={{
               position: 'absolute',
@@ -62,15 +60,15 @@ export default function LesionDonutChart() {
               pointerEvents: 'none',
             }}
           >
-            <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Total</span>
-            <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: '22px', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+            <span style={{ fontSize: '9.5px', color: '#64748b', fontWeight: 600 }}>Total</span>
+            <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: '20px', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
               68
             </span>
           </div>
         </div>
 
-        {/* Legend listing */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+        {/* Legend Listing */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
           {lesionData.map((item, index) => (
             <div
               key={index}
@@ -78,15 +76,15 @@ export default function LesionDonutChart() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                fontSize: '11px',
+                fontSize: '10.5px',
                 color: '#475569',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span
                   style={{
-                    width: '8px',
-                    height: '8px',
+                    width: '6.5px',
+                    height: '6.5px',
                     borderRadius: '50%',
                     backgroundColor: item.color,
                     flexShrink: 0,
@@ -102,4 +100,3 @@ export default function LesionDonutChart() {
     </div>
   );
 }
-

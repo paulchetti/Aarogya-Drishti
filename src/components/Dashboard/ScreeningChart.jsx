@@ -1,38 +1,35 @@
 import React, { useState } from 'react';
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const totalScreenings = [20, 24, 23, 28, 31, 35, 34, 30, 32, 30, 33, 36];
-const suspiciousFindings = [6, 9, 8, 12, 13, 15, 14, 11, 13, 11, 14, 16];
+const totalScreenings = [19, 24, 23, 27, 30, 35, 34, 29, 31, 30, 32, 36];
+const suspiciousFindings = [6, 9, 8, 11, 13, 15, 14, 11, 13, 11, 14, 16];
 
 export default function ScreeningChart() {
   const [hoverIndex, setHoverIndex] = useState(null);
 
-  // SVG coordinate calculations
-  const width = 500;
-  const height = 200;
-  const paddingX = 35;
-  const paddingY = 25;
+  const width = 480;
+  const height = 190;
+  const paddingX = 30;
+  const paddingY = 20;
   const maxY = 50;
 
-  const getX = (index) => paddingX + (index * (width - 2 * paddingX)) / (months.length - 1);
+  const getX = (i) => paddingX + (i * (width - 2 * paddingX)) / (months.length - 1);
   const getY = (val) => height - paddingY - (val * (height - 2 * paddingY)) / maxY;
 
-  // Build curved SVG path using Catmull-Rom or Bezier
-  const makeSmoothPath = (data) => {
+  const makeSmoothCurve = (data) => {
     return data.reduce((acc, val, i, arr) => {
       const x = getX(i);
       const y = getY(val);
       if (i === 0) return `M ${x} ${y}`;
       const prevX = getX(i - 1);
       const prevY = getY(arr[i - 1]);
-      const cp1X = prevX + (x - prevX) / 2;
-      const cp2X = cp1X;
-      return `${acc} C ${cp1X} ${prevY}, ${cp2X} ${y}, ${x} ${y}`;
+      const cpX = (prevX + x) / 2;
+      return `${acc} C ${cpX} ${prevY}, ${cpX} ${y}, ${x} ${y}`;
     }, '');
   };
 
-  const lineTotal = makeSmoothPath(totalScreenings);
-  const lineSuspicious = makeSmoothPath(suspiciousFindings);
+  const lineTotal = makeSmoothCurve(totalScreenings);
+  const lineSuspicious = makeSmoothCurve(suspiciousFindings);
 
   const areaTotal = `${lineTotal} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
   const areaSuspicious = `${lineSuspicious} L ${getX(months.length - 1)} ${height - paddingY} L ${getX(0)} ${height - paddingY} Z`;
@@ -53,20 +50,20 @@ export default function ScreeningChart() {
         </div>
       </div>
 
-      <div style={{ position: 'relative', width: '100%', height: '220px' }}>
+      <div style={{ position: 'relative', width: '100%', height: '190px' }}>
         <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%', overflow: 'visible' }}>
           <defs>
-            <linearGradient id="tealGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0d9488" stopOpacity="0.25" />
+            <linearGradient id="chartTealGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#0d9488" stopOpacity="0.22" />
               <stop offset="100%" stopColor="#0d9488" stopOpacity="0.0" />
             </linearGradient>
-            <linearGradient id="orangeGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f97316" stopOpacity="0.25" />
+            <linearGradient id="chartOrangeGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f97316" stopOpacity="0.22" />
               <stop offset="100%" stopColor="#f97316" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
-          {/* Grid lines & Y-axis labels */}
+          {/* Grid lines */}
           {[0, 10, 20, 30, 40, 50].map((tick) => (
             <g key={tick}>
               <line
@@ -74,14 +71,14 @@ export default function ScreeningChart() {
                 y1={getY(tick)}
                 x2={width - paddingX}
                 y2={getY(tick)}
-                stroke="#f1f5f9"
+                stroke="#edf2f7"
                 strokeWidth="1"
               />
               <text
-                x={paddingX - 8}
+                x={paddingX - 6}
                 y={getY(tick) + 3}
                 fill="#94a3b8"
-                fontSize="9"
+                fontSize="8.5"
                 textAnchor="end"
                 fontFamily="sans-serif"
               >
@@ -90,27 +87,27 @@ export default function ScreeningChart() {
             </g>
           ))}
 
-          {/* Area Gradients */}
-          <path d={areaTotal} fill="url(#tealGrad)" />
-          <path d={areaSuspicious} fill="url(#orangeGrad)" />
+          {/* Area Fills */}
+          <path d={areaTotal} fill="url(#chartTealGrad)" />
+          <path d={areaSuspicious} fill="url(#chartOrangeGrad)" />
 
-          {/* Smooth Curves */}
-          <path d={lineTotal} fill="none" stroke="#0d9488" strokeWidth="2.5" />
-          <path d={lineSuspicious} fill="none" stroke="#f97316" strokeWidth="2.5" />
+          {/* Curves */}
+          <path d={lineTotal} fill="none" stroke="#0d9488" strokeWidth="2.2" strokeLinecap="round" />
+          <path d={lineSuspicious} fill="none" stroke="#f97316" strokeWidth="2.2" strokeLinecap="round" />
 
-          {/* Data Points */}
+          {/* Points */}
           {totalScreenings.map((val, i) => (
             <circle
               key={`tot-${i}`}
               cx={getX(i)}
               cy={getY(val)}
-              r={hoverIndex === i ? 5 : 3.5}
+              r={hoverIndex === i ? 4.5 : 3}
               fill="#0d9488"
               stroke="#ffffff"
-              strokeWidth="2"
+              strokeWidth="1.5"
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
-              style={{ cursor: 'pointer', transition: 'r 0.15s' }}
+              style={{ cursor: 'pointer' }}
             />
           ))}
 
@@ -119,13 +116,13 @@ export default function ScreeningChart() {
               key={`sus-${i}`}
               cx={getX(i)}
               cy={getY(val)}
-              r={hoverIndex === i ? 5 : 3.5}
+              r={hoverIndex === i ? 4.5 : 3}
               fill="#f97316"
               stroke="#ffffff"
-              strokeWidth="2"
+              strokeWidth="1.5"
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(null)}
-              style={{ cursor: 'pointer', transition: 'r 0.15s' }}
+              style={{ cursor: 'pointer' }}
             />
           ))}
 
@@ -134,9 +131,9 @@ export default function ScreeningChart() {
             <text
               key={m}
               x={getX(i)}
-              y={height - 6}
+              y={height - 4}
               fill="#94a3b8"
-              fontSize="9"
+              fontSize="8.5"
               textAnchor="middle"
               fontFamily="sans-serif"
             >
@@ -145,18 +142,17 @@ export default function ScreeningChart() {
           ))}
         </svg>
 
-        {/* Hover Tooltip */}
         {hoverIndex !== null && (
           <div
             style={{
               position: 'absolute',
               left: `${(getX(hoverIndex) / width) * 100}%`,
-              top: '15px',
+              top: '10px',
               transform: 'translateX(-50%)',
               background: '#0f172a',
               color: 'white',
-              padding: '6px 10px',
-              borderRadius: '8px',
+              padding: '4px 8px',
+              borderRadius: '6px',
               fontSize: '10px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
               pointerEvents: 'none',
@@ -164,13 +160,10 @@ export default function ScreeningChart() {
               whiteSpace: 'nowrap',
             }}
           >
-            <strong>{months[hoverIndex]}</strong>
-            <div style={{ color: '#2dd4bf' }}>Screenings: {totalScreenings[hoverIndex]}</div>
-            <div style={{ color: '#fb923c' }}>Suspicious: {suspiciousFindings[hoverIndex]}</div>
+            <strong>{months[hoverIndex]}</strong>: Screenings {totalScreenings[hoverIndex]} | Suspicious {suspiciousFindings[hoverIndex]}
           </div>
         )}
       </div>
     </div>
   );
 }
-
