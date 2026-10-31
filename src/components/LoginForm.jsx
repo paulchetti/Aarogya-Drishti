@@ -108,6 +108,44 @@ export default function LoginForm({
         Log in securely <span>→</span>
       </button>
 
+      {/* Quick Demo Access Buttons for instant review */}
+      <div style={{ display: 'flex', gap: '8px', margin: '12px 0 6px' }}>
+        <button
+          type="button"
+          onClick={() => onSubmit({ email: 'rahul.citizen@aarogyadrishti.in', role: 'citizen', name: 'Citizen Rahul' })}
+          style={{
+            flex: 1,
+            padding: '8px 10px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            borderRadius: '10px',
+            background: '#ecfdf5',
+            color: '#065f46',
+            border: '1px solid #a7f3d0',
+            cursor: 'pointer'
+          }}
+        >
+          ⚡ Demo Citizen Login
+        </button>
+        <button
+          type="button"
+          onClick={() => onSubmit({ email: 'andrew.sharma@aarogyadrishti.in', role: 'doctor', name: 'Dr. Andrew' })}
+          style={{
+            flex: 1,
+            padding: '8px 10px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            borderRadius: '10px',
+            background: '#f0fdfa',
+            color: '#0f766e',
+            border: '1px solid #99f6e4',
+            cursor: 'pointer'
+          }}
+        >
+          ⚡ Demo Doctor Login
+        </button>
+      </div>
+
       <SocialAuth onSocialClick={onSocialClick} />
 
       <p className="mobile-switch">
@@ -119,4 +157,3 @@ export default function LoginForm({
     </form>
   );
 }
-
