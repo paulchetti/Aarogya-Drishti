@@ -15,7 +15,7 @@ export default function App() {
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.href = '/favicon.svg?v=' + Date.now();
+    link.href = '/logo.jpg?v=' + Date.now();
   }, []);
 
   const showToast = (message) => {

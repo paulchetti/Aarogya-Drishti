@@ -4,10 +4,11 @@ export default function Header() {
   return (
     <header className="topbar">
       <a className="brand" href="#" aria-label="Aarogya Drishti home" onClick={(e) => e.preventDefault()}>
-        <span className="brand-mark">
-          <span></span>
-          <i></i>
-        </span>
+        <img
+          src="/logo.jpg"
+          alt="Aarogya Drishti Logo"
+          style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '50%' }}
+        />
         <span className="brand-copy">
           <strong>AAROGYA <b>DRISHTI</b></strong>
           <small>EARLY CARE. BETTER TOMORROWS.</small>
@@ -20,4 +21,3 @@ export default function Header() {
     </header>
   );
 }
-

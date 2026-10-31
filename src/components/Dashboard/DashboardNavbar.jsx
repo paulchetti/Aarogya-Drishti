@@ -1,17 +1,19 @@
 import React from 'react';
-import { LogoIcon, BellIcon } from '../Icons';
+import { BellIcon } from '../Icons';
 
 export default function DashboardNavbar({ notificationCount = 3 }) {
   return (
     <header className="dash-navbar">
-      {/* Orange artistic gradient swoosh in background matching source image */}
+      {/* Orange artistic gradient swoosh in background */}
       <div className="dash-navbar-swoosh" />
 
-      {/* Brand logo & tagline */}
+      {/* Brand logo placed in top left corner */}
       <div className="dash-brand">
-        <div className="dash-brand-icon">
-          <LogoIcon className="w-11 h-11" />
-        </div>
+        <img
+          src="/logo.jpg"
+          alt="Aarogya Drishti Emblem"
+          className="dash-brand-logo-img"
+        />
         <div className="dash-brand-text">
           <h1>AAROGYA DRISHTI</h1>
           <p>AI Assisted Oral Health Screening Platform</p>
