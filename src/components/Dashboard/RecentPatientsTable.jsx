@@ -9,7 +9,7 @@ const patients = [
     date: '15 Apr 2025',
     status: 'Normal',
     statusClass: 'normal',
-    initials: 'LD',
+    avatarColor: '#f43f5e',
   },
   {
     id: 'ADP-001247',
@@ -19,7 +19,7 @@ const patients = [
     date: '15 Apr 2025',
     status: 'Under Review',
     statusClass: 'under-review',
-    initials: 'RB',
+    avatarColor: '#0284c7',
   },
   {
     id: 'ADP-001246',
@@ -29,7 +29,7 @@ const patients = [
     date: '14 Apr 2025',
     status: 'Suspicious',
     statusClass: 'suspicious',
-    initials: 'SV',
+    avatarColor: '#e11d48',
   },
   {
     id: 'ADP-001245',
@@ -39,7 +39,7 @@ const patients = [
     date: '14 Apr 2025',
     status: 'Normal',
     statusClass: 'normal',
-    initials: 'MR',
+    avatarColor: '#059669',
   },
   {
     id: 'ADP-001244',
@@ -49,7 +49,7 @@ const patients = [
     date: '13 Apr 2025',
     status: 'Follow-up',
     statusClass: 'follow-up',
-    initials: 'AN',
+    avatarColor: '#8b5cf6',
   },
 ];
 
@@ -88,8 +88,12 @@ export default function RecentPatientsTable({ onViewPatient }) {
               <tr key={p.id}>
                 <td style={{ fontWeight: 600, color: '#475569' }}>{p.id}</td>
                 <td>
-                  <div className="patient-cell-name">
-                    <span className="patient-mini-avatar">{p.initials}</span>
+                  <div className="patient-name-col">
+                    <div className="patient-avatar-thumb" style={{ backgroundColor: '#e0f2fe' }}>
+                      <svg viewBox="0 0 24 24" fill={p.avatarColor} style={{ width: '18px', height: '18px' }}>
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
+                    </div>
                     <span>{p.name}</span>
                   </div>
                 </td>
@@ -97,12 +101,12 @@ export default function RecentPatientsTable({ onViewPatient }) {
                 <td>{p.village}</td>
                 <td style={{ color: '#64748b' }}>{p.date}</td>
                 <td>
-                  <span className={`status-badge ${p.statusClass}`}>{p.status}</span>
+                  <span className={`status-pill ${p.statusClass}`}>{p.status}</span>
                 </td>
                 <td>
                   <button
                     type="button"
-                    className="action-dots"
+                    className="action-dots-btn"
                     aria-label="Patient options"
                     onClick={() => onViewPatient && onViewPatient(p)}
                   >

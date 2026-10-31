@@ -229,3 +229,4 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
     </div>
   );
 }
+

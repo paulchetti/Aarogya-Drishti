@@ -11,21 +11,10 @@ import PatientModal from './PatientModal';
 import ScreeningModal from './ScreeningModal';
 import '../../styles/dashboard.css';
 
-export default function DashboardView({ onLogout, onToast }) {
+export default function DashboardView({ onToast }) {
   const [activeNav, setActiveNav] = useState('Dashboard');
-  const [lang, setLang] = useState('EN');
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
-
-  const handleToggleLang = () => {
-    const nextLang = lang === 'EN' ? 'TE' : 'EN';
-    setLang(nextLang);
-    onToast(
-      nextLang === 'TE'
-        ? 'భాష తెలుగుకు మార్చబడింది (ITDA Paderu Tribal Health Mode)'
-        : 'Language switched to English'
-    );
-  };
 
   const handleNavSelect = (navName) => {
     setActiveNav(navName);
@@ -33,8 +22,8 @@ export default function DashboardView({ onLogout, onToast }) {
       setIsPatientModalOpen(true);
     } else if (navName === 'Oral Screening') {
       setIsScreeningModalOpen(true);
-    } else {
-      onToast(`Navigated to ${navName}`);
+    } else if (onToast) {
+      onToast(`Viewing ${navName}`);
     }
   };
 
@@ -47,19 +36,19 @@ export default function DashboardView({ onLogout, onToast }) {
         setIsScreeningModalOpen(true);
         break;
       case 'view-referrals':
-        onToast('Opening Specialist Referral Queue for ITDA Paderu District Hospital...');
+        if (onToast) onToast('Opening Specialist Referral Queue for Paderu District Hospital...');
         break;
       case 'check-appointments':
-        onToast('Viewing upcoming Telemedicine & In-person clinic appointments...');
+        if (onToast) onToast('Loading Upcoming Telemedicine & Clinic Appointments...');
         break;
       case 'ai-analysis':
         setIsScreeningModalOpen(true);
         break;
       case 'reports':
-        onToast('Generating District Health & Screening Overview Report (PDF/Excel)...');
+        if (onToast) onToast('Exporting Screening & Lesion Analysis Report (PDF/Excel)...');
         break;
       case 'help':
-        onToast('Connecting to ITDA Paderu Tele-oncology Support Helpline...');
+        if (onToast) onToast('Aarogya Drishti Helpline: 1800-425-4252 (ITDA Paderu Cell)');
         break;
       default:
         break;
@@ -67,26 +56,21 @@ export default function DashboardView({ onLogout, onToast }) {
   };
 
   const handlePatientSaved = (patient) => {
-    onToast(`Patient ${patient.name} (${patient.id}) registered successfully!`);
+    if (onToast) onToast(`Patient ${patient.name} (${patient.id}) registered successfully!`);
   };
 
   const handleScreeningComplete = (action) => {
     if (action === 'refer') {
-      onToast('Urgent Specialist Referral dispatched to Paderu Area Hospital!');
+      if (onToast) onToast('Urgent Specialist Referral dispatched to Paderu Area Hospital!');
     } else {
-      onToast('Screening documented. Follow-up logged in 30 days.');
+      if (onToast) onToast('Routine Follow-up scheduled in 30 days.');
     }
   };
 
   return (
     <div className="dashboard-root">
       {/* Top Navbar */}
-      <DashboardNavbar
-        lang={lang}
-        onToggleLang={handleToggleLang}
-        onLogout={onLogout}
-        notificationCount={3}
-      />
+      <DashboardNavbar notificationCount={3} />
 
       {/* Main Body Grid */}
       <div className="dash-main-layout">
@@ -96,13 +80,13 @@ export default function DashboardView({ onLogout, onToast }) {
         {/* Central Canvas Area */}
         <main className="dash-content-canvas">
           <div className="dash-center-col">
-            {/* Welcome Banner */}
+            {/* Welcome Banner with Doctor & Dental Examination Background */}
             <WelcomeBanner doctorName="Dr. Sandeep Kumar" />
 
-            {/* 4 Stat Metric Cards */}
+            {/* 4 Stat Metric Cards with Exact Bottom Colored Lines */}
             <StatCards />
 
-            {/* Middle 2 Charts */}
+            {/* Middle 2 Charts (Screening Overview + Lesion Types) */}
             <div className="charts-dual-row">
               <ScreeningChart />
               <LesionDonutChart />
@@ -111,8 +95,8 @@ export default function DashboardView({ onLogout, onToast }) {
             {/* Recent Patients Table */}
             <RecentPatientsTable
               onViewPatient={(p) => {
-                if (p) onToast(`Viewing clinical record for ${p.name} (${p.id})`);
-                else onToast('Opening complete longitudinal patient directory...');
+                if (p && onToast) onToast(`Opening records for ${p.name} (${p.id})`);
+                else if (onToast) onToast('Viewing all longitudinal records...');
               }}
             />
           </div>
@@ -122,15 +106,18 @@ export default function DashboardView({ onLogout, onToast }) {
         </main>
       </div>
 
-      {/* Footer */}
+      {/* Footer with Bottom-Left Orange Wave and Copyright */}
       <footer className="dash-bottom-footer">
-        <div>
-          <strong>AAROGYA DRISHTI</strong> | AI Assisted Oral Health Screening Platform
+        <div className="footer-swoosh" />
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <strong>AAROGYA DRISHTI</strong> &nbsp;|&nbsp; AI Assisted Oral Health Screening Platform
         </div>
-        <div>© 2025 AAROGYA DRISHTI. All rights reserved.</div>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          © 2025 AAROGYA DRISHTI. All rights reserved.
+        </div>
       </footer>
 
-      {/* Modals */}
+      {/* Modals for actions */}
       <PatientModal
         isOpen={isPatientModalOpen}
         onClose={() => setIsPatientModalOpen(false)}
