@@ -3,7 +3,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import AuthCard from './components/AuthCard';
 import Toast from './components/Toast';
-import DashboardLayout from './components/dashboard/DashboardLayout';
+import DashboardLayout from './components/clinical/DashboardLayout';
 import PatientPortalLayout from './components/patient/PatientPortalLayout';
 
 export default function App() {

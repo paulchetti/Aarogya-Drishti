@@ -12,11 +12,11 @@ import {
   ShieldCheck,
   Activity
 } from 'lucide-react';
-import PatientIntakeView from '../dashboard/PatientIntakeView';
-import EHRHistoryView from '../dashboard/EHRHistoryView';
-import ScheduledConsultationsView from '../dashboard/ScheduledConsultationsView';
-import ClinicalQuestionnaireView from '../dashboard/ClinicalQuestionnaireView';
-import TeleconsultationSuite from '../dashboard/TeleconsultationSuite';
+import PatientIntakeView from '../clinical/PatientIntakeView';
+import EHRHistoryView from '../clinical/EHRHistoryView';
+import ScheduledConsultationsView from '../clinical/ScheduledConsultationsView';
+import ClinicalQuestionnaireView from '../clinical/ClinicalQuestionnaireView';
+import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
 export default function PatientPortalLayout({
   user,
@@ -268,4 +268,3 @@ export default function PatientPortalLayout({
     </div>
   );
 }
-
