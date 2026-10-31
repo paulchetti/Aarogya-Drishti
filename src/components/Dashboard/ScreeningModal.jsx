@@ -5,84 +5,154 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
   const [step, setStep] = useState(1); // 1: Camera Capture, 2: Triage Assessment
   const [analyzing, setAnalyzing] = useState(false);
 
-  // Camera state
+  // Device & Stream state
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const [stream, setStream] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
   const [cameraError, setCameraError] = useState(null);
-  const [facingMode, setFacingMode] = useState('environment'); // 'environment' (back) or 'user' (front)
+  const [videoReady, setVideoReady] = useState(false);
+  const [facingMode, setFacingMode] = useState(isMobile ? 'environment' : 'user');
+  const [availableDevices, setAvailableDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
+
+  // Capture & Quality states
   const [capturedImage, setCapturedImage] = useState(null);
-  const [qualityStats, setQualityStats] = useState({ lighting: 'Good', blur: 'Low', glare: 'Controlled' });
+  const [darkCaptureWarning, setDarkCaptureWarning] = useState(false);
+  const [qualityStats, setQualityStats] = useState({
+    lighting: 'Optimal',
+    blur: 'Clear Focus',
+    glare: 'Controlled',
+    brightness: 72,
+  });
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
-  // Stop camera tracks cleanly
+  // Stop all camera tracks cleanly
   const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     setCameraActive(false);
+    setVideoReady(false);
   };
 
-  // Start real camera access
-  const startCamera = async (mode = facingMode) => {
+  // Enumerate all video input devices (reveals labels after permission is granted)
+  const refreshDevices = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+      setAvailableDevices(videoInputs);
+
+      // Auto-select first non-IR color webcam if available
+      if (videoInputs.length > 0 && !selectedDeviceId) {
+        const preferred =
+          videoInputs.find((d) => {
+            const lbl = (d.label || '').toLowerCase();
+            return !lbl.includes('ir') && !lbl.includes('virtual') && !lbl.includes('depth');
+          }) || videoInputs[0];
+        setSelectedDeviceId(preferred.deviceId);
+      }
+    } catch (err) {
+      console.warn('Unable to enumerate media devices:', err);
+    }
+  };
+
+  // Start camera with chosen device or constraints
+  const startCamera = async (deviceId = selectedDeviceId, mode = facingMode) => {
     stopCamera();
+    setCameraLoading(true);
     setCameraError(null);
+    setVideoReady(false);
+    setDarkCaptureWarning(false);
 
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not supported in this browser environment.');
+        throw new Error('Camera access is not supported by your browser.');
       }
 
-      const constraints = {
-        video: {
+      let constraints = { audio: false };
+      if (deviceId) {
+        constraints.video = {
+          deviceId: { exact: deviceId },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        };
+      } else {
+        constraints.video = {
           facingMode: mode,
           width: { ideal: 1280 },
           height: { ideal: 720 },
-        },
-        audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
         };
       }
-      setCameraActive(true);
-    } catch (err) {
-      console.warn('Camera access error:', err);
-      // Try fallback to any video source if environment camera fails
-      if (mode === 'environment') {
-        try {
-          const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-          streamRef.current = fallbackStream;
-          if (videoRef.current) {
-            videoRef.current.srcObject = fallbackStream;
-            videoRef.current.onloadedmetadata = () => {
-              videoRef.current.play();
-            };
-          }
-          setCameraActive(true);
-          return;
-        } catch (fallbackErr) {
-          setCameraError(fallbackErr.message || 'Camera permission denied or camera not found.');
-        }
-      } else {
-        setCameraError(err.message || 'Camera permission denied or camera not found.');
+
+      let mediaStream = null;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err1) {
+        console.warn('Initial camera constraint failed, attempting basic fallback:', err1);
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
       }
+
+      setStream(mediaStream);
+      setCameraActive(true);
+      setCameraLoading(false);
+
+      // Refresh devices list so actual hardware labels appear
+      refreshDevices();
+    } catch (err) {
+      console.error('Camera stream access failed:', err);
+      setCameraError(
+        err.message || 'Unable to access camera. Please check permissions or camera privacy shutter.'
+      );
       setCameraActive(false);
+      setCameraLoading(false);
     }
   };
 
-  // Launch camera when modal opens
+  // Bind stream to video element whenever stream changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (stream) {
+      video.srcObject = stream;
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('muted', '');
+      video.setAttribute('playsinline', '');
+      video.setAttribute('autoplay', '');
+
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+              setVideoReady(true);
+            }
+          })
+          .catch((err) => {
+            console.warn('Video play interrupted:', err);
+          });
+      }
+    } else {
+      video.srcObject = null;
+    }
+  }, [stream]);
+
+  // Manage camera on modal open/close
   useEffect(() => {
     if (isOpen && step === 1 && !capturedImage) {
-      startCamera();
+      startCamera(selectedDeviceId, facingMode);
     } else {
       stopCamera();
     }
@@ -92,64 +162,131 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
     };
   }, [isOpen, step, capturedImage]);
 
-  // Toggle front/back camera
-  const toggleFacingMode = () => {
-    const newMode = facingMode === 'environment' ? 'user' : 'environment';
-    setFacingMode(newMode);
-    startCamera(newMode);
+  // Cycle between available cameras or flip mode
+  const handleSwitchCamera = () => {
+    if (availableDevices.length > 1) {
+      const currentIndex = availableDevices.findIndex((d) => d.deviceId === selectedDeviceId);
+      const nextIndex = (currentIndex + 1) % availableDevices.length;
+      const nextDevice = availableDevices[nextIndex];
+      setSelectedDeviceId(nextDevice.deviceId);
+      startCamera(nextDevice.deviceId, facingMode);
+    } else {
+      const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+      setFacingMode(nextMode);
+      startCamera(null, nextMode);
+    }
   };
 
-  // Capture current video frame
+  // Capture photo from live video with rigorous frame validation
   const captureFrame = () => {
-    if (!videoRef.current || !canvasRef.current) return;
-
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
 
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    if (!video || !canvas) return;
 
-    // Simple luminance calculation to verify lighting quality
-    try {
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      let totalLuminance = 0;
-      for (let i = 0; i < imgData.data.length; i += 4) {
-        // formula: 0.299*R + 0.587*G + 0.114*B
-        totalLuminance += 0.299 * imgData.data[i] + 0.587 * imgData.data[i + 1] + 0.114 * imgData.data[i + 2];
-      }
-      const avgLuminance = totalLuminance / (imgData.data.length / 4);
-      setQualityStats({
-        lighting: avgLuminance > 60 ? 'Optimal' : 'Low Light',
-        blur: 'Clear Focus',
-        glare: 'Controlled',
-      });
-    } catch {
-      // ignore security issues with cors
+    // Strict validation: video must be playing and have real frame dimensions
+    if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+      alert('Camera feed is still initializing. Please wait a moment for the feed to display.');
+      return;
     }
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+
+    // Mirror user-facing camera for natural preview
+    if (facingMode === 'user' && !selectedDeviceId) {
+      ctx.translate(width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0, width, height);
+
+    // Analyze captured image brightness across pixel samples
+    let avgBrightness = 50;
+    try {
+      const sampleWidth = Math.min(width, 240);
+      const sampleHeight = Math.min(height, 180);
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = sampleWidth;
+      sampleCanvas.height = sampleHeight;
+      const sCtx = sampleCanvas.getContext('2d');
+      sCtx.drawImage(video, 0, 0, sampleWidth, sampleHeight);
+      const imgData = sCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+
+      let sum = 0;
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 16) {
+        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+      avgBrightness = sum / (data.length / 16);
+    } catch (err) {
+      console.warn('Brightness calculation error:', err);
+    }
+
+    const isTooDark = avgBrightness < 12;
+
+    setQualityStats({
+      lighting: avgBrightness > 45 ? 'Optimal' : isTooDark ? 'Dark / Obstructed' : 'Low Light',
+      blur: 'Clear Focus',
+      glare: 'Controlled',
+      brightness: Math.round(avgBrightness),
+    });
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
     setCapturedImage(dataUrl);
+
+    // If frame is black, alert user so they know why
+    if (isTooDark) {
+      setDarkCaptureWarning(true);
+    } else {
+      setDarkCaptureWarning(false);
+    }
+
     stopCamera();
   };
 
-  // File upload fallback
+  // File upload from device
   const handleFileUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
         setCapturedImage(event.target.result);
+        setDarkCaptureWarning(false);
+        setQualityStats({
+          lighting: 'Optimal',
+          blur: 'Clear Focus',
+          glare: 'Controlled',
+          brightness: 68,
+        });
         stopCamera();
       };
       reader.readAsDataURL(file);
     }
   };
 
+  // Load high-resolution pre-bundled clinical sample photos
+  const handleLoadSample = (sampleFilename, siteName = 'Buccal Mucosa (Cheek)') => {
+    setSelectedSite(siteName);
+    setCapturedImage(`/samples/${sampleFilename}`);
+    setDarkCaptureWarning(false);
+    setQualityStats({
+      lighting: 'Optimal',
+      blur: 'Clear Focus',
+      glare: 'Controlled',
+      brightness: 75,
+    });
+    stopCamera();
+  };
+
   const handleRetake = () => {
     setCapturedImage(null);
-    startCamera();
+    setDarkCaptureWarning(false);
+    startCamera(selectedDeviceId, facingMode);
   };
 
   const handleStartAnalysis = () => {
@@ -161,9 +298,10 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
   };
 
   const handleFinish = (action) => {
-    onComplete(action);
+    if (onComplete) onComplete(action);
     setStep(1);
     setCapturedImage(null);
+    setDarkCaptureWarning(false);
     stopCamera();
     onClose();
   };
@@ -171,6 +309,7 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
   const handleModalClose = () => {
     stopCamera();
     setCapturedImage(null);
+    setDarkCaptureWarning(false);
     setStep(1);
     onClose();
   };
@@ -179,8 +318,8 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
 
   return (
     <div className="dash-modal-backdrop" onClick={handleModalClose}>
-      <div className="dash-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
-        {/* Header */}
+      <div className="dash-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px' }}>
+        {/* Modal Header */}
         <div className="dash-modal-header">
           <div>
             <h2>Diagnostic & Triage Assessment</h2>
@@ -193,16 +332,56 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
           </button>
         </div>
 
-        {/* Hidden canvas for frame capture */}
+        {/* Hidden Canvas for High-Resolution Capture */}
         <canvas ref={canvasRef} style={{ display: 'none' }} />
 
         {step === 1 ? (
           <div>
             {/* Body Site Selection */}
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
-                Select Body Site for Examination:
-              </label>
+            <div style={{ marginBottom: '10px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '6px',
+                }}
+              >
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
+                  Select Body Site for Examination:
+                </label>
+
+                {/* Camera Selector Dropdown if multiple devices found */}
+                {availableDevices.length > 1 && !capturedImage && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Camera:</span>
+                    <select
+                      value={selectedDeviceId}
+                      onChange={(e) => {
+                        setSelectedDeviceId(e.target.value);
+                        startCamera(e.target.value);
+                      }}
+                      style={{
+                        padding: '2px 6px',
+                        borderRadius: '6px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '10.5px',
+                        background: 'white',
+                        color: '#0f172a',
+                        fontWeight: 600,
+                        maxWidth: '180px',
+                      }}
+                    >
+                      {availableDevices.map((d, idx) => (
+                        <option key={d.deviceId || idx} value={d.deviceId}>
+                          {d.label || `Camera ${idx + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {[
                   'Buccal Mucosa (Cheek)',
@@ -232,12 +411,69 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
               </div>
             </div>
 
-            {/* REAL CAMERA FEED / CAPTURED PREVIEW CONTAINER */}
+            {/* DARK / BLACK CAPTURE WARNING BANNER */}
+            {darkCaptureWarning && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1.5px solid #f87171',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                  marginBottom: '10px',
+                  color: '#991b1b',
+                  fontSize: '11.5px',
+                  lineHeight: 1.45,
+                }}
+              >
+                <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>⚠️ Camera Captured A Dark / Black Image</span>
+                </div>
+                <div style={{ color: '#7f1d1d', fontSize: '11px' }}>
+                  If your laptop has a webcam slider/shutter, please slide it open, or switch from an IR sensor to a color camera. You can also load an instant clinical sample photo below:
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={handleRetake}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #dc2626',
+                      background: 'white',
+                      color: '#b91c1c',
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🔄 Retake / Re-open Camera
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleLoadSample('sample_buccal.jpg', selectedSite)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: '#0d9488',
+                      color: 'white',
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    📸 Use Clinical Oral Sample
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* VIEWFINDER CONTAINER */}
             <div
               style={{
                 width: '100%',
-                height: '280px',
-                background: '#091319',
+                height: '290px',
+                background: '#071217',
                 borderRadius: '14px',
                 position: 'relative',
                 display: 'flex',
@@ -247,39 +483,85 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                 boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)',
               }}
             >
-              {capturedImage ? (
-                /* Captured Frame Preview */
-                <img
-                  src={capturedImage}
-                  alt="Captured oral examination"
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-              ) : cameraActive ? (
-                /* Live WebRTC Video Stream */
-                <>
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
-                    }}
-                  />
+              {/* 1. PERMANENTLY MOUNTED HTML5 VIDEO TAG */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                onLoadedMetadata={() => {
+                  if (videoRef.current && videoRef.current.videoWidth > 0) {
+                    setVideoReady(true);
+                  }
+                }}
+                onLoadedData={() => {
+                  if (videoRef.current && videoRef.current.videoWidth > 0) {
+                    setVideoReady(true);
+                  }
+                }}
+                onPlaying={() => {
+                  if (videoRef.current && videoRef.current.videoWidth > 0) {
+                    setVideoReady(true);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: capturedImage ? 'none' : cameraActive ? 'block' : 'none',
+                  transform: facingMode === 'user' && !selectedDeviceId ? 'scaleX(-1)' : 'none',
+                }}
+              />
 
-                  {/* Clinical Framing Overlay Guide */}
+              {/* 2. CAPTURED PHOTO PREVIEW */}
+              {capturedImage && (
+                <div
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: '#0a0f12',
+                  }}
+                >
+                  <img
+                    src={capturedImage}
+                    alt="Captured oral examination"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
                   <div
                     style={{
                       position: 'absolute',
-                      width: '200px',
-                      height: '160px',
-                      border: '2px dashed #0d9488',
-                      borderRadius: '16px',
+                      top: '12px',
+                      left: '12px',
+                      background: 'rgba(13, 148, 136, 0.9)',
+                      color: 'white',
+                      padding: '3px 10px',
+                      borderRadius: '12px',
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      backdropFilter: 'blur(4px)',
+                    }}
+                  >
+                    ✓ Photo Captured ({selectedSite})
+                  </div>
+                </div>
+              )}
+
+              {/* 3. FRAMING GUIDE OVERLAY (VISIBLE DURING LIVE STREAM) */}
+              {!capturedImage && cameraActive && videoReady && (
+                <>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      width: '210px',
+                      height: '170px',
+                      border: '2.5px dashed #0d9488',
+                      borderRadius: '18px',
                       pointerEvents: 'none',
-                      boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.45)',
+                      boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.38)',
                       display: 'flex',
                       alignItems: 'flex-start',
                       justifyContent: 'center',
@@ -288,7 +570,7 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                   >
                     <span
                       style={{
-                        background: 'rgba(13, 148, 136, 0.85)',
+                        background: '#0d9488',
                         color: 'white',
                         padding: '2px 8px',
                         borderRadius: '10px',
@@ -301,10 +583,31 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                     </span>
                   </div>
 
-                  {/* Switch Camera Button (Front/Back) */}
+                  {/* Top Status Bar: Live Status & Switch Button */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      color: '#4ade80',
+                      borderRadius: '12px',
+                      padding: '3px 10px',
+                      fontSize: '10.5px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      backdropFilter: 'blur(4px)',
+                    }}
+                  >
+                    <span style={{ fontSize: '9px' }}>🟢</span> LIVE FEED
+                  </div>
+
+                  {/* Camera Switch / Flip Button */}
                   <button
                     type="button"
-                    onClick={toggleFacingMode}
+                    onClick={handleSwitchCamera}
                     style={{
                       position: 'absolute',
                       top: '12px',
@@ -323,25 +626,50 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                       zIndex: 10,
                     }}
                   >
-                    🔄 Flip Camera
+                    🔄 Switch Camera
                   </button>
                 </>
-              ) : (
-                /* Camera Error / Permission Request View */
-                <div style={{ textAlign: 'center', color: '#cbd5e1', padding: '20px' }}>
-                  <div style={{ fontSize: '36px', marginBottom: '8px' }}>📷</div>
+              )}
+
+              {/* 4. CAMERA INITIALIZING / ERROR FALLBACK */}
+              {!capturedImage && (!cameraActive || cameraLoading || !videoReady) && (
+                <div style={{ textAlign: 'center', color: '#cbd5e1', padding: '20px', zIndex: 5 }}>
+                  <div style={{ fontSize: '38px', marginBottom: '8px' }}>📸</div>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>
-                    {cameraError ? 'Camera Access Required' : 'Initializing Clinical Camera...'}
+                    {cameraLoading
+                      ? 'Connecting to Clinical Camera...'
+                      : cameraError
+                      ? 'Camera Access Notice'
+                      : 'Connecting to Clinical Camera...'}
                   </div>
-                  <p style={{ fontSize: '11px', color: '#94a3b8', maxWidth: '300px', margin: '0 auto 14px' }}>
-                    {cameraError || 'Please allow browser camera permissions to capture diagnostic oral views.'}
+                  <p style={{ fontSize: '11px', color: '#94a3b8', maxWidth: '340px', margin: '0 auto 14px', lineHeight: 1.4 }}>
+                    {cameraError ||
+                      'If camera is black, check your laptop privacy slider, allow permissions, or test with sample photos below.'}
                   </p>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
-                      onClick={() => startCamera(facingMode)}
+                      onClick={() => startCamera(selectedDeviceId, facingMode)}
                       style={{
                         background: '#0d9488',
+                        color: 'white',
+                        border: 'none',
+                        padding: '7px 16px',
+                        borderRadius: '8px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)',
+                      }}
+                    >
+                      Allow / Start Camera
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadSample('sample_buccal.jpg')}
+                      style={{
+                        background: '#ea580c',
                         color: 'white',
                         border: 'none',
                         padding: '7px 14px',
@@ -351,22 +679,8 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                         cursor: 'pointer',
                       }}
                     >
-                      Grant Camera Access
+                      Use Sample Oral Photo
                     </button>
-                    <label
-                      style={{
-                        background: '#334155',
-                        color: 'white',
-                        padding: '7px 14px',
-                        borderRadius: '8px',
-                        fontSize: '11.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Upload Image File
-                      <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-                    </label>
                   </div>
                 </div>
               )}
@@ -382,21 +696,102 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                   justifyContent: 'space-between',
                   fontSize: '10px',
                   color: '#94a3b8',
-                  background: 'rgba(15, 23, 42, 0.75)',
+                  background: 'rgba(15, 23, 42, 0.85)',
                   padding: '4px 10px',
                   borderRadius: '6px',
                   zIndex: 10,
                 }}
               >
-                <span style={{ color: '#4ade80' }}>✓ Lighting: {qualityStats.lighting}</span>
+                <span
+                  style={{
+                    color:
+                      qualityStats.lighting === 'Optimal'
+                        ? '#4ade80'
+                        : qualityStats.lighting === 'Low Light'
+                        ? '#facc15'
+                        : '#f87171',
+                  }}
+                >
+                  ✓ Lighting: {qualityStats.lighting}
+                </span>
                 <span style={{ color: '#4ade80' }}>✓ Focus: {qualityStats.blur}</span>
                 <span style={{ color: '#4ade80' }}>✓ Glare: {qualityStats.glare}</span>
               </div>
             </div>
 
-            {/* Camera Actions Bar */}
+            {/* Quick Presets: 3 Realistic Clinical Demonstration Photos */}
+            <div
+              style={{
+                marginTop: '10px',
+                padding: '8px 10px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
+                Quick Test Samples:
+              </span>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => handleLoadSample('sample_buccal.jpg', 'Buccal Mucosa (Cheek)')}
+                  style={{
+                    background: '#e0f2fe',
+                    color: '#0369a1',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '10.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  📸 Buccal Leukoplakia
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLoadSample('sample_tongue.jpg', 'Lateral Tongue')}
+                  style={{
+                    background: '#fef3c7',
+                    color: '#b45309',
+                    border: '1px solid #fde68a',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '10.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  📸 Lateral Tongue Red Patch
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLoadSample('sample_normal.jpg', 'Gingiva / Gums')}
+                  style={{
+                    background: '#f0fdf4',
+                    color: '#15803d',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '10.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  📸 Normal Oral Mucosa
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Controls */}
             <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <label
                   style={{
                     fontSize: '11px',
@@ -454,19 +849,20 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                   <button
                     type="button"
                     onClick={captureFrame}
-                    disabled={!cameraActive}
+                    disabled={!cameraActive || !videoReady}
                     style={{
                       padding: '9px 22px',
                       borderRadius: '8px',
                       border: 'none',
-                      background: cameraActive
-                        ? 'linear-gradient(100deg, #f97316 0%, #ea580c 100%)'
-                        : '#94a3b8',
+                      background:
+                        cameraActive && videoReady
+                          ? 'linear-gradient(100deg, #f97316 0%, #ea580c 100%)'
+                          : '#94a3b8',
                       color: 'white',
                       fontWeight: 700,
                       fontSize: '12.5px',
-                      cursor: cameraActive ? 'pointer' : 'not-allowed',
-                      boxShadow: cameraActive ? '0 3px 10px rgba(234, 88, 12, 0.3)' : 'none',
+                      cursor: cameraActive && videoReady ? 'pointer' : 'not-allowed',
+                      boxShadow: cameraActive && videoReady ? '0 3px 10px rgba(234, 88, 12, 0.3)' : 'none',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -516,7 +912,7 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                 </div>
                 <div
                   style={{
-                    height: '140px',
+                    height: '160px',
                     borderRadius: '8px',
                     overflow: 'hidden',
                     position: 'relative',
@@ -530,12 +926,13 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                     <img
                       src={capturedImage}
                       alt="Captured examination"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   ) : (
                     <span style={{ color: '#94a3b8', fontSize: '12px' }}>Oral Photo</span>
                   )}
-                  {/* Bounding box localization indicator */}
+
+                  {/* Bounding box localization indicator for suspicious finding */}
                   <div
                     style={{
                       position: 'absolute',
@@ -605,6 +1002,19 @@ export default function ScreeningModal({ isOpen, onClose, onComplete }) {
                   <div style={{ fontSize: '10.5px', color: '#14532d', marginTop: '2px' }}>
                     Designated Hospital: ITDA Paderu Area Hospital Oncology Unit
                   </div>
+                </div>
+
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '6px 10px',
+                    fontSize: '10px',
+                    color: '#64748b',
+                  }}
+                >
+                  Model: Mobile Oral Triage v1.4 (Research/Demonstration - Not for final clinical diagnosis)
                 </div>
               </div>
             </div>
