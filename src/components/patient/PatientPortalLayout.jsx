@@ -7,7 +7,6 @@ import {
   ClipboardList,
   Video,
   ArrowLeft,
-  LayoutDashboard,
   LogOut,
   ShieldCheck,
   Activity
@@ -52,7 +51,7 @@ export default function PatientPortalLayout({
             style={{ cursor: 'pointer' }}
           >
             <img
-              src="/aarogya-logo.jpg"
+              src="/logo.png"
               alt="Aarogya Drishti Official Logo"
               className="patient-logo-img"
             />
@@ -64,7 +63,7 @@ export default function PatientPortalLayout({
             onClick={() => setActiveModule(null)}
             style={{ cursor: 'pointer' }}
           >
-            <span className="patient-brand-title">Arogya Drishti</span>
+            <span className="patient-brand-title">Arogya <b>Drishti</b></span>
             <span className="patient-brand-sub">Citizen Care Portal</span>
           </div>
         </div>
@@ -86,18 +85,6 @@ export default function PatientPortalLayout({
             </div>
           </div>
 
-          {/* Switch to Doctor Dashboard Button */}
-          {onSwitchToDoctorDashboard && (
-            <button
-              className="patient-action-pill-btn"
-              onClick={onSwitchToDoctorDashboard}
-              title="Switch to Doctor & Clinical Dashboard"
-            >
-              <LayoutDashboard size={16} />
-              <span>Doctor View</span>
-            </button>
-          )}
-
           {/* Logout */}
           <button
             className="patient-logout-btn"
@@ -118,7 +105,9 @@ export default function PatientPortalLayout({
         {!activeModule && (
           <div>
             <div className="patient-portal-hero-title">
-              <Activity size={22} color="#7ee787" />
+              <span className="patient-hero-pulse-badge">
+                <Activity size={20} />
+              </span>
               <span>Select an Aarogya Drishti citizen healthcare service:</span>
             </div>
 
@@ -127,11 +116,11 @@ export default function PatientPortalLayout({
               <div className="patient-cards-row-1">
                 {/* 1. Patient Intake & Registration */}
                 <div
-                  className="patient-feature-card"
+                  className="patient-feature-card card-intake"
                   onClick={() => setActiveModule('intake')}
                 >
-                  <div className="patient-card-icon-badge">
-                    <UserPlus size={22} />
+                  <div className="patient-card-icon-badge badge-intake">
+                    <UserPlus size={24} />
                   </div>
                   <div className="patient-card-text">
                     Patient Intake &<br />Registration
@@ -143,11 +132,11 @@ export default function PatientPortalLayout({
 
                 {/* 2. EHR History & Active */}
                 <div
-                  className="patient-feature-card"
+                  className="patient-feature-card card-ehr"
                   onClick={() => setActiveModule('ehr')}
                 >
-                  <div className="patient-card-icon-badge">
-                    <FileText size={22} />
+                  <div className="patient-card-icon-badge badge-ehr">
+                    <FileText size={24} />
                   </div>
                   <div className="patient-card-text">
                     EHR History &<br />Active Prescriptions
@@ -159,11 +148,11 @@ export default function PatientPortalLayout({
 
                 {/* 3. Scheduled Consultations */}
                 <div
-                  className="patient-feature-card"
+                  className="patient-feature-card card-consult"
                   onClick={() => setActiveModule('consultations')}
                 >
-                  <div className="patient-card-icon-badge">
-                    <CalendarCheck size={22} />
+                  <div className="patient-card-icon-badge badge-consult">
+                    <CalendarCheck size={24} />
                   </div>
                   <div className="patient-card-text">
                     Scheduled<br />Consultations
@@ -178,11 +167,11 @@ export default function PatientPortalLayout({
               <div className="patient-cards-row-2">
                 {/* 4. Clinical Intake Questionnaire & */}
                 <div
-                  className="patient-feature-card"
+                  className="patient-feature-card card-questionnaire"
                   onClick={() => setActiveModule('questionnaire')}
                 >
-                  <div className="patient-card-icon-badge">
-                    <ClipboardList size={22} />
+                  <div className="patient-card-icon-badge badge-questionnaire">
+                    <ClipboardList size={24} />
                   </div>
                   <div className="patient-card-text">
                     Clinical Intake<br />Questionnaire & Triage
@@ -194,14 +183,11 @@ export default function PatientPortalLayout({
 
                 {/* 5. Tele consult suite */}
                 <div
-                  className="patient-feature-card"
+                  className="patient-feature-card card-teleconsult"
                   onClick={() => setActiveModule('teleconsult')}
                 >
-                  <div
-                    className="patient-card-icon-badge"
-                    style={{ background: 'rgba(239, 68, 68, 0.25)', color: '#f87171' }}
-                  >
-                    <Video size={22} />
+                  <div className="patient-card-icon-badge badge-teleconsult">
+                    <Video size={24} />
                   </div>
                   <div className="patient-card-text">
                     Tele consult<br />suite
