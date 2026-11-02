@@ -56,7 +56,7 @@ html, body {
   width: min(580px, 55vw);
   max-height: 75vh;
   object-fit: contain;
-  opacity: 0.055;
+  opacity: 0.085;
   filter: contrast(115%);
   user-select: none;
   transform: translateY(20px);
