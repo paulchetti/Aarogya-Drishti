@@ -1,87 +1,99 @@
 /* ==========================================================================
    AAROGYA DRISHTI - CITIZEN / PATIENT PORTAL LAYOUT
    Theme: Exact Match to Reference Mockup (media_1793610387966_55a8bc74.jpg)
-   - Background: Soft blue-grey canvas with authentic curved swooshes,
-     cyan halftone dots, realistic 3D stethoscope, and bottom orange/navy waves.
-   - Topbar: Floating white pill header with Aarogya Drishti circular logo,
-     bicolor brand title, Citizen Rahul capsule, and soft pink Logout button.
+   - Background: Pure vector SVGs & clean transparent assets.
+     ZERO ghost boxes, ZERO rectangular seams, ZERO stretched artifacts.
+   - Topbar: Floating white pill header with Aarogya Drishti logo,
+     bicolor brand typography, Citizen Rahul capsule, and soft pink Logout.
    - Banner: Royal blue gradient pill with pulse activity badge.
-   - 5 Feature Cards: 3x2 grid with open bottom-right quadrant for stethoscope.
-   - High-fidelity typography, smooth hover physics, and zero artifacts.
+   - 5 Feature Cards: 3x2 grid with dedicated transparent stethoscope slot.
    ========================================================================== */
 
 :root {
-  --portal-canvas-bg: #edf3fa;
+  --portal-canvas-bg: #f0f4fa;
   --portal-text-navy: #0b2545;
   --portal-text-dark: #0f172a;
   --portal-text-muted: #64748b;
   --portal-brand-orange: #ff7a00;
   --portal-brand-blue: #0052cc;
   --portal-card-border: rgba(226, 234, 245, 0.95);
-  --portal-card-shadow: 0 8px 24px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
-  --portal-card-shadow-hover: 0 16px 36px rgba(15, 23, 42, 0.09), 0 4px 10px rgba(15, 23, 42, 0.03);
+  --portal-card-shadow: 0 10px 28px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --portal-card-shadow-hover: 0 18px 40px rgba(15, 23, 42, 0.09), 0 4px 12px rgba(15, 23, 42, 0.03);
 }
 
 /* --------------------------------------------------------------------------
-   ROOT CONTAINER
+   ROOT CONTAINER (Edge-to-Edge Clean Canvas)
    -------------------------------------------------------------------------- */
 .patient-portal-root {
   min-height: 100vh;
   width: 100%;
+  position: relative;
+  overflow-x: hidden;
   background:
-    radial-gradient(ellipse at 85% 0%, #e0edff 0%, transparent 50%),
-    radial-gradient(ellipse at 15% 100%, #ffe9d6 0%, transparent 45%),
-    linear-gradient(135deg, #eef4fb 0%, #edf3f9 50%, #e5ecf5 100%);
+    radial-gradient(ellipse at 85% 0%, #e0edff 0%, transparent 60%),
+    radial-gradient(ellipse at 15% 100%, #fff0e2 0%, transparent 50%),
+    linear-gradient(135deg, #eef4fb 0%, #edf3f9 50%, #e8f0f8 100%);
   background-attachment: fixed;
   color: var(--portal-text-dark);
   font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 24px 20px;
+  justify-content: flex-start;
+  padding: 16px 24px 60px;
   box-sizing: border-box;
 }
 
 /* --------------------------------------------------------------------------
-   DASHBOARD FRAME (Proportional Widescreen Container matching 1024x451)
+   BACKGROUND DECORATIVE VECTOR ELEMENTS (Seamless, Zero Crop Artifacts)
    -------------------------------------------------------------------------- */
-.patient-dashboard-frame {
-  position: relative;
-  width: min(1180px, 100%);
-  border-radius: 36px;
-  overflow: hidden;
-  background-color: #f3f6fa;
-  box-shadow:
-    0 24px 60px rgba(15, 23, 42, 0.09),
-    0 4px 18px rgba(15, 23, 42, 0.04),
-    inset 0 1px 1px #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  padding: 16px 34px 34px 34px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Authentic Backdrop Layer (Stethoscope, Swooshes, Waves, Dots) */
-.patient-art-backdrop {
+.portal-decor-top-left {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('/portal-backdrop-perfect.png') no-repeat center center;
-  background-size: cover;
+  width: clamp(200px, 22vw, 320px);
+  height: auto;
   pointer-events: none;
   z-index: 1;
+}
+
+.portal-decor-top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: clamp(160px, 18vw, 250px);
+  height: auto;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.portal-decor-bottom-waves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: clamp(100px, 16vh, 180px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN CONTENT CONTAINER
+   -------------------------------------------------------------------------- */
+.patient-content-container {
+  position: relative;
+  z-index: 10;
+  width: min(1220px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* --------------------------------------------------------------------------
    1. FLOATING WHITE PILL TOPBAR
    -------------------------------------------------------------------------- */
 .patient-topbar {
-  position: relative;
-  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -90,12 +102,12 @@
   padding: 8px 24px;
   min-height: 68px;
   box-shadow:
-    0 6px 22px rgba(15, 23, 42, 0.05),
+    0 8px 30px rgba(15, 23, 42, 0.05),
     0 1px 3px rgba(15, 23, 42, 0.03),
     inset 0 1px 1px #ffffff;
   border: 1px solid var(--portal-card-border);
   box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .patient-brand-group {
@@ -247,19 +259,17 @@
    2. ROYAL BLUE SERVICE SELECTION BANNER
    -------------------------------------------------------------------------- */
 .patient-service-banner {
-  position: relative;
-  z-index: 10;
   display: inline-flex;
   align-items: center;
   gap: 14px;
   background: linear-gradient(90deg, #003ea8 0%, #005ce6 55%, #0045bd 100%);
   border-radius: 50px;
   height: 48px;
-  padding: 0 22px 0 6px;
+  padding: 0 24px 0 6px;
   width: fit-content;
   max-width: 620px;
   box-shadow: 0 8px 24px rgba(0, 62, 168, 0.28);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .patient-banner-pulse-badge {
@@ -288,15 +298,13 @@
    3. 5 SERVICE ACTION CARDS GRID (3 Columns x 2 Rows)
    -------------------------------------------------------------------------- */
 .patient-cards-grid {
-  position: relative;
-  z-index: 10;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(2, minmax(102px, auto));
-  gap: 16px 18px;
+  grid-template-rows: repeat(2, minmax(104px, auto));
+  gap: 18px 20px;
 }
 
-/* Row & Column Explicit Mapping */
+/* Explicit Grid Coordinates */
 .patient-feature-card.card-intake {
   grid-column: 1;
   grid-row: 1;
@@ -322,14 +330,28 @@
   grid-row: 2;
 }
 
-.patient-grid-stethoscope-slot {
+/* Stethoscope Slot in Row 2, Column 3 */
+.patient-stethoscope-slot {
   grid-column: 3;
   grid-row: 2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
-  visibility: hidden;
 }
 
-/* Feature Card Cardboard */
+.patient-stethoscope-img {
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 28px rgba(15, 23, 42, 0.16));
+  transform: scale(1.1) translateY(-6px);
+  transition: transform 0.3s ease;
+}
+
+/* Individual Feature Cards */
 .patient-feature-card {
   background: #ffffff;
   border-radius: 20px;
@@ -350,13 +372,14 @@
 .patient-feature-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--portal-card-shadow-hover);
+  border-color: rgba(191, 219, 254, 0.9);
 }
 
 .patient-feature-card:active {
   transform: translateY(-1px);
 }
 
-/* Card Left Glowing Circular Icon Badge */
+/* Left Glowing Circular Icon Badge */
 .patient-card-icon-badge {
   width: 50px;
   height: 50px;
@@ -407,7 +430,7 @@
   box-shadow: 0 4px 14px rgba(234, 88, 12, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* Card Middle Text Group */
+/* Middle Text Group */
 .patient-card-text-group {
   flex: 1;
   margin: 0 14px;
@@ -431,7 +454,7 @@
   line-height: 1.25;
 }
 
-/* Card Right Arrow Circle */
+/* Right Arrow Circle */
 .patient-card-arrow-circle {
   width: 28px;
   height: 28px;
@@ -455,7 +478,7 @@
    FOCUSED VIEW CONTAINER (When a feature is clicked)
    -------------------------------------------------------------------------- */
 .patient-focused-container {
-  width: min(1320px, 100%);
+  width: min(1280px, 100%);
   background: #ffffff;
   border-radius: 28px;
   overflow: hidden;
@@ -525,9 +548,6 @@
    RESPONSIVE BREAKPOINTS
    -------------------------------------------------------------------------- */
 @media (max-width: 1024px) {
-  .patient-dashboard-frame {
-    padding: 16px 20px 24px 20px;
-  }
   .patient-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -535,17 +555,13 @@
   .patient-feature-card.card-ehr { grid-column: 2; grid-row: 1; }
   .patient-feature-card.card-consult { grid-column: 1; grid-row: 2; }
   .patient-feature-card.card-questionnaire { grid-column: 2; grid-row: 2; }
-  .patient-feature-card.card-teleconsult { grid-column: 1 / span 2; grid-row: 3; }
-  .patient-grid-stethoscope-slot { display: none; }
+  .patient-feature-card.card-teleconsult { grid-column: 1; grid-row: 3; }
+  .patient-stethoscope-slot { grid-column: 2; grid-row: 3; }
 }
 
 @media (max-width: 680px) {
   .patient-portal-root {
     padding: 12px;
-  }
-  .patient-dashboard-frame {
-    padding: 12px;
-    border-radius: 24px;
   }
   .patient-topbar {
     flex-direction: column;
@@ -579,5 +595,8 @@
   .patient-feature-card.card-teleconsult {
     grid-column: 1;
     grid-row: auto;
+  }
+  .patient-stethoscope-slot {
+    display: none;
   }
 }
