@@ -3,6 +3,7 @@ import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
 import StatCards from './StatCards';
+import AIChatBot from './AIChatBot';
 import '../../styles/dashboard.css';
 import {
   ReportsIcon,
@@ -621,6 +622,9 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
           © 2025 AAROGYA DRISHTI. All rights reserved.
         </div>
       </footer>
+
+      {/* AI District Health Intelligence Copilot */}
+      <AIChatBot dashboardType="district_admin_dashboard" />
     </div>
   );
 }
