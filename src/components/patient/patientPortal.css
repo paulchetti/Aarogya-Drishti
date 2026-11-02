@@ -1,224 +1,189 @@
 /* ==========================================================================
-   AAROGYA DRISHTI - CITIZEN / PATIENT PORTAL THEME
-   Exact reproduction of reference theme (media_1793609594517_a6e4d973.jpg):
-   - Background: Light clinical gradient with top-left royal blue wave,
-     top-right halftone dot matrix, and bottom-right ribbons with stethoscope.
-   - Top Header: Floating white rounded card with cyan-glow circular logo,
-     "Arogya Drishti CITIZEN CARE PORTAL", profile capsule, and pink logout pill.
-   - Subheader: Royal blue stadium banner with heartbeat pulse badge.
-   - The 5 Feature Cards: Soft neumorphic white cards with pastel glowing
-     circular icon badges and chevron arrows in 3-col (Row 1) & 2-col (Row 2).
+   AAROGYA DRISHTI - CITIZEN / PATIENT PORTAL LAYOUT
+   Theme: Exact Match to Reference Mockup (media_1793610387966_55a8bc74.jpg)
+   - Background: Soft blue-grey canvas with authentic curved swooshes,
+     cyan halftone dots, realistic 3D stethoscope, and bottom orange/navy waves.
+   - Topbar: Floating white pill header with Aarogya Drishti circular logo,
+     bicolor brand title, Citizen Rahul capsule, and soft pink Logout button.
+   - Banner: Royal blue gradient pill with pulse activity badge.
+   - 5 Feature Cards: 3x2 grid with open bottom-right quadrant for stethoscope.
+   - High-fidelity typography, smooth hover physics, and zero artifacts.
    ========================================================================== */
 
 :root {
-  --royal-blue: #0052cc;
-  --royal-blue-deep: #003fa8;
-  --royal-blue-light: #0066f5;
-  --royal-blue-glow: rgba(0, 82, 204, 0.28);
-
-  --vibrant-orange: #ff7a00;
-  --vibrant-orange-glow: rgba(255, 122, 0, 0.28);
-
-  --emerald-green: #10b981;
-  --emerald-green-glow: rgba(16, 185, 129, 0.28);
-
-  --royal-purple: #9333ea;
-  --royal-purple-glow: rgba(147, 51, 234, 0.28);
-
-  --coral-orange: #ea580c;
-  --coral-orange-glow: rgba(234, 88, 12, 0.28);
-
-  --navy-dark: #0b2545;
-  --slate-body: #334155;
-  --slate-muted: #64748b;
-
-  --card-border: rgba(226, 234, 245, 0.95);
-  --card-shadow: 0 12px 30px rgba(15, 35, 75, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
-  --card-shadow-hover: 0 18px 40px rgba(15, 35, 75, 0.10), 0 4px 10px rgba(0, 0, 0, 0.03);
+  --portal-canvas-bg: #edf3fa;
+  --portal-text-navy: #0b2545;
+  --portal-text-dark: #0f172a;
+  --portal-text-muted: #64748b;
+  --portal-brand-orange: #ff7a00;
+  --portal-brand-blue: #0052cc;
+  --portal-card-border: rgba(226, 234, 245, 0.95);
+  --portal-card-shadow: 0 8px 24px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+  --portal-card-shadow-hover: 0 16px 36px rgba(15, 23, 42, 0.09), 0 4px 10px rgba(15, 23, 42, 0.03);
 }
 
-* {
-  box-sizing: border-box;
-}
-
+/* --------------------------------------------------------------------------
+   ROOT CONTAINER
+   -------------------------------------------------------------------------- */
 .patient-portal-root {
   min-height: 100vh;
   width: 100%;
-  background: #f4f7fb;
-  background: linear-gradient(180deg, #f8fafd 0%, #f3f6fa 60%, #edf2f9 100%);
-  color: var(--navy-dark);
+  background:
+    radial-gradient(ellipse at 85% 0%, #e0edff 0%, transparent 50%),
+    radial-gradient(ellipse at 15% 100%, #ffe9d6 0%, transparent 45%),
+    linear-gradient(135deg, #eef4fb 0%, #edf3f9 50%, #e5ecf5 100%);
+  background-attachment: fixed;
+  color: var(--portal-text-dark);
   font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow-x: hidden;
-  padding: 18px 36px 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  box-sizing: border-box;
 }
 
 /* --------------------------------------------------------------------------
-   AUTHENTIC BACKGROUND CORNER ASSETS:
-   Top-Left Wave, Top-Right Halftone Dots, Bottom-Right Waves & Stethoscope
+   DASHBOARD FRAME (Proportional Widescreen Container matching 1024x451)
    -------------------------------------------------------------------------- */
+.patient-dashboard-frame {
+  position: relative;
+  width: min(1180px, 100%);
+  border-radius: 36px;
+  overflow: hidden;
+  background-color: #f3f6fa;
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.09),
+    0 4px 18px rgba(15, 23, 42, 0.04),
+    inset 0 1px 1px #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  padding: 16px 34px 34px 34px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
 
-.bg-decor-top-left {
+/* Authentic Backdrop Layer (Stethoscope, Swooshes, Waves, Dots) */
+.patient-art-backdrop {
   position: absolute;
   top: 0;
   left: 0;
-  width: 210px;
-  height: auto;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.bg-decor-top-right {
-  position: absolute;
-  top: 0;
   right: 0;
-  width: 195px;
-  height: auto;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.bg-decor-bottom-right {
-  position: absolute;
   bottom: 0;
-  right: 0;
-  width: 480px;
-  max-width: 46vw;
-  height: auto;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* Faint flowing vector contours in the center */
-.bg-decor-contours {
-  position: absolute;
-  top: 18%;
-  left: 0;
-  width: 100%;
-  height: 440px;
+  background: url('/portal-backdrop-perfect.png') no-repeat center center;
+  background-size: cover;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.45;
 }
 
 /* --------------------------------------------------------------------------
-   FLOATING WHITE HEADER CARD (Matches reference exactly)
+   1. FLOATING WHITE PILL TOPBAR
    -------------------------------------------------------------------------- */
 .patient-topbar {
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 28px;
-  width: min(1320px, 100%);
-  margin: 0 auto 22px;
   background: #ffffff;
-  border-radius: 40px;
-  box-shadow: 0 10px 30px rgba(0, 45, 95, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02);
-  border: 1px solid var(--card-border);
-  position: relative;
-  z-index: 20;
-  transition: all 0.25s ease;
+  border-radius: 50px;
+  padding: 8px 24px;
+  min-height: 68px;
+  box-shadow:
+    0 6px 22px rgba(15, 23, 42, 0.05),
+    0 1px 3px rgba(15, 23, 42, 0.03),
+    inset 0 1px 1px #ffffff;
+  border: 1px solid var(--portal-card-border);
+  box-sizing: border-box;
+  margin-bottom: 12px;
 }
 
 .patient-brand-group {
   display: flex;
   align-items: center;
-  gap: 16px;
-  cursor: pointer;
+  gap: 14px;
+  user-select: none;
 }
 
-/* Circular Logo with Glowing Cyan Ring */
 .patient-logo-circle {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #00b4d8;
-  box-shadow: 0 0 18px rgba(0, 180, 216, 0.45);
+  border: 2px solid var(--portal-brand-blue);
+  box-shadow: 0 2px 10px rgba(0, 82, 204, 0.16);
   overflow: hidden;
   flex-shrink: 0;
-  transition: transform 0.25s ease;
+  transition: transform 0.2s ease;
 }
 
-.patient-logo-circle:hover {
+.patient-brand-group:hover .patient-logo-circle {
   transform: scale(1.05);
 }
 
 .patient-logo-img {
-  width: 90%;
-  height: 90%;
+  width: 88%;
+  height: 88%;
   object-fit: contain;
 }
 
-/* Brand Text: Arogya Drishti (Navy & Orange) + CITIZEN CARE PORTAL */
 .patient-brand-box {
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
 .patient-brand-title {
-  font-size: 1.55rem;
+  font-size: 1.42rem;
   font-weight: 800;
-  color: var(--navy-dark);
-  line-height: 1.1;
+  color: var(--portal-text-navy);
   letter-spacing: -0.3px;
+  line-height: 1.12;
+  font-family: "Manrope", sans-serif;
 }
 
-.patient-brand-title .title-orange {
-  color: var(--vibrant-orange);
-  font-weight: 800;
+.patient-brand-title .brand-orange {
+  color: var(--portal-brand-orange);
 }
 
 .patient-brand-sub {
-  font-size: 0.72rem;
-  color: var(--royal-blue);
-  letter-spacing: 1.5px;
+  font-size: 0.68rem;
+  color: var(--portal-brand-blue);
+  letter-spacing: 1.6px;
   font-weight: 800;
-  margin-top: 3px;
+  margin-top: 2px;
   text-transform: uppercase;
 }
 
-/* Right Header Group: Profile Pill & Logout Button */
+/* Header Right: Profile Capsule & Logout */
 .patient-header-right {
   display: flex;
   align-items: center;
   gap: 14px;
-  position: relative;
 }
 
-/* Profile Pill */
 .patient-profile-capsule {
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 40px;
-  padding: 5px 18px 5px 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.patient-profile-capsule:hover {
+  gap: 10px;
   background: #f8fafc;
-  border-color: #cbd5e1;
+  border-radius: 50px;
+  padding: 4px 16px 4px 4px;
+  box-shadow: inset 0 1px 1px #ffffff, 0 1px 3px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.85);
 }
 
 .patient-capsule-pic-wrap {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  border: 2px solid #00b4d8;
+  border: 1.5px solid var(--portal-brand-blue);
   overflow: hidden;
   flex-shrink: 0;
-  background: #f8fafc;
-  box-shadow: 0 2px 6px rgba(0, 180, 216, 0.25);
+  background: #eff6ff;
 }
 
 .patient-capsule-pic {
@@ -233,397 +198,386 @@
 }
 
 .patient-capsule-name {
-  font-size: 0.94rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  color: var(--navy-dark);
-  line-height: 1.15;
+  color: var(--portal-text-dark);
+  line-height: 1.2;
 }
 
 .patient-capsule-tag {
-  font-size: 0.72rem;
-  color: var(--emerald-green);
+  font-size: 0.70rem;
+  color: #16a34a;
   font-weight: 700;
-  margin-top: 2px;
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-top: 1px;
 }
 
-/* Subtle Dropdown Menu under Profile */
-.profile-dropdown-menu {
-  position: absolute;
-  top: 115%;
-  right: 0;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(15, 35, 75, 0.12);
-  padding: 8px;
-  min-width: 220px;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.tag-dot {
+  font-size: 0.65rem;
 }
 
-.profile-dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  color: var(--slate-body);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.2s;
-}
-
-.profile-dropdown-item:hover {
-  background: #f1f5f9;
-  color: var(--royal-blue);
-}
-
-/* Logout Button (Soft Salmon/Pink Pill) */
+/* Logout Button */
 .patient-logout-btn {
   background: #fff1f2;
   border: 1px solid #fecdd3;
   color: #e11d48;
   padding: 8px 18px;
-  border-radius: 24px;
-  font-size: 0.86rem;
-  font-weight: 700;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.06);
 }
 
 .patient-logout-btn:hover {
-  background: #ffe4e6;
-  border-color: #fda4af;
-  color: #be123c;
+  background: #e11d48;
+  border-color: #e11d48;
+  color: #ffffff;
   transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25);
 }
 
 /* --------------------------------------------------------------------------
-   SUBHEADER: ROYAL BLUE STADIUM CAPSULE BANNER
+   2. ROYAL BLUE SERVICE SELECTION BANNER
    -------------------------------------------------------------------------- */
-.patient-portal-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 1320px;
-  margin: 0 auto;
-  width: 100%;
+.patient-service-banner {
   position: relative;
   z-index: 10;
-}
-
-.patient-portal-hero-title {
   display: inline-flex;
   align-items: center;
   gap: 14px;
   background: linear-gradient(90deg, #003ea8 0%, #005ce6 55%, #0045bd 100%);
-  color: #ffffff;
-  padding: 8px 26px 8px 10px;
   border-radius: 50px;
-  box-shadow: 0 8px 24px var(--royal-blue-glow);
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 24px;
+  height: 48px;
+  padding: 0 22px 0 6px;
   width: fit-content;
-  max-width: 100%;
+  max-width: 620px;
+  box-shadow: 0 8px 24px rgba(0, 62, 168, 0.28);
+  margin-bottom: 18px;
 }
 
-.patient-hero-pulse-badge {
-  width: 42px;
-  height: 42px;
+.patient-banner-pulse-badge {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: #002e7a;
+  background: #002b80;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
   flex-shrink: 0;
 }
 
+.patient-banner-text {
+  color: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+}
+
 /* --------------------------------------------------------------------------
-   THE 5 FEATURE CARDS GRID (ROW 1: 3 CARDS, ROW 2: 2 CARDS)
+   3. 5 SERVICE ACTION CARDS GRID (3 Columns x 2 Rows)
    -------------------------------------------------------------------------- */
-.patient-cards-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Row 1: 3 cards */
-.patient-cards-row-1 {
+.patient-cards-grid {
+  position: relative;
+  z-index: 10;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-rows: repeat(2, minmax(102px, auto));
+  gap: 16px 18px;
 }
 
-/* Row 2: 2 cards in first two columns, space for bottom-right stethoscope */
-.patient-cards-row-2 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+/* Row & Column Explicit Mapping */
+.patient-feature-card.card-intake {
+  grid-column: 1;
+  grid-row: 1;
 }
 
-.patient-cards-row-2 .patient-feature-card:nth-child(1) {
-  grid-column: 1 / 2;
+.patient-feature-card.card-ehr {
+  grid-column: 2;
+  grid-row: 1;
 }
 
-.patient-cards-row-2 .patient-feature-card:nth-child(2) {
-  grid-column: 2 / 3;
+.patient-feature-card.card-consult {
+  grid-column: 3;
+  grid-row: 1;
 }
 
-/* Soft Neumorphic Feature Card */
+.patient-feature-card.card-questionnaire {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.patient-feature-card.card-teleconsult {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.patient-grid-stethoscope-slot {
+  grid-column: 3;
+  grid-row: 2;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* Feature Card Cardboard */
 .patient-feature-card {
   background: #ffffff;
-  border: 1px solid var(--card-border);
-  border-radius: 22px;
-  padding: 20px 24px;
-  min-height: 112px;
+  border-radius: 20px;
+  border: 1px solid var(--portal-card-border);
+  box-shadow: var(--portal-card-shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  padding: 16px 20px;
   cursor: pointer;
-  box-shadow: var(--card-shadow);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .patient-feature-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--card-shadow-hover);
-  border-color: #cbd5e1;
+  box-shadow: var(--portal-card-shadow-hover);
 }
 
 .patient-feature-card:active {
   transform: translateY(-1px);
 }
 
-/* Left part: Icon + Text */
-.card-left-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-}
-
-/* Glowing Circular Icon Badge */
+/* Card Left Glowing Circular Icon Badge */
 .patient-card-icon-badge {
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform 0.25s ease;
+  transition: transform 0.22s ease;
 }
 
 .patient-feature-card:hover .patient-card-icon-badge {
   transform: scale(1.08);
 }
 
-/* 1. Patient Intake: Warm Orange */
-.badge-intake {
+.badge-orange {
   background: #fff7ed;
-  color: var(--vibrant-orange);
-  box-shadow: 0 8px 20px var(--vibrant-orange-glow);
+  color: #ff7a00;
+  border: 1.5px solid #fed7aa;
+  box-shadow: 0 4px 14px rgba(255, 122, 0, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* 2. EHR History: Royal Blue */
-.badge-ehr {
+.badge-blue {
   background: #eff6ff;
-  color: var(--royal-blue);
-  box-shadow: 0 8px 20px var(--royal-blue-glow);
+  color: #0066cc;
+  border: 1.5px solid #bfdbfe;
+  box-shadow: 0 4px 14px rgba(0, 102, 204, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* 3. Scheduled Consultations: Emerald Green */
-.badge-consult {
+.badge-green {
   background: #f0fdf4;
-  color: var(--emerald-green);
-  box-shadow: 0 8px 20px var(--emerald-green-glow);
+  color: #10b981;
+  border: 1.5px solid #bbf7d0;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* 4. Clinical Intake Questionnaire: Royal Purple */
-.badge-questionnaire {
+.badge-purple {
   background: #faf5ff;
-  color: var(--royal-purple);
-  box-shadow: 0 8px 20px var(--royal-purple-glow);
+  color: #9333ea;
+  border: 1.5px solid #e9d5ff;
+  box-shadow: 0 4px 14px rgba(147, 51, 234, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* 5. Tele consult suite: Coral Orange */
-.badge-teleconsult {
+.badge-coral {
   background: #fff7ed;
-  color: var(--coral-orange);
-  box-shadow: 0 8px 20px var(--coral-orange-glow);
+  color: #ea580c;
+  border: 1.5px solid #ffedd5;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.18), inset 0 1px 2px #ffffff;
 }
 
-/* Text Block in Card */
-.card-text-block {
-  display: flex;
-  flex-direction: column;
+/* Card Middle Text Group */
+.patient-card-text-group {
+  flex: 1;
+  margin: 0 14px;
+  text-align: left;
 }
 
-.patient-card-text {
-  font-size: 1.12rem;
+.patient-card-title {
+  font-size: 1.02rem;
   font-weight: 800;
-  color: var(--navy-dark);
+  color: var(--portal-text-navy);
   line-height: 1.25;
-  letter-spacing: -0.3px;
+  font-family: "Manrope", sans-serif;
+  letter-spacing: -0.2px;
 }
 
-.patient-card-subtext {
-  font-size: 0.78rem;
-  color: var(--slate-muted);
-  font-weight: 500;
+.patient-card-subtitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--portal-text-muted);
   margin-top: 4px;
+  line-height: 1.25;
 }
 
-/* Right Chevron Arrow Button */
-.card-right-arrow {
-  width: 32px;
-  height: 32px;
+/* Card Right Arrow Circle */
+.patient-card-arrow-circle {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #f8fafc;
+  background: #eff6ff;
+  color: #3b82f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
-.card-intake:hover .card-right-arrow {
-  background: #fff7ed;
-  color: var(--vibrant-orange);
+.patient-feature-card:hover .patient-card-arrow-circle {
   transform: translateX(3px);
-}
-.card-ehr:hover .card-right-arrow {
-  background: #eff6ff;
-  color: var(--royal-blue);
-  transform: translateX(3px);
-}
-.card-consult:hover .card-right-arrow {
-  background: #f0fdf4;
-  color: var(--emerald-green);
-  transform: translateX(3px);
-}
-.card-questionnaire:hover .card-right-arrow {
-  background: #faf5ff;
-  color: var(--royal-purple);
-  transform: translateX(3px);
-}
-.card-teleconsult:hover .card-right-arrow {
-  background: #fff7ed;
-  color: var(--coral-orange);
-  transform: translateX(3px);
+  background: #2563eb;
+  color: #ffffff;
 }
 
 /* --------------------------------------------------------------------------
    FOCUSED VIEW CONTAINER (When a feature is clicked)
    -------------------------------------------------------------------------- */
-.patient-focused-view-wrapper {
+.patient-focused-container {
+  width: min(1320px, 100%);
   background: #ffffff;
   border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 40, 90, 0.08);
-  border: 1px solid var(--card-border);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--portal-card-border);
   display: flex;
   flex-direction: column;
-  position: relative;
-  z-index: 20;
 }
 
-.patient-focused-nav {
-  background: #f8fafc;
-  padding: 16px 28px;
+.patient-focused-header {
+  background: #ffffff;
+  padding: 18px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--portal-card-border);
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
 .patient-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: var(--navy-dark);
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-size: 0.88rem;
-  font-weight: 700;
+  background: linear-gradient(100deg, var(--portal-brand-orange), #f97316);
+  border: none;
+  color: #ffffff;
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-size: 0.86rem;
+  font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(255, 122, 0, 0.25);
+  transition: all 0.2s ease;
 }
 
 .patient-back-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
+  background: linear-gradient(100deg, #ea580c, var(--portal-brand-orange));
   transform: translateX(-3px);
+  box-shadow: 0 6px 18px rgba(255, 122, 0, 0.35);
 }
 
-.patient-focused-title {
-  font-size: 1.2rem;
+.patient-focused-title-badge {
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--navy-dark);
+  color: var(--portal-text-navy);
+  font-family: "Manrope", sans-serif;
+  letter-spacing: -0.3px;
+}
+
+.patient-status-indicator {
+  font-size: 0.78rem;
+  color: #16a34a;
+  font-weight: 700;
+  background: #f0fdf4;
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1px solid #bbf7d0;
+}
+
+.patient-focused-body {
+  padding: 0;
+  background: #f8fafc;
 }
 
 /* --------------------------------------------------------------------------
-   RESPONSIVE DESIGN
+   RESPONSIVE BREAKPOINTS
    -------------------------------------------------------------------------- */
-@media (max-width: 1200px) {
-  .patient-cards-row-1 {
+@media (max-width: 1024px) {
+  .patient-dashboard-frame {
+    padding: 16px 20px 24px 20px;
+  }
+  .patient-cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .patient-cards-row-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .bg-decor-bottom-right {
-    width: 360px;
-  }
+  .patient-feature-card.card-intake { grid-column: 1; grid-row: 1; }
+  .patient-feature-card.card-ehr { grid-column: 2; grid-row: 1; }
+  .patient-feature-card.card-consult { grid-column: 1; grid-row: 2; }
+  .patient-feature-card.card-questionnaire { grid-column: 2; grid-row: 2; }
+  .patient-feature-card.card-teleconsult { grid-column: 1 / span 2; grid-row: 3; }
+  .patient-grid-stethoscope-slot { display: none; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 680px) {
   .patient-portal-root {
-    padding: 16px 14px 32px;
+    padding: 12px;
+  }
+  .patient-dashboard-frame {
+    padding: 12px;
+    border-radius: 24px;
   }
   .patient-topbar {
-    padding: 12px 18px;
     flex-direction: column;
-    gap: 14px;
-    border-radius: 28px;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 24px;
   }
   .patient-header-right {
     width: 100%;
     justify-content: space-between;
   }
-  .patient-cards-row-1 {
+  .patient-service-banner {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 24px;
+    font-size: 0.85rem;
+  }
+  .patient-banner-text {
+    font-size: 0.82rem;
+    white-space: normal;
+  }
+  .patient-cards-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
-  .patient-cards-row-2 {
-    grid-template-columns: 1fr;
-  }
-  .patient-cards-row-2 .patient-feature-card:nth-child(1),
-  .patient-cards-row-2 .patient-feature-card:nth-child(2) {
-    grid-column: 1 / -1;
-  }
-  .bg-decor-bottom-right {
-    display: none;
+  .patient-feature-card.card-intake,
+  .patient-feature-card.card-ehr,
+  .patient-feature-card.card-consult,
+  .patient-feature-card.card-questionnaire,
+  .patient-feature-card.card-teleconsult {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
