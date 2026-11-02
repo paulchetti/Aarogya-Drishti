@@ -31,9 +31,7 @@ import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
 export default function ANMPortalLayout({
   user,
-  onLogout,
-  onSwitchToDoctorDashboard,
-  onSwitchToCitizenPortal
+  onLogout
 }) {
   const [activeModule, setActiveModule] = useState(null);
   // null = main dashboard grid, or:
@@ -194,44 +192,6 @@ export default function ANMPortalLayout({
                   </span>
                 </div>
               </div>
-
-              {onSwitchToDoctorDashboard && (
-                <button
-                  className="patient-logout-btn"
-                  onClick={onSwitchToDoctorDashboard}
-                  title="Open Primary Health Centre (PHC) / Medical Officer Dashboard"
-                  style={{
-                    background: '#0d9488',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: 700,
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span>🏥 PHC Dashboard</span>
-                </button>
-              )}
-
-              {onSwitchToCitizenPortal && (
-                <button
-                  className="patient-logout-btn"
-                  onClick={onSwitchToCitizenPortal}
-                  title="Switch to Citizen Care Portal"
-                  style={{
-                    background: '#0052cc',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: 700,
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span>👤 Citizen Portal</span>
-                </button>
-              )}
 
               <button
                 className="patient-logout-btn"

@@ -314,9 +314,9 @@ export default function App() {
           <ANMPortalLayout
             user={user}
             onLogout={handleLogout}
-            onSwitchToDoctorDashboard={() => handleSwitchDashboard('phc_dashboard')}
-            onSwitchToANMPortal={() => handleSwitchDashboard('anm_portal')}
-            onSwitchToCitizenPortal={() => handleSwitchDashboard('patient')}
+
+
+
           />
           <Toast message={toast.message} visible={toast.visible} />
         </>
@@ -331,8 +331,8 @@ export default function App() {
           <CitizenPortalLayout
             user={user}
             onLogout={handleLogout}
-            onSwitchToDoctorDashboard={() => handleSwitchDashboard('phc_dashboard')}
-            onSwitchToANMPortal={() => handleSwitchDashboard('anm_portal')}
+
+
           />
           <Toast message={toast.message} visible={toast.visible} />
         </>

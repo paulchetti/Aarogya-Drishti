@@ -19,9 +19,7 @@ import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
 export default function CitizenPortalLayout({
   user,
-  onLogout,
-  onSwitchToDoctorDashboard,
-  onSwitchToANMPortal
+  onLogout
 }) {
   const [activeModule, setActiveModule] = useState(null); // null = dashboard, or 'intake' | 'ehr' | 'consultations' | 'questionnaire' | 'teleconsult'
   const [teleconsultPatient, setTeleconsultPatient] = useState(null);
@@ -179,44 +177,6 @@ export default function CitizenPortalLayout({
                   </span>
                 </div>
               </div>
-
-              {onSwitchToDoctorDashboard && (
-                <button
-                  className="patient-logout-btn"
-                  onClick={onSwitchToDoctorDashboard}
-                  title="Open Primary Health Centre (PHC) / Medical Officer Dashboard"
-                  style={{
-                    background: '#0d9488',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: 700,
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span>🏥 PHC Dashboard</span>
-                </button>
-              )}
-
-              {onSwitchToANMPortal && (
-                <button
-                  className="patient-logout-btn"
-                  onClick={onSwitchToANMPortal}
-                  title="Switch to ANM / Village Health Worker Portal"
-                  style={{
-                    background: '#e11d48',
-                    color: '#ffffff',
-                    border: 'none',
-                    fontWeight: 700,
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span>👩‍⚕️ ANM Portal</span>
-                </button>
-              )}
 
               <button
                 className="patient-logout-btn"
