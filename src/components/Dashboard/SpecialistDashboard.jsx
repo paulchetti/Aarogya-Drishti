@@ -635,3 +635,4 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
     </div>
   );
 }
+

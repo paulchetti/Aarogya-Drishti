@@ -8,21 +8,12 @@ export default function WelcomePanel({ onSwitchMode }) {
 
       {/* Visible in register mode */}
       <div className="panel-content register-prompt">
-        <div className="illustration">
-          <div className="illustration-ring ring-a"></div>
-          <div className="illustration-ring ring-b"></div>
-          <div className="health-symbol">
-            <span></span>
-            <i></i>
-          </div>
-          <div className="mini-card mini-card-one">
-            <b>✓</b>
-            <span>Care connected</span>
-          </div>
-          <div className="mini-card mini-card-two">
-            <span className="pulse"></span>
-            <span>Patient first</span>
-          </div>
+        <div className="welcome-logo-container">
+          <img
+            src="/logo.png"
+            alt="Aarogya Drishti Logo"
+            className="welcome-brand-logo"
+          />
         </div>
         <span className="panel-kicker">YOUR HEALTH, IN FOCUS</span>
         <h2>
@@ -41,21 +32,12 @@ export default function WelcomePanel({ onSwitchMode }) {
 
       {/* Visible in login mode */}
       <div className="panel-content login-prompt">
-        <div className="illustration">
-          <div className="illustration-ring ring-a"></div>
-          <div className="illustration-ring ring-b"></div>
-          <div className="health-symbol">
-            <span></span>
-            <i></i>
-          </div>
-          <div className="mini-card mini-card-one">
-            <b>✓</b>
-            <span>Care connected</span>
-          </div>
-          <div className="mini-card mini-card-two">
-            <span className="pulse"></span>
-            <span>Patient first</span>
-          </div>
+        <div className="welcome-logo-container">
+          <img
+            src="/logo.png"
+            alt="Aarogya Drishti Logo"
+            className="welcome-brand-logo"
+          />
         </div>
         <span className="panel-kicker">A HEALTHIER TOMORROW STARTS HERE</span>
         <h2>
@@ -78,4 +60,3 @@ export default function WelcomePanel({ onSwitchMode }) {
     </aside>
   );
 }
-
