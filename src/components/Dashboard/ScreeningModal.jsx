@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ApiKeyModal from '../common/ApiKeyModal';
 import {
   hasGeminiApiKey,
   getGeminiApiKey,
@@ -26,8 +25,6 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
   const [geminiResult, setGeminiResult] = useState(null);
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [hasKey, setHasKey] = useState(false);
 
   // Device & Stream state
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -52,10 +49,6 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-
-  useEffect(() => {
-    setHasKey(hasGeminiApiKey());
-  }, [isOpen, showApiKeyModal]);
 
   // Stop camera tracks cleanly
   const stopCamera = () => {
@@ -412,16 +405,16 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                 </h2>
                 <span
                   style={{
-                    background: hasKey ? '#ecfdf5' : '#fffbeb',
-                    color: hasKey ? '#065f46' : '#92400e',
-                    border: `1px solid ${hasKey ? '#a7f3d0' : '#fde68a'}`,
+                    background: '#ecfdf5',
+                    color: '#065f46',
+                    border: '1px solid #a7f3d0',
                     padding: '2px 8px',
                     borderRadius: '12px',
                     fontSize: '11px',
                     fontWeight: 700,
                   }}
                 >
-                  {hasKey ? '✨ Gemini AI Active' : '⚙️ API Key Setup Available'}
+                  ✨ Gemini AI Multimodal Active
                 </span>
               </div>
               <span style={{ fontSize: '11.5px', color: '#0d9488', fontWeight: 600, display: 'block', marginTop: '2px' }}>
@@ -430,27 +423,6 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setShowApiKeyModal(true)}
-                title="Configure Gemini API Key"
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '5px 10px',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: '#334155',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span>🔑</span>
-                <span>{hasKey ? 'API Key Configured' : 'Set Gemini Key'}</span>
-              </button>
               <button type="button" className="close-modal-btn" onClick={handleModalClose}>
                 ✕
               </button>
@@ -462,45 +434,6 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
 
           {step === 1 ? (
             <div style={{ marginTop: '12px' }}>
-              {/* API Key prompt banner if missing */}
-              {!hasKey && (
-                <div
-                  style={{
-                    background: '#eff6ff',
-                    border: '1px solid #bfdbfe',
-                    borderRadius: '10px',
-                    padding: '8px 12px',
-                    marginBottom: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: '11.5px',
-                    color: '#1e40af',
-                  }}
-                >
-                  <div>
-                    <strong>Pro-Tip:</strong> Connect your free Google Gemini API key to enable live multimodal deep-learning visual diagnostics on patient images.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKeyModal(true)}
-                    style={{
-                      background: '#2563eb',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '4px 10px',
-                      fontSize: '10.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      marginLeft: '10px',
-                    }}
-                  >
-                    Enter Key →
-                  </button>
-                </div>
-              )}
 
               {/* Patient Metadata Grid */}
               <div
@@ -1186,28 +1119,10 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                     <strong>Offline Knowledge Base Active:</strong> Showing evaluation grounded in WHO, NOCR &amp; Cleveland Clinic clinical pathways.
                     {geminiResult?.apiErrorMessage && (
                       <span style={{ display: 'block', fontSize: '10px', color: '#b45309' }}>
-                        API Notice: {geminiResult.apiErrorMessage}
+                        Notice: {geminiResult.apiErrorMessage}
                       </span>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKeyModal(true)}
-                    style={{
-                      background: '#ea580c',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '4px 10px',
-                      fontSize: '10.5px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      marginLeft: '10px',
-                    }}
-                  >
-                    Connect Gemini Key 🔑
-                  </button>
                 </div>
               )}
 
@@ -1577,13 +1492,6 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
           )}
         </div>
       </div>
-
-      {/* API Key Modal for entering / checking Gemini API key */}
-      <ApiKeyModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        onKeySaved={() => setHasKey(hasGeminiApiKey())}
-      />
     </>
   );
 }

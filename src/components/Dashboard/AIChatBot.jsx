@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/aiChatBot.css';
-import ApiKeyModal from '../common/ApiKeyModal';
 import {
   hasGeminiApiKey,
   analyzeOralLesionWithGemini,
@@ -11,14 +10,8 @@ export default function AIChatBot({ dashboardType = 'phc_dashboard' }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [hasKey, setHasKey] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    setHasKey(hasGeminiApiKey());
-  }, [isOpen, showApiKeyModal]);
 
   // Setup initial conversation based on active dashboard
   const getInitialMessages = (type) => {
@@ -361,15 +354,6 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
                 <button
                   type="button"
                   className="ai-btn-ghost"
-                  onClick={() => setShowApiKeyModal(true)}
-                  title="Configure Gemini API Key"
-                  style={{ fontSize: '13px', padding: '3px 6px' }}
-                >
-                  🔑
-                </button>
-                <button
-                  type="button"
-                  className="ai-btn-ghost"
                   onClick={() => setMessages(getInitialMessages(dashboardType))}
                   title="Clear Conversation"
                   style={{ fontSize: '13px', padding: '3px 6px' }}
@@ -393,13 +377,8 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
               <span className="ai-context-tag">
                 <span>🩺</span> {contextLabel}
               </span>
-              <span
-                className="ai-model-tag"
-                onClick={() => setShowApiKeyModal(true)}
-                style={{ cursor: 'pointer' }}
-                title="Click to configure Gemini API Key"
-              >
-                {hasKey ? '✨ Gemini Multimodal' : '⚙️ Setup Key'}
+              <span className="ai-model-tag" title="Gemini 2.5 Flash Multimodal Active">
+                ✨ Gemini Multimodal
               </span>
             </div>
 
@@ -536,13 +515,6 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
           </div>
         )}
       </div>
-
-      {/* API Key Modal */}
-      <ApiKeyModal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        onKeySaved={() => setHasKey(hasGeminiApiKey())}
-      />
     </>
   );
 }
