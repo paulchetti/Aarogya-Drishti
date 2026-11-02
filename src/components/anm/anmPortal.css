@@ -1,0 +1,109 @@
+/* ==========================================================================
+   AAROGYA DRISHTI - ANM / VILLAGE HEALTH WORKER PORTAL STYLES
+   Inherits 100% theme fidelity from Citizen Portal with specialized
+   frontline healthcare components and responsive grid layouts.
+   ========================================================================== */
+
+@import '../citizen/citizenPortal.css';
+
+/* 8-Card Responsive Grid for ANM Frontline Services */
+.anm-services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 18px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .anm-services-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .anm-services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .anm-services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Quick Catchment Summary Metric Strip */
+.anm-catchment-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--portal-card-border);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.anm-catchment-metric {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+}
+
+.anm-metric-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.anm-metric-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--portal-text-navy);
+  line-height: 1.1;
+  font-family: 'Manrope', sans-serif;
+}
+
+.anm-metric-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--portal-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Color Badges for Icons */
+.badge-indigo {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1.5px solid #c7d2fe;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.18), inset 0 1px 2px #ffffff;
+}
+
+.badge-rose {
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1.5px solid #fecdd3;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.18), inset 0 1px 2px #ffffff;
+}
+
+.badge-teal {
+  background: #f0fdfa;
+  color: #0d9488;
+  border: 1.5px solid #99f6e4;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.18), inset 0 1px 2px #ffffff;
+}
+
+.badge-amber {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1.5px solid #fde68a;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.18), inset 0 1px 2px #ffffff;
+}

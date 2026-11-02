@@ -428,3 +428,4 @@ export default function ANMMaternalChildView({ onStartTeleconsult }) {
     </div>
   );
 }
+

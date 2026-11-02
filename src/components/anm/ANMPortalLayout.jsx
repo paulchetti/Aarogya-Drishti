@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
-import '../citizen/citizenPortal.css';
+import './anmPortal.css';
 import {
-  Activity,
-  HeartPulse,
-  CreditCard,
-  Video,
-  PackageCheck,
+  UserPlus,
+  Users,
+  MapPin,
+  CalendarClock,
+  AlertCircle,
+  CheckCircle2,
+  TrendingUp,
+  BarChart3,
   ArrowLeft,
   LogOut,
   ChevronRight,
+  Activity,
+  Video,
+  HeartPulse,
+  Clock,
   Shield,
-  LayoutGrid
+  FileCheck
 } from 'lucide-react';
-import ANMNCDScreeningView from './ANMNCDScreeningView';
-import ANMMaternalChildView from './ANMMaternalChildView';
-import ANMABHAFamilyRegisterView from './ANMABHAFamilyRegisterView';
-import ANMTeleconsultReferralView from './ANMTeleconsultReferralView';
-import ANMMedicineStockView from './ANMMedicineStockView';
+import ANMPatientEnrollmentView from './ANMPatientEnrollmentView';
+import ANMPatientDirectoryView from './ANMPatientDirectoryView';
+import ANMCatchmentView from './ANMCatchmentView';
+import ANMResolvedCasesView from './ANMResolvedCasesView';
+import ANMPendingFollowupsView from './ANMPendingFollowupsView';
+import ANMMorbidityTrendsView from './ANMMorbidityTrendsView';
+import ANMFieldAnalyticsView from './ANMFieldAnalyticsView';
+import ANMVisitScheduleView from './ANMVisitScheduleView';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
 export default function ANMPortalLayout({
@@ -25,8 +35,10 @@ export default function ANMPortalLayout({
   onSwitchToDoctorDashboard,
   onSwitchToCitizenPortal
 }) {
-  const [activeModule, setActiveModule] = useState(null); 
-  // null = dashboard grid, or 'screening' | 'maternal' | 'abha' | 'teleconsult' | 'stock' | 'live_teleconsult'
+  const [activeModule, setActiveModule] = useState(null);
+  // null = main dashboard grid, or:
+  // 'enrollment' | 'directory' | 'catchment' | 'schedule' | 'followups' | 'resolved' | 'morbidity' | 'analytics' | 'live_teleconsult'
+
   const [teleconsultPatient, setTeleconsultPatient] = useState(null);
 
   const workerName = user?.name || 'ANM Lakshmi Devi';
@@ -53,25 +65,25 @@ export default function ANMPortalLayout({
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            <linearGradient id="portalTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="anmTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#004cd4" />
               <stop offset="45%" stopColor="#006ef5" />
               <stop offset="85%" stopColor="#00aaff" />
               <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.8" />
             </linearGradient>
-            <linearGradient id="portalTopRim" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="anmTopRim" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
               <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
             </linearGradient>
           </defs>
           <path
             d="M 0,0 L 290,0 C 235,70 160,160 85,225 C 40,265 0,300 0,300 Z"
-            fill="url(#portalTopGrad)"
+            fill="url(#anmTopGrad)"
           />
           <path
             d="M 0,0 L 305,0 C 248,76 170,170 90,238 C 42,280 0,315 0,315 Z"
             fill="none"
-            stroke="url(#portalTopRim)"
+            stroke="url(#anmTopRim)"
             strokeWidth="2.5"
           />
         </svg>
@@ -106,35 +118,35 @@ export default function ANMPortalLayout({
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            <linearGradient id="portalOrangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="anmOrangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#ff7a00" />
               <stop offset="55%" stopColor="#ff6500" />
               <stop offset="100%" stopColor="#f97316" />
             </linearGradient>
-            <linearGradient id="portalNavyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="anmNavyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#00266e" />
               <stop offset="50%" stopColor="#001847" />
               <stop offset="100%" stopColor="#040e22" />
             </linearGradient>
-            <linearGradient id="portalCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="anmCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#005ce6" />
               <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.3" />
             </linearGradient>
           </defs>
-          <path d="M 0,180 L 0,110 C 65,120 120,150 160,180 Z" fill="url(#portalCyanGrad)" />
+          <path d="M 0,180 L 0,110 C 65,120 120,150 160,180 Z" fill="url(#anmCyanGrad)" />
           <path
             d="M 500,180 C 660,180 770,75 1040,36 C 1190,14 1310,46 1440,82 L 1440,180 Z"
-            fill="url(#portalOrangeGrad)"
+            fill="url(#anmOrangeGrad)"
           />
           <path
             d="M 680,180 C 820,180 930,95 1160,68 C 1280,52 1360,82 1440,108 L 1440,180 Z"
-            fill="url(#portalNavyGrad)"
+            fill="url(#anmNavyGrad)"
           />
         </svg>
       </div>
 
       {/* --------------------------------------------------------------------
-          PORTAL MAIN CONTENT CONTAINER
+          MAIN CONTENT CONTAINER
           -------------------------------------------------------------------- */}
       {!activeModule ? (
         <div className="patient-content-container">
@@ -242,24 +254,67 @@ export default function ANMPortalLayout({
             </span>
           </div>
 
-          {/* 3. THE 5 SERVICE ACTION CARDS GRID (3 columns x 2 rows) */}
-          <div className="patient-cards-grid">
-            {/* ROW 1: CARD 1 - Household NCD & Vitals Screening */}
+          {/* 3. CATCHMENT & FIELD SUMMARY STRIP */}
+          <div className="anm-catchment-strip">
+            <div className="anm-catchment-metric">
+              <div className="anm-metric-icon" style={{ background: '#eff6ff', color: '#0052cc' }}>
+                <MapPin size={18} />
+              </div>
+              <div>
+                <div className="anm-metric-val">4,820</div>
+                <div className="anm-metric-lbl">Catchment Population</div>
+              </div>
+            </div>
+
+            <div className="anm-catchment-metric">
+              <div className="anm-metric-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                <Users size={18} />
+              </div>
+              <div>
+                <div className="anm-metric-val">3,940</div>
+                <div className="anm-metric-lbl">Registered Citizens (81.7%)</div>
+              </div>
+            </div>
+
+            <div className="anm-catchment-metric">
+              <div className="anm-metric-icon" style={{ background: '#fee2e2', color: '#dc2626' }}>
+                <AlertCircle size={18} />
+              </div>
+              <div>
+                <div className="anm-metric-val">5 Alerts</div>
+                <div className="anm-metric-lbl">Pending Follow-ups</div>
+              </div>
+            </div>
+
+            <div className="anm-catchment-metric">
+              <div className="anm-metric-icon" style={{ background: '#f0fdfa', color: '#0d9488' }}>
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <div className="anm-metric-val">52 Cases</div>
+                <div className="anm-metric-lbl">Resolved This Quarter</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. THE 8 FRONT-LINE SERVICE ACTION CARDS GRID */}
+          <div className="anm-services-grid">
+            {/* CARD 1: Patient Enrollment & Demographics Intake */}
             <div
-              className="patient-feature-card card-intake"
-              onClick={() => setActiveModule('screening')}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('enrollment')}
               role="button"
               tabIndex={0}
             >
               <div className="patient-card-icon-badge badge-orange">
-                <Activity size={24} strokeWidth={2.2} />
+                <UserPlus size={24} strokeWidth={2.2} />
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Village Household &amp;<br />NCD Screening
+                  Patient Enrollment &amp;<br />Demographics Intake
                 </div>
                 <div className="patient-card-subtitle">
-                  BP, Blood Sugar, Vitals &amp; Oral Screen
+                  Citizen Intake &amp; ABHA Generation
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -267,22 +322,22 @@ export default function ANMPortalLayout({
               </div>
             </div>
 
-            {/* ROW 1: CARD 2 - Maternal & Child Health (ANC/PNC) */}
+            {/* CARD 2: Patient Directory & Search */}
             <div
-              className="patient-feature-card card-ehr"
-              onClick={() => setActiveModule('maternal')}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('directory')}
               role="button"
               tabIndex={0}
             >
               <div className="patient-card-icon-badge badge-blue">
-                <HeartPulse size={24} strokeWidth={2.2} />
+                <Users size={24} strokeWidth={2.2} />
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Maternal &amp; Child<br />Health (ANC / PNC)
+                  Patient Directory &amp;<br />Longitudinal Search
                 </div>
                 <div className="patient-card-subtitle">
-                  High-Risk Pregnancies &amp; Immunization
+                  Roster of 3,940 Village Citizens
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -290,22 +345,22 @@ export default function ANMPortalLayout({
               </div>
             </div>
 
-            {/* ROW 1: CARD 3 - Village ABHA ID & Family Health Folder */}
+            {/* CARD 3: Assigned Catchment Population */}
             <div
-              className="patient-feature-card card-consult"
-              onClick={() => setActiveModule('abha')}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('catchment')}
               role="button"
               tabIndex={0}
             >
               <div className="patient-card-icon-badge badge-green">
-                <CreditCard size={24} strokeWidth={2.2} />
+                <MapPin size={24} strokeWidth={2.2} />
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Village ABHA ID &amp;<br />Family Health Folder
+                  Assigned Catchment<br />Population
                 </div>
                 <div className="patient-card-subtitle">
-                  Digital ABHA Generation &amp; Roster
+                  5 Wards, Demographics &amp; ASHA Links
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -313,22 +368,22 @@ export default function ANMPortalLayout({
               </div>
             </div>
 
-            {/* ROW 2: CARD 4 - Field Teleconsult & PHC Referral */}
+            {/* CARD 4: Visit & Screening Schedule */}
             <div
-              className="patient-feature-card card-questionnaire"
-              onClick={() => setActiveModule('teleconsult')}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('schedule')}
               role="button"
               tabIndex={0}
             >
               <div className="patient-card-icon-badge badge-purple">
-                <Video size={24} strokeWidth={2.2} />
+                <CalendarClock size={24} strokeWidth={2.2} />
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Field Teleconsult &amp;<br />PHC Referral
+                  Visit &amp; Screening<br />Daily Schedule
                 </div>
                 <div className="patient-card-subtitle">
-                  Connect Patient to Medical Officer Live
+                  VHND, NCD Itinerary &amp; Camps
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -336,22 +391,22 @@ export default function ANMPortalLayout({
               </div>
             </div>
 
-            {/* ROW 2: CARD 5 - Medicine Kit & Diagnostic Stock */}
+            {/* CARD 5: Pending Follow-ups */}
             <div
-              className="patient-feature-card card-teleconsult"
-              onClick={() => setActiveModule('stock')}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('followups')}
               role="button"
               tabIndex={0}
             >
-              <div className="patient-card-icon-badge badge-coral">
-                <PackageCheck size={24} strokeWidth={2.2} />
+              <div className="patient-card-icon-badge badge-rose">
+                <AlertCircle size={24} strokeWidth={2.2} />
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Medicine Kit &amp;<br />Diagnostic Stock
+                  Pending Follow-ups<br />&amp; Overdue Alerts
                 </div>
                 <div className="patient-card-subtitle">
-                  Rapid Test Strips, IFA &amp; ORS Inventory
+                  Vitals Rechecks, ANC &amp; Vaccines Due
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -359,23 +414,72 @@ export default function ANMPortalLayout({
               </div>
             </div>
 
-            {/* ROW 2: COLUMN 3 - Community Hero Card (Matching Citizen Portal) */}
+            {/* CARD 6: Resolved Cases */}
             <div
-              className="patient-consult-hero-card"
-              title="Aarogya Drishti Frontline Field Care - Sub-Centre Paderu"
-              onClick={() => setActiveModule('screening')}
-              style={{ cursor: 'pointer' }}
+              className="patient-feature-card"
+              onClick={() => setActiveModule('resolved')}
+              role="button"
+              tabIndex={0}
             >
-              <img
-                src="/doctor-patient-consult.jpg"
-                alt="ANM Frontline Health Worker examining village patient"
-                className="patient-consult-hero-img"
-              />
-              <div className="patient-consult-hero-overlay">
-                <span className="patient-consult-hero-badge">
-                  <span className="consult-badge-dot">●</span>
-                  <span>Sub-Centre Paderu: 34 Screened Today</span>
-                </span>
+              <div className="patient-card-icon-badge badge-teal">
+                <CheckCircle2 size={24} strokeWidth={2.2} />
+              </div>
+              <div className="patient-card-text-group">
+                <div className="patient-card-title">
+                  Resolved Cases &amp;<br />Treatment Outcomes
+                </div>
+                <div className="patient-card-subtitle">
+                  Cured Infections &amp; Stabilized NCDs
+                </div>
+              </div>
+              <div className="patient-card-arrow-circle">
+                <ChevronRight size={16} strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* CARD 7: Epidemiological Morbidity Trends */}
+            <div
+              className="patient-feature-card"
+              onClick={() => setActiveModule('morbidity')}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="patient-card-icon-badge badge-indigo">
+                <TrendingUp size={24} strokeWidth={2.2} />
+              </div>
+              <div className="patient-card-text-group">
+                <div className="patient-card-title">
+                  Epidemiological<br />Morbidity Trends
+                </div>
+                <div className="patient-card-subtitle">
+                  Surveillance Curves &amp; Outbreak Rates
+                </div>
+              </div>
+              <div className="patient-card-arrow-circle">
+                <ChevronRight size={16} strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* CARD 8: Field Analytics Reports */}
+            <div
+              className="patient-feature-card"
+              onClick={() => setActiveModule('analytics')}
+              role="button"
+              tabIndex={0}
+            >
+              <div className="patient-card-icon-badge badge-amber">
+                <BarChart3 size={24} strokeWidth={2.2} />
+              </div>
+              <div className="patient-card-text-group">
+                <div className="patient-card-title">
+                  Field Analytics<br />&amp; Progress Reports
+                </div>
+                <div className="patient-card-subtitle">
+                  Monthly MPR, KPIs &amp; CSV Export
+                </div>
+              </div>
+              <div className="patient-card-arrow-circle">
+                <ChevronRight size={16} strokeWidth={2.4} />
               </div>
             </div>
           </div>
@@ -396,44 +500,59 @@ export default function ANMPortalLayout({
             </button>
 
             <div className="patient-focused-title-badge">
-              {activeModule === 'screening' && 'Village Household & NCD Screening'}
-              {activeModule === 'maternal' && 'Maternal & Child Health (ANC/PNC & Immunization)'}
-              {activeModule === 'abha' && 'Village ABHA ID Generation & Family Health Folders'}
-              {activeModule === 'teleconsult' && 'Field Teleconsultation & Doctor Referral Queue'}
-              {activeModule === 'stock' && 'Field Medicine Kit & Diagnostic Stock Inventory'}
+              {activeModule === 'enrollment' && 'Patient Enrollment & Demographics Intake'}
+              {activeModule === 'directory' && 'Patient Directory & Longitudinal Search'}
+              {activeModule === 'catchment' && 'Assigned Catchment Population & Habitation Demographics'}
+              {activeModule === 'schedule' && 'Frontline Visit & Screening Schedule Itinerary'}
+              {activeModule === 'followups' && 'Pending Patient Follow-ups & Overdue Field Alerts'}
+              {activeModule === 'resolved' && 'Resolved Cases & Patient Treatment Outcomes'}
+              {activeModule === 'morbidity' && 'Epidemiological Morbidity Trends & Surveillance'}
+              {activeModule === 'analytics' && 'Field Health Analytics & Monthly Progress Reports (MPR)'}
               {activeModule === 'live_teleconsult' && 'Live Video Teleconsultation Suite'}
             </div>
 
             <div className="patient-focused-actions">
-              <span className="patient-status-indicator">● Active Village Session (Sub-Centre Paderu)</span>
+              <span className="patient-status-indicator">● Active Session • Sub-Centre Paderu</span>
             </div>
           </div>
 
           <div className="patient-focused-body">
-            {activeModule === 'screening' && (
-              <ANMNCDScreeningView onStartTeleconsult={handleStartTeleconsult} />
+            {activeModule === 'enrollment' && (
+              <ANMPatientEnrollmentView onStartTeleconsult={handleStartTeleconsult} />
             )}
 
-            {activeModule === 'maternal' && (
-              <ANMMaternalChildView onStartTeleconsult={handleStartTeleconsult} />
+            {activeModule === 'directory' && (
+              <ANMPatientDirectoryView onStartTeleconsult={handleStartTeleconsult} />
             )}
 
-            {activeModule === 'abha' && (
-              <ANMABHAFamilyRegisterView />
+            {activeModule === 'catchment' && (
+              <ANMCatchmentView />
             )}
 
-            {activeModule === 'teleconsult' && (
-              <ANMTeleconsultReferralView onStartTeleconsult={handleStartTeleconsult} />
+            {activeModule === 'schedule' && (
+              <ANMVisitScheduleView onStartTeleconsult={handleStartTeleconsult} />
             )}
 
-            {activeModule === 'stock' && (
-              <ANMMedicineStockView />
+            {activeModule === 'followups' && (
+              <ANMPendingFollowupsView onStartTeleconsult={handleStartTeleconsult} />
+            )}
+
+            {activeModule === 'resolved' && (
+              <ANMResolvedCasesView />
+            )}
+
+            {activeModule === 'morbidity' && (
+              <ANMMorbidityTrendsView />
+            )}
+
+            {activeModule === 'analytics' && (
+              <ANMFieldAnalyticsView />
             )}
 
             {activeModule === 'live_teleconsult' && (
               <TeleconsultationSuite
                 patientData={teleconsultPatient}
-                onEndCall={() => setActiveModule('teleconsult')}
+                onEndCall={() => setActiveModule(null)}
               />
             )}
           </div>
