@@ -51,7 +51,7 @@ export default function Sidebar({
         />
       )}
 
-      {/* Dropdown Card directly below the Menu button */}
+      {/* Clean Dropdown Card directly below the Menu button */}
       {isMenuOpen && (
         <div className="menu-dropdown-panel-below-logo">
           <div className="menu-dropdown-header">
@@ -82,26 +82,6 @@ export default function Sidebar({
               </button>
             ))}
           </nav>
-
-          {/* Tribal Village Artwork & Motto at bottom of menu */}
-          <div className="menu-dropdown-art">
-            <div className="menu-art-img-wrap">
-              <img
-                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=480&q=80"
-                alt="Tribal Village Landscape"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src =
-                    'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=480&q=80';
-                }}
-              />
-            </div>
-            <div className="menu-art-slogan">
-              Primary Health Centre (PHC)
-              <br />
-              Care Continuity Network
-            </div>
-          </div>
         </div>
       )}
     </div>
