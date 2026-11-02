@@ -624,3 +624,4 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
     </div>
   );
 }
+
