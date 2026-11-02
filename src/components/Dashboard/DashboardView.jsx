@@ -70,12 +70,16 @@ export default function DashboardView({ onToast }) {
 
   return (
     <div className="dashboard-root">
-      {/* Top Navbar with Full Screen toggle */}
-      <DashboardNavbar notificationCount={3} />
+      {/* Top Navbar with Home icon 'Menu' toggle & Full Screen button */}
+      <DashboardNavbar
+        notificationCount={3}
+        isMenuOpen={isMenuOpen}
+        onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+      />
 
-      {/* Main Body Grid */}
+      {/* Main Body Grid - 100% Full Screen Width */}
       <div className="dash-main-layout">
-        {/* Left Sidebar with Home icon 'Menu' toggle */}
+        {/* Slide-out Drawer Sidebar */}
         <Sidebar
           activeNav={activeNav}
           onNavSelect={handleNavSelect}
@@ -83,8 +87,8 @@ export default function DashboardView({ onToast }) {
           onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
         />
 
-        {/* Central Canvas Area - Full Screen Responsive */}
-        <main className={`dash-content-canvas ${isMenuOpen ? 'menu-expanded' : 'menu-collapsed'}`}>
+        {/* Central Canvas Area - Fills Full Display */}
+        <main className="dash-content-canvas full-display">
           <div className="dash-center-col">
             {/* Welcome Banner with Doctor & Dental Examination Background */}
             <WelcomeBanner doctorName="Dr. Sandeep Kumar" />

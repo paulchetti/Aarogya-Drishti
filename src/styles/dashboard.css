@@ -247,152 +247,234 @@ html, body {
 }
 
 /* ===================================================
-   SIDEBAR (DEEP TEAL WITH COMPACT ITEMS & REAL ART)
+   NAVBAR MENU TRIGGER BUTTON (MATCHES DASHBOARD THEME)
    =================================================== */
-.dash-sidebar {
-  width: 165px;
-  background: linear-gradient(180deg, #0b2228 0%, #06181d 100%);
-  color: #cbd5e1;
+.navbar-menu-btn {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #0d9488;
+  background: #f0fdfa;
+  color: #0f766e;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.15);
+  margin-right: 14px;
   flex-shrink: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
-.dash-sidebar.expanded {
-  width: 220px;
-  justify-content: space-between;
+.navbar-menu-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: #0f766e;
+  stroke-width: 2.2px;
 }
 
-.dash-sidebar.collapsed {
-  width: 165px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 14px 10px;
-}
-
-.menu-toggle-btn {
-  background: rgba(13, 148, 136, 0.12);
-  border: 1px solid rgba(13, 148, 136, 0.35);
-  color: #2dd4bf;
-  margin-bottom: 4px;
-}
-
-.menu-toggle-btn:hover {
-  background: rgba(13, 148, 136, 0.25);
+.navbar-menu-btn:hover {
+  background: #0d9488;
   color: #ffffff;
+  border-color: #0d9488;
+  box-shadow: 0 3px 10px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
 }
 
-.menu-toggle-btn.active {
+.navbar-menu-btn:hover svg {
+  stroke: #ffffff;
+}
+
+.navbar-menu-btn.active {
   background: #0d9488;
   color: #ffffff;
   border-color: #0d9488;
 }
 
-.remaining-nav-items {
+.navbar-menu-btn.active svg {
+  stroke: #ffffff;
+}
+
+.navbar-menu-chevron {
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+/* ===================================================
+   SLIDE-OUT MENU DRAWER (MATCHES DASHBOARD LIGHT PALETTE)
+   =================================================== */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  top: 76px;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: 80;
+  animation: fadeIn 0.2s ease;
+}
+
+.dash-sidebar-drawer {
+  position: fixed;
+  top: 76px;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 6px 0 24px rgba(15, 23, 42, 0.1);
+  z-index: 90;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  animation: fadeInDown 0.2s ease;
+  justify-content: space-between;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.dash-sidebar-drawer.open {
+  transform: translateX(0);
 }
 
-.nav-item {
+.drawer-header {
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid #edf2f7;
+  background: #f8fafc;
+}
+
+.drawer-menu-header-btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 10px;
-  border-radius: 8px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 9px;
+  background: #0d9488;
+  color: #ffffff;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+  transition: background 0.2s ease;
+}
+
+.drawer-menu-header-btn:hover {
+  background: #0f766e;
+}
+
+.drawer-menu-header-btn svg {
+  width: 19px;
+  height: 19px;
+  stroke: #ffffff;
+  stroke-width: 2.2px;
+}
+
+.drawer-menu-chevron {
+  margin-left: auto;
   font-size: 11px;
-  line-height: 1.25;
+}
+
+.drawer-nav {
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.drawer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #334155;
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
   text-align: left;
+  transition: all 0.15s ease;
   width: 100%;
 }
 
-.nav-item svg {
+.drawer-nav-item svg {
   width: 18px;
   height: 18px;
+  color: #0d9488;
+  stroke: #0d9488;
   flex-shrink: 0;
-  stroke-width: 1.8px;
+  transition: transform 0.15s ease;
 }
 
-.nav-item:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
+.drawer-nav-item:hover {
+  background: #f1f5f9;
+  color: #0d9488;
 }
 
-.nav-item.active {
-  background: #0d9488;
-  color: #ffffff;
+.drawer-nav-item:hover svg {
+  transform: scale(1.1);
+}
+
+.drawer-nav-item.active {
+  background: #ccfbf1;
+  color: #0f766e;
   font-weight: 700;
-  box-shadow: 0 2px 10px rgba(13, 148, 136, 0.4);
+  border-left: 3px solid #0d9488;
 }
 
-.sidebar-footer-art {
-  padding: 12px 12px 16px;
+.drawer-nav-item.active svg {
+  color: #0f766e;
+  stroke: #0f766e;
+}
+
+.drawer-footer-art {
+  padding: 14px 14px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
-.village-art-card {
+.drawer-art-card {
   width: 100%;
-  height: 96px;
+  height: 85px;
   border-radius: 10px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 8px;
-  background: #0f2930;
+  border: 1px solid #e2e8f0;
 }
 
-.village-art-card img {
+.drawer-art-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.sidebar-slogan {
+.drawer-slogan {
   font-size: 9.5px;
-  color: #94a3b8;
+  color: #64748b;
   line-height: 1.35;
   text-align: center;
   font-weight: 600;
 }
 
 /* ===================================================
-   CENTER CANVAS AREA
+   CENTER CANVAS AREA (100% FULL SCREEN DISPLAY)
    =================================================== */
 .dash-content-canvas {
   flex: 1;
-  padding: 18px 22px;
+  width: 100%;
+  max-width: 100%;
+  padding: 18px 24px;
   display: flex;
-  gap: 18px;
+  gap: 20px;
   overflow-y: auto;
 }
 

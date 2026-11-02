@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BellIcon } from '../Icons';
+import { BellIcon, DashboardIcon } from '../Icons';
 
-export default function DashboardNavbar({ notificationCount = 3 }) {
+export default function DashboardNavbar({
+  notificationCount = 3,
+  isMenuOpen = false,
+  onToggleMenu,
+}) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const toggleFullscreen = () => {
@@ -33,8 +37,19 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
       {/* Orange artistic gradient swoosh in background */}
       <div className="dash-navbar-swoosh" />
 
-      {/* Brand logo placed in top left corner */}
+      {/* Brand area: Home icon 'Menu' button + Aarogya Drishti Emblem */}
       <div className="dash-brand">
+        <button
+          type="button"
+          className={`navbar-menu-btn ${isMenuOpen ? 'active' : ''}`}
+          onClick={onToggleMenu}
+          title={isMenuOpen ? 'Close Menu Options' : 'Open Menu Options'}
+        >
+          <DashboardIcon />
+          <span>Menu</span>
+          <span className="navbar-menu-chevron">{isMenuOpen ? '▲' : '▼'}</span>
+        </button>
+
         <img
           src="/logo.png"
           alt="Aarogya Drishti Emblem"
