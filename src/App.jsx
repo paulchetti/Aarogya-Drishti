@@ -10,18 +10,19 @@ import PatientPortalLayout from './components/patient/PatientPortalLayout';
 export default function App() {
   const [mode, setMode] = useState('login');
   const [user, setUser] = useState({
-    name: 'Citizen Rahul',
-    fullName: 'Rahul Sharma',
-    email: 'rahul.citizen@aarogyadrishti.in',
-    role: 'citizen',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
+    name: 'Dr. Sandeep Kumar',
+    fullName: 'Dr. Sandeep Kumar',
+    email: 'dr.sandeep@phc.aarogyadrishti.in',
+    role: 'doctor',
+    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
   });
-  const [viewMode, setViewMode] = useState('patient'); // 'patient' (User's sketch layout) | 'doctor' (Clinical dashboard) | 'oral_screening' (Oral health screening platform)
+  // Default directly to PHC Medical Officer Dashboard
+  const [viewMode, setViewMode] = useState('phc_dashboard'); // 'phc_dashboard' | 'patient' | 'doctor'
   const [toast, setToast] = useState({ message: '', visible: false });
   const toastTimerRef = useRef(null);
 
   useEffect(() => {
-    document.title = 'Aarogya Drishti | Secure Healthcare Portal & Patient Layout';
+    document.title = 'Aarogya Drishti | Primary Health Centre (PHC) Dashboard';
 
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
@@ -29,7 +30,7 @@ export default function App() {
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.href = '/aarogya-logo.jpg?v=' + Date.now();
+    link.href = '/logo.png?v=' + Date.now();
   }, []);
 
   const showToast = (message) => {
@@ -56,20 +57,20 @@ export default function App() {
   };
 
   const handleLoginSubmit = (data) => {
-    const extractedName = data.name || (data.email ? data.email.split('@')[0] : 'Citizen Rahul');
+    const extractedName = data.name || (data.email ? data.email.split('@')[0] : 'Dr. Sandeep Kumar');
     const role = data.role || (data.email?.includes('doctor') ? 'doctor' : 'citizen');
     const loggedUser = {
       name: extractedName.charAt(0).toUpperCase() + extractedName.slice(1),
       fullName: extractedName,
-      email: data.email || 'citizen@aarogyadrishti.in',
+      email: data.email || 'dr.sandeep@phc.aarogyadrishti.in',
       role: role,
       avatar: role === 'doctor'
         ? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
         : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
     };
     setUser(loggedUser);
-    setViewMode(role === 'doctor' ? 'doctor' : 'patient');
-    showToast(`Welcome back ${loggedUser.name}! Opening ${role === 'doctor' ? 'doctor dashboard' : 'patient layout'}.`);
+    setViewMode(role === 'doctor' ? 'phc_dashboard' : 'patient');
+    showToast(`Welcome back ${loggedUser.name}! Opening PHC Medical Officer Dashboard.`);
   };
 
   const handleLogout = () => {
@@ -84,66 +85,74 @@ export default function App() {
   const handleSocialClick = (provider) => {
     showToast(`${provider} sign-in: Authenticating with ABHA Digital Locker...`);
     setUser({
-      name: 'Verified Citizen',
-      email: `citizen.${provider.toLowerCase()}@abdm.gov.in`,
-      role: 'citizen',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
+      name: 'Dr. Sandeep Kumar',
+      email: `dr.sandeep.${provider.toLowerCase()}@abdm.gov.in`,
+      role: 'doctor',
+      avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
     });
-    setViewMode('patient');
+    setViewMode('phc_dashboard');
   };
 
   const handleHelpClick = () => {
-    showToast('Aarogya Drishti 24x7 Citizen Helpline: 1800-11-4477');
+    showToast('Aarogya Drishti 24x7 PHC Healthcare Helpline: 1800-11-4477');
   };
 
-  // If citizen/user is logged in:
+  // If citizen/doctor is logged in:
   if (user) {
-    if (viewMode === 'patient') {
-      return (
-        <>
-          <PatientPortalLayout
-            user={user}
-            onLogout={handleLogout}
-            onSwitchToDoctorDashboard={() => setViewMode('doctor')}
-          />
-          <Toast message={toast.message} visible={toast.visible} />
-        </>
-      );
-    }
-
-    if (viewMode === 'oral_screening') {
+    // 1. PRIMARY HEALTH CENTRE (PHC) / MEDICAL OFFICER DASHBOARD
+    if (viewMode === 'phc_dashboard' || viewMode === 'oral_screening') {
       return (
         <div style={{ position: 'relative' }}>
+          {/* Quick Floating Portal Switcher */}
           <div
             style={{
               position: 'fixed',
-              bottom: '24px',
-              right: '24px',
-              zIndex: 999
+              bottom: '18px',
+              right: '20px',
+              zIndex: 999,
+              display: 'flex',
+              gap: '8px',
             }}
           >
             <button
               onClick={() => setViewMode('patient')}
               style={{
-                background: '#16536e',
-                color: '#ffffff',
-                border: '2px solid #388fb4',
-                padding: '10px 20px',
-                borderRadius: '24px',
+                background: '#ffffff',
+                color: '#0d9488',
+                border: '1.5px solid #0d9488',
+                padding: '8px 16px',
+                borderRadius: '20px',
                 fontWeight: 700,
+                fontSize: '11.5px',
                 cursor: 'pointer',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.35)'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
             >
-              ← Back to Patient Portal
+              👤 Switch to Patient Portal
             </button>
           </div>
+
           <DashboardView onToast={showToast} />
           <Toast message={toast.message} visible={toast.visible} />
         </div>
       );
     }
 
+    // 2. PATIENT / CITIZEN PORTAL
+    if (viewMode === 'patient') {
+      return (
+        <>
+          <PatientPortalLayout
+            user={user}
+            onLogout={handleLogout}
+            onSwitchToDoctorDashboard={() => setViewMode('phc_dashboard')}
+          />
+          <Toast message={toast.message} visible={toast.visible} />
+        </>
+      );
+    }
+
+    // 3. CLINICAL TELECONSULTATION SUITE
     return (
       <>
         <DashboardLayout
@@ -162,13 +171,13 @@ export default function App() {
       <Header
         onOpenDashboard={() => {
           setUser({
-            name: 'Citizen Rahul',
-            fullName: 'Rahul Sharma',
-            email: 'rahul.citizen@aarogyadrishti.in',
-            role: 'citizen',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'
+            name: 'Dr. Sandeep Kumar',
+            fullName: 'Dr. Sandeep Kumar',
+            email: 'dr.sandeep@phc.aarogyadrishti.in',
+            role: 'doctor',
+            avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80'
           });
-          setViewMode('patient');
+          setViewMode('phc_dashboard');
         }}
       />
 

@@ -85,6 +85,24 @@ export default function PatientPortalLayout({
             </div>
           </div>
 
+          {/* Button to open PHC Dashboard */}
+          <button
+            className="patient-logout-btn"
+            onClick={onSwitchToDoctorDashboard}
+            title="Open Primary Health Centre (PHC) / Medical Officer Dashboard"
+            style={{
+              background: '#0d9488',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+            }}
+          >
+            <span>🏥 PHC Dashboard</span>
+          </button>
+
           {/* Logout */}
           <button
             className="patient-logout-btn"
