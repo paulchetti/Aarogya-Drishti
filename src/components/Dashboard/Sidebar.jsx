@@ -29,74 +29,81 @@ export default function Sidebar({
   ];
 
   return (
-    <>
-      {/* Semi-transparent Backdrop Overlay when Menu is Open */}
+    <div className="menu-anchor-below-logo">
+      {/* Menu Toggle Button directly below the Logo */}
+      <button
+        type="button"
+        className={`menu-toggle-btn-below-logo ${isMenuOpen ? 'active' : ''}`}
+        onClick={onToggleMenu}
+        title={isMenuOpen ? 'Collapse Menu' : 'Open Menu Options'}
+      >
+        <DashboardIcon />
+        <span className="menu-btn-text">Menu</span>
+        <span className="menu-btn-chevron">{isMenuOpen ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Backdrop overlay when open */}
       {isMenuOpen && (
         <div
-          className="sidebar-backdrop"
+          className="menu-dropdown-backdrop"
           onClick={onToggleMenu}
           aria-label="Close menu"
         />
       )}
 
-      {/* Slide-out Menu Drawer - Styled in Dashboard Light Aesthetic */}
-      <aside className={`dash-sidebar-drawer ${isMenuOpen ? 'open' : 'closed'}`}>
-        <div className="drawer-header">
-          {/* Top Home icon with title 'Menu' */}
-          <button
-            type="button"
-            className="drawer-menu-header-btn"
-            onClick={() => {
-              if (onToggleMenu) onToggleMenu();
-              if (onNavSelect) onNavSelect('Dashboard');
-            }}
-            title="Click to close menu"
-          >
-            <DashboardIcon />
-            <span style={{ fontWeight: 800, letterSpacing: '0.3px' }}>Menu</span>
-            <span className="drawer-menu-chevron">▲</span>
-          </button>
-        </div>
-
-        {/* All Remaining Clinical Options */}
-        <nav className="drawer-nav">
-          {remainingItems.map((item) => (
+      {/* Dropdown Card directly below the Menu button */}
+      {isMenuOpen && (
+        <div className="menu-dropdown-panel-below-logo">
+          <div className="menu-dropdown-header">
+            <span className="menu-dropdown-title">PHC Clinical Options</span>
             <button
-              key={item.name}
               type="button"
-              className={`drawer-nav-item ${activeNav === item.name ? 'active' : ''}`}
-              onClick={() => {
-                onNavSelect(item.name);
-                if (onToggleMenu) onToggleMenu();
-              }}
-              title={item.name}
+              className="menu-dropdown-close"
+              onClick={onToggleMenu}
             >
-              <span className="drawer-nav-icon">{item.icon}</span>
-              <span className="drawer-nav-text">{item.name}</span>
+              ✕
             </button>
-          ))}
-        </nav>
-
-        {/* Tribal Village Artwork & Motto at bottom */}
-        <div className="drawer-footer-art">
-          <div className="drawer-art-card">
-            <img
-              src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=480&q=80"
-              alt="Tribal Village Landscape"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=480&q=80';
-              }}
-            />
           </div>
-          <div className="drawer-slogan">
-            Primary Health Centre (PHC)
-            <br />
-            Care Continuity Network
+
+          <nav className="menu-dropdown-nav">
+            {remainingItems.map((item) => (
+              <button
+                key={item.name}
+                type="button"
+                className={`menu-dropdown-item ${activeNav === item.name ? 'active' : ''}`}
+                onClick={() => {
+                  onNavSelect(item.name);
+                  if (onToggleMenu) onToggleMenu();
+                }}
+                title={item.name}
+              >
+                <span className="dropdown-item-icon">{item.icon}</span>
+                <span className="dropdown-item-text">{item.name}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Tribal Village Artwork & Motto at bottom of menu */}
+          <div className="menu-dropdown-art">
+            <div className="menu-art-img-wrap">
+              <img
+                src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=480&q=80"
+                alt="Tribal Village Landscape"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src =
+                    'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=480&q=80';
+                }}
+              />
+            </div>
+            <div className="menu-art-slogan">
+              Primary Health Centre (PHC)
+              <br />
+              Care Continuity Network
+            </div>
           </div>
         </div>
-      </aside>
-    </>
+      )}
+    </div>
   );
 }

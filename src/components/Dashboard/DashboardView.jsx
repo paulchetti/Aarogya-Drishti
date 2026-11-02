@@ -70,22 +70,25 @@ export default function DashboardView({ onToast }) {
 
   return (
     <div className="dashboard-root">
-      {/* Top Navbar with Home icon 'Menu' toggle & Full Screen button */}
-      <DashboardNavbar
-        notificationCount={3}
-        isMenuOpen={isMenuOpen}
-        onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
-      />
+      {/* Top Navbar with clean logo in top left */}
+      <DashboardNavbar notificationCount={3} />
 
-      {/* Main Body Grid - 100% Full Screen Width */}
-      <div className="dash-main-layout">
-        {/* Slide-out Drawer Sidebar */}
-        <Sidebar
-          activeNav={activeNav}
-          onNavSelect={handleNavSelect}
-          isMenuOpen={isMenuOpen}
-          onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
-        />
+      {/* Main Body Grid - 100% Full Display Width */}
+      <div className="dash-main-layout full-display">
+        {/* Top bar row below navbar: Menu toggle button directly BELOW the logo */}
+        <div className="dash-top-menu-bar">
+          <Sidebar
+            activeNav={activeNav}
+            onNavSelect={handleNavSelect}
+            isMenuOpen={isMenuOpen}
+            onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+          />
+
+          <div className="dash-facility-badge">
+            <span className="badge-dot">●</span>
+            <span>PHC Paderu Clinical Operations & Diagnostic Portal</span>
+          </div>
+        </div>
 
         {/* Central Canvas Area - Fills Full Display */}
         <main className="dash-content-canvas full-display">
