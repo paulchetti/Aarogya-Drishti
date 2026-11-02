@@ -184,7 +184,7 @@ export default function App() {
       style={{
         position: 'fixed',
         bottom: '18px',
-        right: '20px',
+        left: '20px',
         zIndex: 999,
         display: 'flex',
         alignItems: 'center',

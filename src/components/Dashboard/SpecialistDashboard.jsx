@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
 import StatCards from './StatCards';
 import ScreeningModal from './ScreeningModal';
+import AIChatBot from './AIChatBot';
 import '../../styles/dashboard.css';
 import {
   AIIcon,
@@ -632,6 +633,9 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
           }}
         />
       )}
+
+      {/* AI Specialist Copilot Chatbot */}
+      <AIChatBot dashboardType="specialist_dashboard" />
     </div>
   );
 }

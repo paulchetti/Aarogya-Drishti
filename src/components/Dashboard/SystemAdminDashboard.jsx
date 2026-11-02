@@ -3,6 +3,7 @@ import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
 import StatCards from './StatCards';
+import AIChatBot from './AIChatBot';
 import '../../styles/dashboard.css';
 import {
   SettingsIcon,
@@ -600,6 +601,9 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
           © 2025 AAROGYA DRISHTI. All rights reserved.
         </div>
       </footer>
+
+      {/* AI System Security & AI Telemetry Copilot */}
+      <AIChatBot dashboardType="system_admin_dashboard" />
     </div>
   );
 }

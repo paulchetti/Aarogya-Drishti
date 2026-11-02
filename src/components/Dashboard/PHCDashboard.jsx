@@ -9,6 +9,7 @@ import RecentPatientsTable from './RecentPatientsTable';
 import RightSidebar from './RightSidebar';
 import PatientModal from './PatientModal';
 import ScreeningModal from './ScreeningModal';
+import AIChatBot from './AIChatBot';
 import '../../styles/dashboard.css';
 
 export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
@@ -158,6 +159,9 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
         onClose={() => setIsScreeningModalOpen(false)}
         onComplete={handleScreeningComplete}
       />
+
+      {/* AI Clinical Copilot Chatbot */}
+      <AIChatBot dashboardType="phc_dashboard" />
     </div>
   );
 }
