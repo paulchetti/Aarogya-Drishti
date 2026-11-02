@@ -36,102 +36,106 @@ export default function PatientPortalLayout({
   };
 
   return (
-    <div className="patient-portal-root">
+    <div className={`patient-portal-root ${activeModule ? 'in-focused-mode' : ''}`}>
       {/* --------------------------------------------------------------------
-          AUTHENTIC BACKGROUND VECTOR ELEMENTS (Clean, Seamless, No Boxes)
+          AUTHENTIC BACKGROUND VECTOR ELEMENTS (Visible ONLY on Dashboard)
           -------------------------------------------------------------------- */}
-      {/* 1. Top-Left Vibrant Cyan/Blue Curved Wave Swoosh */}
-      <svg
-        className="portal-decor-top-left"
-        viewBox="0 0 320 320"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="portalTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#004cd4" />
-            <stop offset="45%" stopColor="#006ef5" />
-            <stop offset="85%" stopColor="#00aaff" />
-            <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.8" />
-          </linearGradient>
-          <linearGradient id="portalTopRim" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M 0,0 L 290,0 C 235,70 160,160 85,225 C 40,265 0,300 0,300 Z"
-          fill="url(#portalTopGrad)"
-        />
-        <path
-          d="M 0,0 L 305,0 C 248,76 170,170 90,238 C 42,280 0,315 0,315 Z"
-          fill="none"
-          stroke="url(#portalTopRim)"
-          strokeWidth="2.5"
-        />
-      </svg>
-
-      {/* 2. Top-Right Cyan/Blue Halftone Dot Matrix Pattern */}
-      <svg
-        className="portal-decor-top-right"
-        viewBox="0 0 240 240"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        {[...Array(9)].map((_, r) =>
-          [...Array(9)].map((_, c) => (
-            <circle
-              key={`${r}-${c}`}
-              cx={40 + c * 22}
-              cy={15 + r * 22}
-              r={2.2}
-              fill="#0284c7"
-              opacity={Math.max(0.04, ((c + 1) * (9 - r)) / 95)}
+      {!activeModule && (
+        <>
+          {/* 1. Top-Left Vibrant Cyan/Blue Curved Wave Swoosh */}
+          <svg
+            className="portal-decor-top-left"
+            viewBox="0 0 320 320"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="portalTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#004cd4" />
+                <stop offset="45%" stopColor="#006ef5" />
+                <stop offset="85%" stopColor="#00aaff" />
+                <stop offset="100%" stopColor="#bae6fd" stopOpacity="0.8" />
+              </linearGradient>
+              <linearGradient id="portalTopRim" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M 0,0 L 290,0 C 235,70 160,160 85,225 C 40,265 0,300 0,300 Z"
+              fill="url(#portalTopGrad)"
             />
-          ))
-        )}
-      </svg>
+            <path
+              d="M 0,0 L 305,0 C 248,76 170,170 90,238 C 42,280 0,315 0,315 Z"
+              fill="none"
+              stroke="url(#portalTopRim)"
+              strokeWidth="2.5"
+            />
+          </svg>
 
-      {/* 3. Bottom Wave Swooshes (Orange Wave + Deep Navy Blue Wave) */}
-      <svg
-        className="portal-decor-bottom-waves"
-        viewBox="0 0 1440 180"
-        preserveAspectRatio="none"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="portalOrangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ff7a00" />
-            <stop offset="55%" stopColor="#ff6500" />
-            <stop offset="100%" stopColor="#f97316" />
-          </linearGradient>
-          <linearGradient id="portalNavyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#00266e" />
-            <stop offset="50%" stopColor="#001847" />
-            <stop offset="100%" stopColor="#040e22" />
-          </linearGradient>
-          <linearGradient id="portalCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#005ce6" />
-            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.3" />
-          </linearGradient>
-        </defs>
-        {/* Left subtle curve */}
-        <path d="M 0,180 L 0,110 C 65,120 120,150 160,180 Z" fill="url(#portalCyanGrad)" />
-        {/* Orange Wave sweeping up towards the right */}
-        <path
-          d="M 500,180 C 660,180 770,75 1040,36 C 1190,14 1310,46 1440,82 L 1440,180 Z"
-          fill="url(#portalOrangeGrad)"
-        />
-        {/* Deep Navy Wave sweeping along bottom right */}
-        <path
-          d="M 680,180 C 820,180 930,95 1160,68 C 1280,52 1360,82 1440,108 L 1440,180 Z"
-          fill="url(#portalNavyGrad)"
-        />
-      </svg>
+          {/* 2. Top-Right Cyan/Blue Halftone Dot Matrix Pattern */}
+          <svg
+            className="portal-decor-top-right"
+            viewBox="0 0 240 240"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            {[...Array(9)].map((_, r) =>
+              [...Array(9)].map((_, c) => (
+                <circle
+                  key={`${r}-${c}`}
+                  cx={40 + c * 22}
+                  cy={15 + r * 22}
+                  r={2.2}
+                  fill="#0284c7"
+                  opacity={Math.max(0.04, ((c + 1) * (9 - r)) / 95)}
+                />
+              ))
+            )}
+          </svg>
+
+          {/* 3. Bottom Wave Swooshes (Orange Wave + Deep Navy Blue Wave) */}
+          <svg
+            className="portal-decor-bottom-waves"
+            viewBox="0 0 1440 180"
+            preserveAspectRatio="none"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient id="portalOrangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#ff7a00" />
+                <stop offset="55%" stopColor="#ff6500" />
+                <stop offset="100%" stopColor="#f97316" />
+              </linearGradient>
+              <linearGradient id="portalNavyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#00266e" />
+                <stop offset="50%" stopColor="#001847" />
+                <stop offset="100%" stopColor="#040e22" />
+              </linearGradient>
+              <linearGradient id="portalCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#005ce6" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            {/* Left subtle curve */}
+            <path d="M 0,180 L 0,110 C 65,120 120,150 160,180 Z" fill="url(#portalCyanGrad)" />
+            {/* Orange Wave sweeping up towards the right */}
+            <path
+              d="M 500,180 C 660,180 770,75 1040,36 C 1190,14 1310,46 1440,82 L 1440,180 Z"
+              fill="url(#portalOrangeGrad)"
+            />
+            {/* Deep Navy Wave sweeping along bottom right */}
+            <path
+              d="M 680,180 C 820,180 930,95 1160,68 C 1280,52 1360,82 1440,108 L 1440,180 Z"
+              fill="url(#portalNavyGrad)"
+            />
+          </svg>
+        </>
+      )}
 
       {/* --------------------------------------------------------------------
           PORTAL MAIN CONTENT CONTAINER

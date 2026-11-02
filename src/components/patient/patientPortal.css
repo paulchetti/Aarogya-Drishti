@@ -523,17 +523,27 @@
 }
 
 /* --------------------------------------------------------------------------
-   FOCUSED VIEW CONTAINER (When a feature is clicked)
+   FOCUSED VIEW CONTAINER (When a feature is clicked - Clean & Unobscured)
    -------------------------------------------------------------------------- */
+.patient-portal-root.in-focused-mode {
+  padding: 16px 20px;
+  background: #f1f5f9;
+  justify-content: flex-start;
+}
+
 .patient-focused-container {
-  width: min(1280px, 100%);
+  position: relative;
+  z-index: 50;
+  width: min(1320px, 100%);
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
   border: 1px solid var(--portal-card-border);
   display: flex;
   flex-direction: column;
+  margin: 10px auto 30px;
+  animation: portalFadeIn 0.25s ease-out;
 }
 
 .patient-focused-header {
