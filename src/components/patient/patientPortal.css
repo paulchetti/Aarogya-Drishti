@@ -58,44 +58,49 @@
 }
 
 /* --------------------------------------------------------------------------
-   PATIENT PORTAL TOPBAR
+   PATIENT PORTAL TOPBAR (Floating White Label Header)
    -------------------------------------------------------------------------- */
 .patient-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 28px;
+  padding: 12px 28px;
   width: min(1320px, 100%);
-  margin: 0 auto 14px;
+  margin: 0 auto 20px;
+  background: #ffffff;
+  border-radius: 50px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05), inset 0 1px 1px #ffffff;
+  border: 1px solid var(--clay-border);
   position: relative;
   z-index: 10;
+  transition: all 0.25s ease;
 }
 
 .patient-brand-group {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* Circular Logo Container - Soft Clay Button */
+/* Circular Logo Container - Inside White Topbar */
 .patient-logo-circle {
-  width: 88px;
-  height: 88px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid #ffffff;
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08), inset 0 2px 4px rgba(255, 255, 255, 1);
+  border: 2.5px solid var(--royal-blue);
+  box-shadow: 0 4px 14px var(--royal-blue-glow);
   overflow: hidden;
   flex-shrink: 0;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .patient-logo-circle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 16px 36px var(--royal-blue-glow), inset 0 2px 4px rgba(255, 255, 255, 1);
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px var(--royal-blue-glow);
 }
 
 .patient-logo-img {
@@ -104,27 +109,20 @@
   object-fit: contain;
 }
 
-/* Rectangular Box ("Arogya Drishti") - Soft Neumorphic Card */
+/* Brand Text ("Arogya Drishti") */
 .patient-brand-box {
-  padding: 16px 28px;
-  border-radius: 22px;
-  background: #ffffff;
-  border-left: 5px solid var(--royal-orange);
-  box-shadow: var(--clay-shadow);
-  border: 1px solid var(--clay-border);
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.patient-brand-box:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--clay-shadow-hover);
+  user-select: none;
 }
 
 .patient-brand-title {
-  font-size: 1.62rem;
+  font-size: 1.48rem;
   font-weight: 800;
   color: var(--text-dark);
   letter-spacing: -0.3px;
@@ -137,46 +135,46 @@
 }
 
 .patient-brand-sub {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--royal-blue);
   letter-spacing: 1.6px;
   font-weight: 800;
-  margin-top: 4px;
+  margin-top: 3px;
   text-transform: uppercase;
 }
 
-/* Right Profile Capsule - Soft Pill from the reference image */
+/* Right Profile Capsule - Soft Pill inside White Topbar */
 .patient-header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .patient-profile-capsule {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: #f8fafc;
   border-radius: 50px;
-  padding: 8px 24px 8px 8px;
-  box-shadow: var(--clay-shadow);
+  padding: 6px 20px 6px 6px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04), inset 0 1px 1px #ffffff;
   border: 1px solid var(--clay-border);
   position: relative;
-  gap: 14px;
+  gap: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .patient-profile-capsule:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--clay-shadow-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .patient-capsule-pic-wrap {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2.5px solid var(--royal-blue);
+  border: 2px solid var(--royal-blue);
   overflow: hidden;
-  box-shadow: 0 4px 14px var(--royal-blue-glow);
+  box-shadow: 0 4px 12px var(--royal-blue-glow);
   flex-shrink: 0;
   background: var(--royal-blue-bg);
 }
@@ -193,14 +191,14 @@
 }
 
 .patient-capsule-name {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: var(--text-dark);
   line-height: 1.2;
 }
 
 .patient-capsule-tag {
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--royal-green);
   font-weight: 700;
   margin-top: 2px;
@@ -209,29 +207,29 @@
   gap: 5px;
 }
 
-/* Logout Button - Soft Clay Pill */
+/* Logout Button */
 .patient-logout-btn {
-  background: #ffffff;
-  border: 1px solid var(--clay-border);
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
   color: #e11d48;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 50px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
-  box-shadow: var(--clay-shadow);
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.08);
 }
 
 .patient-logout-btn:hover {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  color: #be123c;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(225, 29, 72, 0.15);
+  background: #e11d48;
+  border-color: #e11d48;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(225, 29, 72, 0.25);
 }
 
 /* --------------------------------------------------------------------------
