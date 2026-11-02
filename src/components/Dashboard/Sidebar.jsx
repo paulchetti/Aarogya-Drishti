@@ -55,7 +55,7 @@ export default function Sidebar({
       {isMenuOpen && (
         <div className="menu-dropdown-panel-below-logo">
           <div className="menu-dropdown-header">
-            <span className="menu-dropdown-title">PHC Clinical Options</span>
+            <span className="menu-dropdown-title">PHC Dashboard Options</span>
             <button
               type="button"
               className="menu-dropdown-close"

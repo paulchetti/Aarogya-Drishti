@@ -42,7 +42,7 @@ export default function DashboardNavbar({ notificationCount = 3 }) {
         />
         <div className="dash-brand-text">
           <h1>AAROGYA DRISHTI</h1>
-          <p>Primary Health Centre (PHC) / Medical Officer Dashboard</p>
+          <p>PHC Dashboard</p>
         </div>
       </div>
 

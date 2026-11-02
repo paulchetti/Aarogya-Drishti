@@ -6,7 +6,7 @@ export default function WelcomeBanner({ doctorName = 'Dr. Sandeep Kumar' }) {
       <div className="welcome-text">
         <h2>Welcome Back,</h2>
         <h1>{doctorName}</h1>
-        <p>Primary Health Centre (PHC) / Medical Officer Dashboard</p>
+        <p>PHC Dashboard</p>
       </div>
 
       {/* Clinical Oral Examination & Diagnostic Triage photo */}

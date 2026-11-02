@@ -4,7 +4,7 @@ import Footer from './components/Footer';
 import AuthCard from './components/AuthCard';
 import Toast from './components/Toast';
 import DashboardLayout from './components/clinical/DashboardLayout';
-import DashboardView from './components/Dashboard/DashboardView';
+import PHCDashboard from './components/Dashboard/PHCDashboard';
 import PatientPortalLayout from './components/patient/PatientPortalLayout';
 
 export default function App() {
@@ -132,7 +132,7 @@ export default function App() {
             </button>
           </div>
 
-          <DashboardView onToast={showToast} />
+          <PHCDashboard onToast={showToast} />
           <Toast message={toast.message} visible={toast.visible} />
         </div>
       );
