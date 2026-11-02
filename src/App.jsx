@@ -5,7 +5,7 @@ import AuthCard from './components/AuthCard';
 import Toast from './components/Toast';
 import DashboardLayout from './components/clinical/DashboardLayout';
 import DashboardView from './components/Dashboard/DashboardView';
-import PatientPortalLayout from './components/patient/PatientPortalLayout';
+import CitizenPortalLayout from './components/citizen/CitizenPortalLayout';
 
 export default function App() {
   const [mode, setMode] = useState('login');
@@ -101,7 +101,7 @@ export default function App() {
     if (viewMode === 'patient') {
       return (
         <>
-          <PatientPortalLayout
+          <CitizenPortalLayout
             user={user}
             onLogout={handleLogout}
             onSwitchToDoctorDashboard={() => setViewMode('doctor')}
@@ -149,7 +149,7 @@ export default function App() {
         <DashboardLayout
           user={user}
           onLogout={handleLogout}
-          onSwitchToPatientPortal={() => setViewMode('patient')}
+          onSwitchToCitizenPortal={() => setViewMode('patient')}
         />
         <Toast message={toast.message} visible={toast.visible} />
       </>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './patientPortal.css';
+import './citizenPortal.css';
 import {
   UserPlus,
   FileText,
@@ -17,7 +17,7 @@ import ScheduledConsultationsView from '../clinical/ScheduledConsultationsView';
 import ClinicalQuestionnaireView from '../clinical/ClinicalQuestionnaireView';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
-export default function PatientPortalLayout({
+export default function CitizenPortalLayout({
   user,
   onLogout,
   onSwitchToDoctorDashboard

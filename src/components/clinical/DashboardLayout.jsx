@@ -10,7 +10,7 @@ import ClinicalQuestionnaireView from './ClinicalQuestionnaireView';
 import TeleconsultationSuite from './TeleconsultationSuite';
 import PrescriptionModal from './PrescriptionModal';
 
-export default function DashboardLayout({ user, onLogout, onSwitchToPatientPortal }) {
+export default function DashboardLayout({ user, onLogout, onSwitchToCitizenPortal }) {
   const [currentView, setCurrentView] = useState('overview'); // 'overview' | 'intake' | 'ehr' | 'consultations' | 'questionnaire' | 'teleconsult' | 'settings' | 'help'
   const [activePatientForTeleconsult, setActivePatientForTeleconsult] = useState(null);
   const [selectedReportForModal, setSelectedReportForModal] = useState(null);
@@ -65,7 +65,7 @@ export default function DashboardLayout({ user, onLogout, onSwitchToPatientPorta
           onSearch={setSearchQuery}
           searchQuery={searchQuery}
           onNavigate={setCurrentView}
-          onSwitchToPatientPortal={onSwitchToPatientPortal}
+          onSwitchToCitizenPortal={onSwitchToCitizenPortal}
         />
 
         {/* View Router */}

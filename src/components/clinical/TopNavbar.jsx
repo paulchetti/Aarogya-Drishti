@@ -7,7 +7,7 @@ export default function TopNavbar({
   onSearch,
   searchQuery,
   onNavigate,
-  onSwitchToPatientPortal
+  onSwitchToCitizenPortal
 }) {
   const [showMonthMenu, setShowMonthMenu] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('November 2025');
@@ -32,7 +32,7 @@ export default function TopNavbar({
 
       <div className="nav-actions">
         {/* Switch to Citizen Portal Layout Button */}
-        {onSwitchToPatientPortal && (
+        {onSwitchToCitizenPortal && (
           <button
             className="role-switch-btn"
             style={{
@@ -41,7 +41,7 @@ export default function TopNavbar({
               borderColor: '#23789f',
               boxShadow: '0 2px 8px rgba(15, 59, 79, 0.25)'
             }}
-            onClick={onSwitchToPatientPortal}
+            onClick={onSwitchToCitizenPortal}
             title="Switch to Citizen Portal"
           >
             <LayoutGrid size={14} color="#7ee787" />
