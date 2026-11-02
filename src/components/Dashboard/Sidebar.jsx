@@ -16,8 +16,10 @@ export default function Sidebar({
   onNavSelect,
   isMenuOpen = false,
   onToggleMenu,
+  menuTitle = 'PHC Dashboard Options',
+  customItems = null,
 }) {
-  const remainingItems = [
+  const defaultItems = [
     { name: 'Direct / Walk-in Registration', icon: <UserPlusIcon /> },
     { name: 'EHR Clinical Documentation', icon: <HistoryIcon /> },
     { name: 'Diagnostic & Triage Assessment', icon: <CameraIcon /> },
@@ -27,6 +29,8 @@ export default function Sidebar({
     { name: 'Virtual Consultation Queue', icon: <AIIcon /> },
     { name: 'Clinician Profile & Credentials', icon: <SettingsIcon /> },
   ];
+
+  const menuItems = customItems || defaultItems;
 
   return (
     <div className="menu-anchor-below-logo">
@@ -55,7 +59,7 @@ export default function Sidebar({
       {isMenuOpen && (
         <div className="menu-dropdown-panel-below-logo">
           <div className="menu-dropdown-header">
-            <span className="menu-dropdown-title">PHC Dashboard Options</span>
+            <span className="menu-dropdown-title">{menuTitle}</span>
             <button
               type="button"
               className="menu-dropdown-close"
@@ -66,13 +70,13 @@ export default function Sidebar({
           </div>
 
           <nav className="menu-dropdown-nav">
-            {remainingItems.map((item) => (
+            {menuItems.map((item) => (
               <button
                 key={item.name}
                 type="button"
                 className={`menu-dropdown-item ${activeNav === item.name ? 'active' : ''}`}
                 onClick={() => {
-                  onNavSelect(item.name);
+                  if (onNavSelect) onNavSelect(item.name);
                   if (onToggleMenu) onToggleMenu();
                 }}
                 title={item.name}

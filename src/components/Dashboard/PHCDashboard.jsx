@@ -11,7 +11,7 @@ import PatientModal from './PatientModal';
 import ScreeningModal from './ScreeningModal';
 import '../../styles/dashboard.css';
 
-export default function PHCDashboard({ onToast }) {
+export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
@@ -80,7 +80,14 @@ export default function PHCDashboard({ onToast }) {
       </div>
 
       {/* Top Navbar with clean logo in top left */}
-      <DashboardNavbar notificationCount={3} />
+      <DashboardNavbar
+        dashboardTitle="PHC Dashboard"
+        userName="Dr. Sandeep Kumar"
+        userRole="PHC Medical Officer"
+        notificationCount={3}
+        onSwitchDashboard={onSwitchDashboard}
+        onLogout={onLogout}
+      />
 
       {/* Main Body Grid - 100% Full Display Width */}
       <div className="dash-main-layout full-display">

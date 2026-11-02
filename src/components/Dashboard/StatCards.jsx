@@ -1,8 +1,8 @@
 import React from 'react';
 import { UserIcon, TargetIcon, WarningIcon, CalendarIcon } from '../Icons';
 
-export default function StatCards() {
-  const cards = [
+export default function StatCards({ cards = null }) {
+  const defaultCards = [
     {
       title: 'Recent Admissions / Registrations',
       value: '248',
@@ -45,9 +45,11 @@ export default function StatCards() {
     },
   ];
 
+  const items = cards || defaultCards;
+
   return (
     <div className="stat-cards-grid">
-      {cards.map((card, i) => (
+      {items.map((card, i) => (
         <div key={i} className={`metric-card ${card.cardBorder}`}>
           <div>
             <div className={`metric-icon-circle ${card.colorClass}`}>{card.icon}</div>
