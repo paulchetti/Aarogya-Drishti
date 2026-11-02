@@ -52,7 +52,7 @@ export default function App() {
     };
     setUser(newCitizen);
     setViewMode('patient');
-    showToast(`Welcome ${newCitizen.name}! Opening your patient portal.`);
+    showToast(`Welcome ${newCitizen.name}! Opening your Citizen Portal.`);
   };
 
   const handleLoginSubmit = (data) => {
@@ -135,7 +135,7 @@ export default function App() {
                 boxShadow: '0 6px 18px rgba(0,0,0,0.35)'
               }}
             >
-              ← Back to Patient Portal
+              ← Back to Citizen Portal
             </button>
           </div>
           <DashboardView onToast={showToast} />

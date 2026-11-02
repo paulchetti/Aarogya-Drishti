@@ -31,7 +31,7 @@ export default function TopNavbar({
       </div>
 
       <div className="nav-actions">
-        {/* Switch to Patient Portal Layout Button */}
+        {/* Switch to Citizen Portal Layout Button */}
         {onSwitchToPatientPortal && (
           <button
             className="role-switch-btn"
@@ -42,10 +42,10 @@ export default function TopNavbar({
               boxShadow: '0 2px 8px rgba(15, 59, 79, 0.25)'
             }}
             onClick={onSwitchToPatientPortal}
-            title="Switch to the 5-button Patient Portal Layout"
+            title="Switch to Citizen Portal"
           >
             <LayoutGrid size={14} color="#7ee787" />
-            <span>Patient Portal Layout</span>
+            <span>Citizen Portal</span>
           </button>
         )}
 

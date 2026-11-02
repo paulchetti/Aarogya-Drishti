@@ -345,7 +345,7 @@ export default function PatientPortalLayout({
               title="Return to Citizen Portal Home"
             >
               <ArrowLeft size={16} />
-              <span>← Back to Patient Portal</span>
+              <span>← Back to Citizen Portal</span>
             </button>
 
             <div className="patient-focused-title-badge">
