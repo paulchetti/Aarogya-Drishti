@@ -16,6 +16,8 @@ import EHRHistoryView from '../clinical/EHRHistoryView';
 import ScheduledConsultationsView from '../clinical/ScheduledConsultationsView';
 import ClinicalQuestionnaireView from '../clinical/ClinicalQuestionnaireView';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
+import ScreeningModal from '../Dashboard/ScreeningModal';
+import AIChatBot from '../Dashboard/AIChatBot';
 
 export default function CitizenPortalLayout({
   user,
@@ -23,6 +25,7 @@ export default function CitizenPortalLayout({
 }) {
   const [activeModule, setActiveModule] = useState(null); // null = dashboard, or 'intake' | 'ehr' | 'consultations' | 'questionnaire' | 'teleconsult'
   const [teleconsultPatient, setTeleconsultPatient] = useState(null);
+  const [isScreeningOpen, setIsScreeningOpen] = useState(false);
 
   const patientName = user?.name || 'Citizen Rahul';
   const patientAvatar =
@@ -178,6 +181,26 @@ export default function CitizenPortalLayout({
                 </div>
               </div>
 
+              <button
+                className="patient-logout-btn"
+                onClick={() => setIsScreeningOpen(true)}
+                title="AI Oral Health & Cancer Screening (Gemini Multimodal)"
+                style={{
+                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontWeight: 700,
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
+                }}
+              >
+                <span>✨ AI Oral Screening</span>
+              </button>
               <button
                 className="patient-logout-btn"
                 onClick={onLogout}
@@ -387,6 +410,19 @@ export default function CitizenPortalLayout({
           </div>
         </div>
       )}
+
+      {/* Oral Cancer AI Diagnostic Screening Modal */}
+      <ScreeningModal
+        isOpen={isScreeningOpen}
+        onClose={() => setIsScreeningOpen(false)}
+        onComplete={(res) => {
+          console.info('Screening completed:', res);
+          setIsScreeningOpen(false);
+        }}
+      />
+
+      {/* AI Copilot Floating Chatbot */}
+      <AIChatBot dashboardType="phc_dashboard" />
     </div>
   );
 }
