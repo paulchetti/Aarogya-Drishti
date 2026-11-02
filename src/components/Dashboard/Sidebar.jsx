@@ -16,8 +16,10 @@ export default function Sidebar({
   onNavSelect,
   isMenuOpen = false,
   onToggleMenu,
+  menuTitle = 'PHC Dashboard Options',
+  customItems = null,
 }) {
-  const remainingItems = [
+  const defaultItems = [
     { name: 'Direct / Walk-in Registration', icon: <UserPlusIcon /> },
     { name: 'EHR Clinical Documentation', icon: <HistoryIcon /> },
     { name: 'Diagnostic & Triage Assessment', icon: <CameraIcon /> },
@@ -28,68 +30,64 @@ export default function Sidebar({
     { name: 'Clinician Profile & Credentials', icon: <SettingsIcon /> },
   ];
 
-  return (
-    <aside className={`dash-sidebar ${isMenuOpen ? 'expanded' : 'collapsed'}`}>
-      <nav className="sidebar-nav">
-        {/* Home icon with title 'Menu' - Clicking toggles remaining options */}
-        <button
-          type="button"
-          className={`nav-item menu-toggle-btn ${activeNav === 'Dashboard' ? 'active' : ''}`}
-          onClick={() => {
-            if (onToggleMenu) onToggleMenu();
-            if (onNavSelect) onNavSelect('Dashboard');
-          }}
-          title={isMenuOpen ? 'Collapse options' : 'Show remaining options'}
-        >
-          <DashboardIcon />
-          <span className="nav-item-text" style={{ fontWeight: 800, letterSpacing: '0.3px' }}>
-            Menu
-          </span>
-          <span className="menu-chevron" style={{ marginLeft: 'auto', fontSize: '9px', opacity: 0.85 }}>
-            {isMenuOpen ? '▲' : '▼'}
-          </span>
-        </button>
+  const menuItems = customItems || defaultItems;
 
-        {/* Remaining options - revealed when Menu is clicked */}
-        {isMenuOpen && (
-          <div className="remaining-nav-items">
-            {remainingItems.map((item) => (
+  return (
+    <div className="menu-anchor-below-logo">
+      {/* Menu Toggle Button directly below the Logo */}
+      <button
+        type="button"
+        className={`menu-toggle-btn-below-logo ${isMenuOpen ? 'active' : ''}`}
+        onClick={onToggleMenu}
+        title={isMenuOpen ? 'Collapse Menu' : 'Open Menu Options'}
+      >
+        <DashboardIcon />
+        <span className="menu-btn-text">Menu</span>
+        <span className="menu-btn-chevron">{isMenuOpen ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Backdrop overlay when open */}
+      {isMenuOpen && (
+        <div
+          className="menu-dropdown-backdrop"
+          onClick={onToggleMenu}
+          aria-label="Close menu"
+        />
+      )}
+
+      {/* Clean Dropdown Card directly below the Menu button */}
+      {isMenuOpen && (
+        <div className="menu-dropdown-panel-below-logo">
+          <div className="menu-dropdown-header">
+            <span className="menu-dropdown-title">{menuTitle}</span>
+            <button
+              type="button"
+              className="menu-dropdown-close"
+              onClick={onToggleMenu}
+            >
+              ✕
+            </button>
+          </div>
+
+          <nav className="menu-dropdown-nav">
+            {menuItems.map((item) => (
               <button
                 key={item.name}
                 type="button"
-                className={`nav-item ${activeNav === item.name ? 'active' : ''}`}
-                onClick={() => onNavSelect(item.name)}
+                className={`menu-dropdown-item ${activeNav === item.name ? 'active' : ''}`}
+                onClick={() => {
+                  if (onNavSelect) onNavSelect(item.name);
+                  if (onToggleMenu) onToggleMenu();
+                }}
                 title={item.name}
               >
-                {item.icon}
-                <span className="nav-item-text">{item.name}</span>
+                <span className="dropdown-item-icon">{item.icon}</span>
+                <span className="dropdown-item-text">{item.name}</span>
               </button>
             ))}
-          </div>
-        )}
-      </nav>
-
-      {/* Tribal Village Artwork & Motto at bottom (visible when expanded) */}
-      {isMenuOpen && (
-        <div className="sidebar-footer-art">
-          <div className="village-art-card">
-            <img
-              src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=480&q=80"
-              alt="Tribal Village Landscape"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=480&q=80';
-              }}
-            />
-          </div>
-          <div className="sidebar-slogan">
-            Primary Health Centre (PHC)
-            <br />
-            Care Continuity Network
-          </div>
+          </nav>
         </div>
       )}
-    </aside>
+    </div>
   );
 }
