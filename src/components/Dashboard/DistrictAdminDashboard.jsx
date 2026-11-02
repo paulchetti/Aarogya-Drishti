@@ -23,13 +23,13 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const adminMenuItems = [
-    { name: 'Population Screening Coverage', icon: <ReportsIcon /> },
+    { name: 'Jurisdictional Macro-Analytics & Surveillance Dashboard', icon: <ReportsIcon /> },
+    { name: 'Population Screening Coverage', icon: <UserIcon /> },
     { name: 'Mandal & PHC Performance Backlog', icon: <TargetIcon /> },
     { name: 'High-Risk Habit Epidemiological Heatmap', icon: <WarningIcon /> },
     { name: 'Mobile Screening Van Fleet Deployment', icon: <CameraIcon /> },
     { name: 'Tertiary Referral Transit Monitoring', icon: <ReferralIcon /> },
-    { name: 'ASHA & ANM Incentive & Screening Tracker', icon: <UserIcon /> },
-    { name: 'Drug & Biopsy Kit Supply Logistics', icon: <HistoryIcon /> },
+    { name: 'ASHA & ANM Incentive & Screening Tracker', icon: <HistoryIcon /> },
     { name: 'Health Ministry & ABDM Compliance Reports', icon: <SettingsIcon /> },
   ];
 
@@ -212,7 +212,7 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
 
           <div className="dash-facility-badge">
             <span className="badge-dot" style={{ backgroundColor: '#2563eb' }}>●</span>
-            <span>District Administrator Dashboard • ITDA Paderu Tribal Health Mission</span>
+            <span>District Administrator Dashboard • Jurisdictional Macro-Analytics & Surveillance</span>
           </div>
         </div>
 
@@ -399,19 +399,19 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
               <div className="table-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                    Mandal PHC Performance, Screening Quotas & Backlog Tracker
+                    Jurisdictional Macro-Analytics, Screening Quotas & Backlog Tracker
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                    District monitoring across 11 tribal Mandals with live mobile van camp tracking
+                    District epidemiological surveillance across 11 tribal Mandals with live mobile van camp tracking
                   </p>
                 </div>
                 <button
                   type="button"
                   className="view-all-link"
-                  onClick={() => onToast && onToast('Exporting 11-Mandal DMHO Health Audit Report (PDF)...')}
+                  onClick={() => onToast && onToast('Exporting Jurisdictional Macro-Analytics Report (PDF)...')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  Download Complete Audit <span>→</span>
+                  Download Macro-Analytics <span>→</span>
                 </button>
               </div>
 
