@@ -70,6 +70,15 @@ export default function PHCDashboard({ onToast }) {
 
   return (
     <div className="dashboard-root">
+      {/* Subtle Medical Caduceus Watermark in the background */}
+      <div className="dashboard-watermark-bg" aria-hidden="true">
+        <img
+          src="/caduceus-watermark.png"
+          alt="Medical Caduceus Watermark"
+          className="watermark-img"
+        />
+      </div>
+
       {/* Top Navbar with clean logo in top left */}
       <DashboardNavbar notificationCount={3} />
 
@@ -145,3 +154,4 @@ export default function PHCDashboard({ onToast }) {
     </div>
   );
 }
+

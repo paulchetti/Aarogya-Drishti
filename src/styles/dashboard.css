@@ -39,6 +39,30 @@ html, body {
 }
 
 /* ===================================================
+   BACKGROUND WATERMARK (CADUCEUS MEDICAL EMBLEM)
+   =================================================== */
+.dashboard-watermark-bg {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.watermark-img {
+  width: min(580px, 55vw);
+  max-height: 75vh;
+  object-fit: contain;
+  opacity: 0.055;
+  filter: contrast(115%);
+  user-select: none;
+  transform: translateY(20px);
+}
+
+/* ===================================================
    TOP NAVBAR (WITH REAL ORANGE CURVED ARTISTIC SWEEP)
    =================================================== */
 .dash-navbar {
