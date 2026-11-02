@@ -45,8 +45,21 @@
 }
 
 /* --------------------------------------------------------------------------
-   BACKGROUND DECORATIVE VECTOR ELEMENTS (Seamless, Zero Crop Artifacts)
+   BACKGROUND DECORATIVE VECTOR ELEMENTS (Strictly in Background z-index: 0)
    -------------------------------------------------------------------------- */
+.portal-decor-bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
 .portal-decor-top-left {
   position: absolute;
   top: 0;
@@ -54,7 +67,7 @@
   width: clamp(200px, 22vw, 320px);
   height: auto;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .portal-decor-top-right {
@@ -64,7 +77,7 @@
   width: clamp(160px, 18vw, 250px);
   height: auto;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 .portal-decor-bottom-waves {
@@ -75,7 +88,7 @@
   width: 100%;
   height: clamp(100px, 16vh, 180px);
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -523,30 +536,24 @@
 }
 
 /* --------------------------------------------------------------------------
-   FOCUSED VIEW CONTAINER (When a feature is clicked - Clean & Unobscured)
+   FOCUSED VIEW CONTAINER (When a feature is clicked - Always in Foreground)
    -------------------------------------------------------------------------- */
-.patient-portal-root.in-focused-mode {
-  padding: 16px 20px;
-  background: #f1f5f9;
-  justify-content: flex-start;
-}
-
 .patient-focused-container {
   position: relative;
-  z-index: 50;
-  width: min(1320px, 100%);
+  z-index: 10;
+  width: min(1280px, 100%);
   background: #ffffff;
-  border-radius: 24px;
+  border-radius: 28px;
   overflow: hidden;
-  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
   border: 1px solid var(--portal-card-border);
   display: flex;
   flex-direction: column;
-  margin: 10px auto 30px;
-  animation: portalFadeIn 0.25s ease-out;
 }
 
 .patient-focused-header {
+  position: relative;
+  z-index: 12;
   background: #ffffff;
   padding: 18px 28px;
   display: flex;
