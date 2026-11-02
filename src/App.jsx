@@ -9,6 +9,7 @@ import SpecialistDashboard from './components/Dashboard/SpecialistDashboard';
 import DistrictAdminDashboard from './components/Dashboard/DistrictAdminDashboard';
 import SystemAdminDashboard from './components/Dashboard/SystemAdminDashboard';
 import CitizenPortalLayout from './components/citizen/CitizenPortalLayout';
+import ANMPortalLayout from './components/anm/ANMPortalLayout';
 
 export default function App() {
   const [mode, setMode] = useState('login');
@@ -21,7 +22,7 @@ export default function App() {
   });
   // Default directly to PHC Medical Officer Dashboard
   const [viewMode, setViewMode] = useState('phc_dashboard'); 
-  // 'phc_dashboard' | 'specialist_dashboard' | 'district_admin_dashboard' | 'system_admin_dashboard' | 'patient' | 'doctor'
+  // 'phc_dashboard' | 'specialist_dashboard' | 'district_admin_dashboard' | 'system_admin_dashboard' | 'anm_portal' | 'patient' | 'doctor'
   const [toast, setToast] = useState({ message: '', visible: false });
   const toastTimerRef = useRef(null);
 
@@ -33,6 +34,8 @@ export default function App() {
       title = 'Aarogya Drishti | District Administrator Dashboard (DMHO)';
     } else if (viewMode === 'system_admin_dashboard') {
       title = 'Aarogya Drishti | System Administrator Dashboard (Security & IT)';
+    } else if (viewMode === 'anm_portal') {
+      title = 'Aarogya Drishti | ANM & Village Health Worker Portal';
     } else if (viewMode === 'patient') {
       title = 'Aarogya Drishti | Citizen Care Portal';
     }
@@ -88,6 +91,16 @@ export default function App() {
       });
       setViewMode('system_admin_dashboard');
       showToast('Opened System Administrator Dashboard (Security & AI Telemetry)');
+    } else if (targetMode === 'anm_portal') {
+      setUser({
+        name: 'ANM Lakshmi Devi',
+        fullName: 'Lakshmi Devi, GNM',
+        email: 'lakshmi.anm@paderu.hfw.gov.in',
+        role: 'anm',
+        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80',
+      });
+      setViewMode('anm_portal');
+      showToast('Opened ANM & Village Health Worker Portal (Sub-Centre Paderu)');
     } else if (targetMode === 'patient') {
       setUser({
         name: 'Citizen Rahul',
@@ -191,6 +204,7 @@ export default function App() {
         { key: 'specialist_dashboard', label: '🔬 Specialist' },
         { key: 'district_admin_dashboard', label: '🏛️ District Admin' },
         { key: 'system_admin_dashboard', label: '🛡️ System Admin' },
+        { key: 'anm_portal', label: '👩‍⚕️ ANM / Field' },
         { key: 'patient', label: '👤 Citizen' },
       ].map((tab) => (
         <button
@@ -292,7 +306,24 @@ export default function App() {
       );
     }
 
-    // 5. CITIZEN CARE PORTAL
+    // 5. ANM & VILLAGE HEALTH WORKER PORTAL
+    if (viewMode === 'anm_portal') {
+      return (
+        <>
+          {renderFloatingSwitcher()}
+          <ANMPortalLayout
+            user={user}
+            onLogout={handleLogout}
+            onSwitchToDoctorDashboard={() => handleSwitchDashboard('phc_dashboard')}
+            onSwitchToANMPortal={() => handleSwitchDashboard('anm_portal')}
+            onSwitchToCitizenPortal={() => handleSwitchDashboard('patient')}
+          />
+          <Toast message={toast.message} visible={toast.visible} />
+        </>
+      );
+    }
+
+    // 6. CITIZEN CARE PORTAL
     if (viewMode === 'patient') {
       return (
         <>
@@ -301,13 +332,14 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onSwitchToDoctorDashboard={() => handleSwitchDashboard('phc_dashboard')}
+            onSwitchToANMPortal={() => handleSwitchDashboard('anm_portal')}
           />
           <Toast message={toast.message} visible={toast.visible} />
         </>
       );
     }
 
-    // 6. CLINICAL TELECONSULTATION SUITE
+    // 7. CLINICAL TELECONSULTATION SUITE
     return (
       <>
         {renderFloatingSwitcher()}
