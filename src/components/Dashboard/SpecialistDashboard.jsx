@@ -28,14 +28,16 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
   const [selectedCase, setSelectedCase] = useState(null);
 
   const specialistMenuItems = [
-    { name: 'Teleconsultation Review Queue', icon: <AIIcon /> },
-    { name: 'Incoming PHC Referral Case Files', icon: <ReferralIcon /> },
-    { name: 'AI Biopsy Re-confirmation Center', icon: <CameraIcon /> },
-    { name: 'Histopathology & Cytology Reports', icon: <HistoryIcon /> },
-    { name: 'Multi-Disciplinary Tumor Board (MDT)', icon: <UserPlusIcon /> },
-    { name: 'Radiation & Surgical Staging Notes', icon: <ReportsIcon /> },
-    { name: 'High-Risk Longitudinal Tracking', icon: <CalendarIcon /> },
-    { name: 'Specialist Credentials & Digital Signature', icon: <SettingsIcon /> },
+    { name: 'Inbound Referral Triage Queue', icon: <ReferralIcon /> },
+    { name: 'High-Acuity Priority Cases', icon: <WarningIcon /> },
+    { name: 'Longitudinal EMR Records', icon: <HistoryIcon /> },
+    { name: 'Clinical Encounter Notes', icon: <ReportsIcon /> },
+    { name: 'Diagnostic Orders & Lab Workups', icon: <CameraIcon /> },
+    { name: 'Inter-Provider Clinical Feedback', icon: <AIIcon /> },
+    { name: 'Specialist Consultation Schedule', icon: <CalendarIcon /> },
+    { name: 'Diagnostic Summary Report', icon: <ReportsIcon /> },
+    { name: 'Telehealth Video Gateway', icon: <HeartPulseIcon /> },
+    { name: 'Specialist Directory & Availability Settings', icon: <SettingsIcon /> },
   ];
 
   const specialistStats = [
@@ -156,7 +158,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
   const handleNavSelect = (navName) => {
     setActiveNav(navName);
-    if (navName === 'Teleconsultation Review Queue' || navName === 'AI Biopsy Re-confirmation Center') {
+    if (navName === 'Telehealth Video Gateway' || navName === 'Diagnostic Orders & Lab Workups') {
       setIsReviewModalOpen(true);
     } else if (onToast) {
       onToast(`Navigating to ${navName}`);
@@ -165,19 +167,23 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
   const handleAction = (action) => {
     switch (action) {
+      case 'telehealth-gateway':
       case 'launch-teleconsult':
         setIsReviewModalOpen(true);
-        if (onToast) onToast('Starting Encrypted WebRTC Teleconsultation with PHC Koyyuru...');
+        if (onToast) onToast('Connecting to Telehealth Video Gateway (Encrypted WebRTC)...');
         break;
+      case 'diagnostic-orders':
       case 'review-biopsy':
         setIsReviewModalOpen(true);
-        if (onToast) onToast('Loading AI Biopsy Multi-Spectral Visuals & Grad-CAM Heatmap...');
+        if (onToast) onToast('Opening Diagnostic Orders & Lab Workups Console...');
         break;
+      case 'clinical-feedback':
       case 'issue-referral':
-        if (onToast) onToast('Generating Digital Referral Endorsement & e-Signature (ABHA M3)...');
+        if (onToast) onToast('Recording Inter-Provider Clinical Feedback & e-Sign for Referring PHC...');
         break;
+      case 'directory-settings':
       case 'order-histopathology':
-        if (onToast) onToast('Order Dispatched: Fine Needle Aspiration & Punch Biopsy Kit to PHC Araku.');
+        if (onToast) onToast('Updating Specialist Directory & Availability Settings...');
         break;
       default:
         break;
@@ -404,19 +410,19 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <div className="table-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                    Urgent Specialist Referral & Teleconsultation Queue
+                    Inbound Referral Triage Queue (High-Acuity Cases)
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                    Triaged high-suspicion cases awaiting oncology concurrence & biopsy directives
+                    Triaged high-acuity priority cases awaiting oncological diagnosis, lab workups & clinical encounter notes
                   </p>
                 </div>
                 <button
                   type="button"
                   className="view-all-link"
-                  onClick={() => onToast && onToast('Loading comprehensive 42-patient referral ledger...')}
+                  onClick={() => onToast && onToast('Loading comprehensive Longitudinal EMR Records...')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  View All Referrals <span>→</span>
+                  View Longitudinal EMR Records <span>→</span>
                 </button>
               </div>
 
@@ -519,12 +525,12 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <button
                 type="button"
                 className="btn-action-hero orange-grad"
-                onClick={() => handleAction('launch-teleconsult')}
-                title="Launch Encrypted Teleconsultation Suite"
+                onClick={() => handleAction('telehealth-gateway')}
+                title="Telehealth Video Gateway"
               >
                 <div className="btn-left">
                   <AIIcon className="w-4 h-4" />
-                  <span>Launch Teleconsult Suite</span>
+                  <span>Telehealth Video Gateway</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -532,12 +538,12 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <button
                 type="button"
                 className="btn-action-hero teal-grad"
-                onClick={() => handleAction('review-biopsy')}
-                title="Review AI Biopsy Flagged Scans"
+                onClick={() => handleAction('diagnostic-orders')}
+                title="Diagnostic Orders & Lab Workups"
               >
                 <div className="btn-left">
                   <CameraIcon className="w-4 h-4" />
-                  <span>Review AI Biopsy Scans</span>
+                  <span>Diagnostic Orders & Labs</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -546,12 +552,12 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                 type="button"
                 className="btn-action-hero"
                 style={{ background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', color: '#fff' }}
-                onClick={() => handleAction('issue-referral')}
-                title="Issue Digital Referral Endorsement"
+                onClick={() => handleAction('clinical-feedback')}
+                title="Inter-Provider Clinical Feedback"
               >
                 <div className="btn-left">
                   <ReferralIcon className="w-4 h-4" />
-                  <span>Issue Referral Endorsement</span>
+                  <span>Inter-Provider Feedback</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -560,12 +566,12 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                 type="button"
                 className="btn-action-hero"
                 style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)', color: '#fff' }}
-                onClick={() => handleAction('order-histopathology')}
-                title="Order Histopathology / Biopsy Kit"
+                onClick={() => handleAction('directory-settings')}
+                title="Specialist Directory & Availability Settings"
               >
                 <div className="btn-left">
-                  <HeartPulseIcon className="w-4 h-4" />
-                  <span>Order Biopsy Dispatch</span>
+                  <SettingsIcon className="w-4 h-4" />
+                  <span>Directory & Availability</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -574,7 +580,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
             {/* Department Schedule Card */}
             <div className="schedule-card">
               <div className="schedule-header">
-                <h4>Today's Tele-OPD Lineup</h4>
+                <h4>Specialist Consultation Schedule</h4>
                 <span className="schedule-date">15 Apr 2025</span>
               </div>
 

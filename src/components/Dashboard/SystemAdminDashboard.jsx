@@ -22,7 +22,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const sysAdminMenuItems = [
-    { name: 'User Identity & RBAC Management', icon: <UserIcon /> },
+    { name: 'Identity and Access Management (IAM) & Provisioning Console', icon: <UserIcon /> },
     { name: 'Security & HIPAA Audit Event Log', icon: <HistoryIcon /> },
     { name: 'AI Inference Latency & Model Provenance', icon: <AIIcon /> },
     { name: 'Offline Edge Sync & Queue Diagnostics', icon: <SettingsIcon /> },
@@ -194,7 +194,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
 
           <div className="dash-facility-badge">
             <span className="badge-dot" style={{ backgroundColor: '#7c3aed' }}>●</span>
-            <span>System Administrator Dashboard • ITDA Health Cloud & Security Ops</span>
+            <span>System Administrator Dashboard • Identity and Access Management (IAM) & Provisioning</span>
           </div>
         </div>
 
@@ -381,19 +381,19 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
               <div className="table-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                    Real-Time Security & System Audit Event Log
+                    Identity and Access Management (IAM) & System Audit Event Log
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                    Immutable cryptographic audit trail adhering to ABDM, DISHA & HIPAA guidelines
+                    Immutable cryptographic audit trail & provisioning console adhering to ABDM, DISHA & HIPAA guidelines
                   </p>
                 </div>
                 <button
                   type="button"
                   className="view-all-link"
-                  onClick={() => onToast && onToast('Exporting Cryptographic Audit Log (JSON-LD / CSV)...')}
+                  onClick={() => onToast && onToast('Exporting IAM Provisioning & Cryptographic Audit Log (JSON-LD / CSV)...')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  Export Audit Trail <span>→</span>
+                  Export IAM Audit Trail <span>→</span>
                 </button>
               </div>
 
