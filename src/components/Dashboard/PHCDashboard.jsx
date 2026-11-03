@@ -21,7 +21,10 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
-  const [isTelehealthOpen, setIsTelehealthOpen] = useState(false);
+  const [isTelehealthOpen, setIsTelehealthOpen] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get('teleconsult') === 'true' || !!p.get('room');
+  });
   const [selectedPatient, setSelectedPatient] = useState(null);
 
   const defaultDemoPatient = getAllPatients().find((p) => p.id === 'ADP-2026-0046') || getAllPatients()[0];

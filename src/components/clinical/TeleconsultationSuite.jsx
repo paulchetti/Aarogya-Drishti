@@ -22,10 +22,44 @@ import {
   Maximize2,
   RefreshCw,
   Radio,
-  UserCheck
+  UserCheck,
+  Copy,
+  Check,
+  Wifi,
+  Globe,
+  Share2,
+  Link2,
+  Monitor
 } from 'lucide-react';
+import Peer from 'peerjs';
 import { useLanguage } from '../../context/LanguageContext';
 import { TERTIARY_SPECIALIST_CENTER } from '../../services/referralRoutingService';
+
+// Sub-component for playing remote video streams cleanly
+function RemoteStreamPlayer({ stream, roleName }) {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+      }}
+    />
+  );
+}
 
 export default function TeleconsultationSuite({
   patientData,
@@ -33,6 +67,23 @@ export default function TeleconsultationSuite({
   onEndCall,
 }) {
   const { language, t } = useLanguage();
+
+  // Read URL query parameters if loaded via invite link
+  const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const initialRoom = urlParams.get('room') || 'paderu-telemed-101';
+  const roleFromUrl = urlParams.get('role');
+
+  // Role Normalization
+  const resolveRole = (r) => {
+    if (r === 'specialist') return 'specialist';
+    if (r === 'patient' || r === 'anm') return 'patient';
+    return 'phc'; // default for doctor / phc
+  };
+
+  const [roomCode, setRoomCode] = useState(initialRoom);
+  const [inputRoomCode, setInputRoomCode] = useState(initialRoom);
+  const [isEditingRoom, setIsEditingRoom] = useState(false);
+  const [myRole, setMyRole] = useState(roleFromUrl ? resolveRole(roleFromUrl) : resolveRole(currentUserRole));
 
   // Call Settings & Media State
   const [micOn, setMicOn] = useState(true);
@@ -44,21 +95,28 @@ export default function TeleconsultationSuite({
   const [cameraError, setCameraError] = useState(null);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
 
-  // Active Camera Assignment: Which tile receives the local camera feed?
-  // Defaults to the logged-in role, but user can freely assign/switch
-  const defaultTile =
-    currentUserRole === 'specialist'
-      ? 'specialist'
-      : currentUserRole === 'patient' || currentUserRole === 'anm'
-      ? 'patient'
-      : 'phc';
-  const [activeCameraTile, setActiveCameraTile] = useState(defaultTile);
+  // Active Camera Assignment for single-device test switching
+  const [activeCameraTile, setActiveCameraTile] = useState(myRole);
 
-  // Video Element Refs
+  // Multi-Device WebRTC / PeerJS State
+  const [webrtcStatus, setWebrtcStatus] = useState('connecting'); // 'connecting' | 'connected' | 'waiting' | 'error'
+  const [webrtcNotice, setWebrtcNotice] = useState('Initializing WebRTC network...');
+  const [remoteStreams, setRemoteStreams] = useState({
+    specialist: null,
+    phc: null,
+    patient: null,
+  });
+  const [connectedRoles, setConnectedRoles] = useState([]);
+  const [copiedLinkRole, setCopiedLinkRole] = useState(null);
+
+  // Refs
   const localVideoRef = useRef(null);
   const screenVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const screenStreamRef = useRef(null);
+  const peerRef = useRef(null);
+  const activeCallsRef = useRef({});
+  const activeConnsRef = useRef({});
 
   // Simulated Speaking Participant (pulses audio wave for realism)
   const [speakingParty, setSpeakingParty] = useState('specialist');
@@ -98,8 +156,9 @@ export default function TeleconsultationSuite({
   // Biopsy Order State
   const [biopsyOrdered, setBiopsyOrdered] = useState(false);
   const [biopsyType, setBiopsyType] = useState('Punch Biopsy (4mm Core)');
+  const [biopsyUrgency, setBiopsyUrgency] = useState('Within 48 Hours (High Priority)');
   const [biopsyNotes, setBiopsyNotes] = useState(
-    '4mm punch biopsy from representative indurated margin of right buccal leukoplakic plaque. Formalin fixed for histopathological dysplastic grading.'
+    '4mm punch core under local lidocaine infiltration. Target indurated anterior border of right buccal plaque. Immediate fixation in 10% neutral buffered formalin. Route to Pathology Lab, Area Hospital Paderu.'
   );
 
   const patient = patientData || {
@@ -125,12 +184,19 @@ export default function TeleconsultationSuite({
     },
   };
 
+  // Helper: Display names per role
+  const getRoleDisplayName = (r) => {
+    if (r === 'specialist') return 'Dr. Ananya Varma (Specialist Oncologist)';
+    if (r === 'phc') return 'Dr. Sandeep Kumar (PHC Medical Officer)';
+    return 'Appa Rao & ANM Lakshmi (Village Sub-Centre)';
+  };
+
   // 1. Initialize Real Webcam Stream
   const startCamera = async () => {
     try {
       setCameraError(null);
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API is not supported in this browser environment.');
+        throw new Error('Camera API not accessible in this browser origin.');
       }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
@@ -142,36 +208,256 @@ export default function TeleconsultationSuite({
       }
       setVideoOn(true);
       setMicOn(true);
+      return stream;
     } catch (err) {
       console.warn('Webcam initialization notice:', err.message || err);
       setCameraError(
-        'Device camera not accessible or permission pending. Click "Enable Camera" below or continue with the active simulated HD stream.'
+        'Camera access was not granted or blocked by browser. Click "Enable Camera" or join with simulated video.'
       );
+      return null;
     }
   };
 
+  // 2. Broadcast Data via WebRTC Data Channels (for Chat, Snapshots, Biopsy)
+  const broadcastWebRTCData = (data) => {
+    Object.values(activeConnsRef.current).forEach((conn) => {
+      if (conn && conn.open) {
+        try {
+          conn.send(data);
+        } catch (e) {
+          console.warn('WebRTC broadcast failed for a peer:', e);
+        }
+      }
+    });
+  };
+
+  // 3. Handle Incoming Data from Connected Peer Laptops
+  const handleIncomingData = (data) => {
+    if (!data) return;
+    if (data.type === 'chat' && data.message) {
+      setChatMessages((prev) => [...prev, data.message]);
+    } else if (data.type === 'snapshot' && data.photoUrl) {
+      setCapturedOralPhoto(data.photoUrl);
+      setActiveSideTab('clinical');
+    } else if (data.type === 'biopsy') {
+      setBiopsyOrdered(true);
+      if (data.biopsyType) setBiopsyType(data.biopsyType);
+      if (data.biopsyUrgency) setBiopsyUrgency(data.biopsyUrgency);
+      if (data.biopsyNotes) setBiopsyNotes(data.biopsyNotes);
+      setActiveSideTab('biopsy');
+    }
+  };
+
+  // 4. Multi-Device PeerJS Room Connection Engine
+  const setupPeerConnection = async (targetRoom, role) => {
+    const cleanRoom = (targetRoom || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    const myPeerId = `aarogya-${cleanRoom}-${role}`;
+
+    // Clean up any existing peer
+    if (peerRef.current) {
+      try {
+        peerRef.current.destroy();
+      } catch (e) {}
+      peerRef.current = null;
+    }
+
+    setWebrtcStatus('connecting');
+    setWebrtcNotice(`Connecting as ${role.toUpperCase()} to room "${cleanRoom}"...`);
+
+    let stream = localStreamRef.current;
+    if (!stream) {
+      stream = await startCamera();
+    }
+
+    try {
+      const peer = new Peer(myPeerId, {
+        debug: 1,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' },
+          ],
+        },
+      });
+
+      peerRef.current = peer;
+
+      peer.on('open', (id) => {
+        console.log('[Aarogya Drishti PeerJS] Connected with ID:', id);
+        setWebrtcStatus('connected');
+        setWebrtcNotice(`Room "${cleanRoom}" Live • Waiting for or connected to other devices`);
+
+        // Attempt calling the other 2 roles
+        const otherRoles = ['specialist', 'phc', 'patient'].filter((r) => r !== role);
+        otherRoles.forEach((targetRole) => {
+          dialRemoteRole(peer, cleanRoom, targetRole, role, stream);
+        });
+      });
+
+      // Handle Incoming Call from another laptop
+      peer.on('call', (incomingCall) => {
+        console.log('[Aarogya Drishti PeerJS] Incoming call from:', incomingCall.peer);
+        incomingCall.answer(localStreamRef.current || undefined);
+
+        incomingCall.on('stream', (remoteStream) => {
+          const remoteRole =
+            incomingCall.metadata?.role ||
+            (incomingCall.peer.includes('specialist')
+              ? 'specialist'
+              : incomingCall.peer.includes('phc')
+              ? 'phc'
+              : 'patient');
+
+          setRemoteStreams((prev) => ({ ...prev, [remoteRole]: remoteStream }));
+          setConnectedRoles((prev) => Array.from(new Set([...prev, remoteRole])));
+          setWebrtcNotice(`Connected to remote device (${remoteRole.toUpperCase()})`);
+        });
+
+        incomingCall.on('close', () => {
+          const remoteRole =
+            incomingCall.metadata?.role ||
+            (incomingCall.peer.includes('specialist')
+              ? 'specialist'
+              : incomingCall.peer.includes('phc')
+              ? 'phc'
+              : 'patient');
+
+          setRemoteStreams((prev) => ({ ...prev, [remoteRole]: null }));
+          setConnectedRoles((prev) => prev.filter((r) => r !== remoteRole));
+        });
+      });
+
+      // Handle Incoming WebRTC Data Connection (Chat / Snapshot / Biopsy)
+      peer.on('connection', (conn) => {
+        const remoteRole =
+          conn.metadata?.role ||
+          (conn.peer.includes('specialist')
+            ? 'specialist'
+            : conn.peer.includes('phc')
+            ? 'phc'
+            : 'patient');
+
+        activeConnsRef.current[remoteRole] = conn;
+
+        conn.on('data', (data) => {
+          handleIncomingData(data);
+        });
+
+        conn.on('close', () => {
+          delete activeConnsRef.current[remoteRole];
+        });
+      });
+
+      peer.on('error', (err) => {
+        console.warn('[Aarogya Drishti PeerJS] Error:', err.type, err.message);
+        if (err.type === 'unavailable-id') {
+          setWebrtcNotice(`Device role "${role.toUpperCase()}" already joined in this room. Switch role or choose a new room name.`);
+        } else if (err.type === 'peer-unavailable') {
+          // Expected when other laptops have not connected yet
+        } else {
+          setWebrtcNotice(`WebRTC Notice: ${err.type || 'Connection sync'}`);
+        }
+      });
+    } catch (e) {
+      console.warn('PeerJS init failed:', e);
+      setWebrtcStatus('error');
+      setWebrtcNotice('Local simulated mode active. WebRTC broker unreachable.');
+    }
+  };
+
+  // Helper to dial a specific role
+  const dialRemoteRole = (peer, room, targetRole, fromRole, stream) => {
+    if (!peer || peer.destroyed) return;
+    const targetPeerId = `aarogya-${room}-${targetRole}`;
+
+    // 1. Media Call
+    if (stream) {
+      try {
+        const call = peer.call(targetPeerId, stream, {
+          metadata: { role: fromRole, name: getRoleDisplayName(fromRole) },
+        });
+
+        if (call) {
+          activeCallsRef.current[targetRole] = call;
+
+          call.on('stream', (remoteStream) => {
+            console.log('[PeerJS] Received remote stream from', targetRole);
+            setRemoteStreams((prev) => ({ ...prev, [targetRole]: remoteStream }));
+            setConnectedRoles((prev) => Array.from(new Set([...prev, targetRole])));
+            setWebrtcNotice(`Connected to remote device (${targetRole.toUpperCase()})`);
+          });
+
+          call.on('close', () => {
+            setRemoteStreams((prev) => ({ ...prev, [targetRole]: null }));
+            setConnectedRoles((prev) => prev.filter((r) => r !== targetRole));
+          });
+        }
+      } catch (e) {}
+    }
+
+    // 2. Data Connection (Chat & Orders)
+    try {
+      const conn = peer.connect(targetPeerId, {
+        metadata: { role: fromRole },
+      });
+
+      if (conn) {
+        conn.on('open', () => {
+          activeConnsRef.current[targetRole] = conn;
+        });
+        conn.on('data', (data) => {
+          handleIncomingData(data);
+        });
+        conn.on('close', () => {
+          delete activeConnsRef.current[targetRole];
+        });
+      }
+    } catch (e) {}
+  };
+
+  // Lifecycle
   useEffect(() => {
     startCamera();
+    setupPeerConnection(roomCode, myRole);
 
-    // Timer
+    // Call Duration Timer
     const timer = setInterval(() => {
       setCallDuration((prev) => prev + 1);
     }, 1000);
 
-    // Alternate simulated speaking indicator for life-like video presence
+    // Simulated speech wave alternation when no real peers speaking
     const speakTimer = setInterval(() => {
       setSpeakingParty((prev) => (prev === 'specialist' ? 'phc' : prev === 'phc' ? 'patient' : 'specialist'));
     }, 4500);
 
+    // Auto-retry dialing remote peers every 5 seconds until connected
+    const dialInterval = setInterval(() => {
+      if (peerRef.current && !peerRef.current.destroyed) {
+        const cleanRoom = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        const otherRoles = ['specialist', 'phc', 'patient'].filter(
+          (r) => r !== myRole && !remoteStreams[r]
+        );
+        otherRoles.forEach((targetRole) => {
+          dialRemoteRole(peerRef.current, cleanRoom, targetRole, myRole, localStreamRef.current);
+        });
+      }
+    }, 5000);
+
     return () => {
       clearInterval(timer);
       clearInterval(speakTimer);
-      // Clean up local tracks
+      clearInterval(dialInterval);
+
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (screenStreamRef.current) {
         screenStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      if (peerRef.current) {
+        try {
+          peerRef.current.destroy();
+        } catch (e) {}
       }
     };
   }, []);
@@ -181,9 +467,47 @@ export default function TeleconsultationSuite({
     if (localVideoRef.current && localStreamRef.current) {
       localVideoRef.current.srcObject = localStreamRef.current;
     }
-  }, [activeCameraTile]);
+  }, [activeCameraTile, videoOn]);
 
-  // 2. Toggle Mic (Mute / Unmute real audio track)
+  // Handle Role Change
+  const handleChangeRole = (newRole) => {
+    setMyRole(newRole);
+    setActiveCameraTile(newRole);
+    setupPeerConnection(roomCode, newRole);
+  };
+
+  // Handle Room Change
+  const handleApplyRoom = (e) => {
+    e.preventDefault();
+    if (!inputRoomCode.trim()) return;
+    const clean = inputRoomCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    setRoomCode(clean);
+    setIsEditingRoom(false);
+    setupPeerConnection(clean, myRole);
+  };
+
+  // Copy Invite Link for Other Laptop
+  const handleCopyInviteLink = (targetRole) => {
+    const clean = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    // Prefer network IP if currently on localhost so other laptop can load it
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const host = isLocal ? '192.168.1.67' : window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const inviteUrl = `${window.location.protocol}//${host}${port}/?teleconsult=true&room=${clean}&role=${targetRole}`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inviteUrl).then(() => {
+        setCopiedLinkRole(targetRole);
+        setTimeout(() => setCopiedLinkRole(null), 3500);
+      }).catch(() => {
+        prompt('Copy this invite link to open on second laptop:', inviteUrl);
+      });
+    } else {
+      prompt('Copy this invite link to open on second laptop:', inviteUrl);
+    }
+  };
+
+  // Media Controls
   const handleToggleMic = () => {
     if (localStreamRef.current) {
       const audioTracks = localStreamRef.current.getAudioTracks();
@@ -194,7 +518,6 @@ export default function TeleconsultationSuite({
     setMicOn(!micOn);
   };
 
-  // 3. Toggle Video Camera (Enable / Disable real video track)
   const handleToggleVideo = () => {
     if (localStreamRef.current) {
       const videoTracks = localStreamRef.current.getVideoTracks();
@@ -205,7 +528,6 @@ export default function TeleconsultationSuite({
     setVideoOn(!videoOn);
   };
 
-  // 4. Real Screen Share (getDisplayMedia)
   const handleToggleScreenShare = async () => {
     if (isScreenSharing) {
       if (screenStreamRef.current) {
@@ -234,7 +556,7 @@ export default function TeleconsultationSuite({
     }
   };
 
-  // 5. Freeze-Frame Capture Oral Snapshot from Video & Pass to AI
+  // Oral Freeze-Frame Capture Tool
   const handleCaptureOralFreezeFrame = () => {
     setIsCapturingSnapshot(true);
     try {
@@ -248,10 +570,14 @@ export default function TeleconsultationSuite({
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setCapturedOralPhoto(dataUrl);
         setActiveSideTab('clinical');
+
+        // Broadcast to other laptops
+        broadcastWebRTCData({ type: 'snapshot', photoUrl: dataUrl });
       } else {
-        // Fallback high-resolution lesion sample
-        setCapturedOralPhoto('https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80');
+        const fallback = 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80';
+        setCapturedOralPhoto(fallback);
         setActiveSideTab('clinical');
+        broadcastWebRTCData({ type: 'snapshot', photoUrl: fallback });
       }
     } catch (e) {
       console.warn('Snapshot capture fallback:', e);
@@ -268,17 +594,12 @@ export default function TeleconsultationSuite({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // 6. Interactive In-Call Chat with Automated Provider Response
+  // In-Call Chat
   const handleSendChat = (e) => {
     e.preventDefault();
     if (!newChatText.trim()) return;
 
-    const myName =
-      currentUserRole === 'specialist'
-        ? 'Dr. Ananya Varma (Specialist)'
-        : currentUserRole === 'patient'
-        ? `${patient.name} (Patient)`
-        : 'Dr. Sandeep Kumar (PHC Doctor)';
+    const myName = getRoleDisplayName(myRole);
 
     const userMsg = {
       id: Date.now(),
@@ -291,183 +612,441 @@ export default function TeleconsultationSuite({
     const sentText = newChatText;
     setNewChatText('');
 
-    // Simulate realistic peer clinical reply after 1.8 seconds
-    setTimeout(() => {
-      let replySender = 'Dr. Ananya Varma (Specialist Oncologist)';
-      let replyText = `Acknowledged. Reviewing the mucosal borders on the live video stream. Proceeding with histopathology orders.`;
+    // Broadcast message to other laptops via WebRTC Data Channel
+    broadcastWebRTCData({ type: 'chat', message: userMsg });
 
-      if (currentUserRole === 'specialist') {
-        replySender = 'Dr. Sandeep Kumar (PHC Doctor)';
-        replyText = `Understood Dr. Ananya. We have arranged the 4mm punch biopsy kit here at G. Madugula PHC. Preparing patient now.`;
-      }
+    // If no other devices connected yet, provide realistic simulated clinician reply
+    if (connectedRoles.length === 0) {
+      setTimeout(() => {
+        let replySender = 'Dr. Ananya Varma (Specialist Oncologist)';
+        let replyText = `Acknowledged. Reviewing the mucosal borders on the live video stream. Proceeding with histopathology orders.`;
 
-      setChatMessages((prev) => [
-        ...prev,
-        {
+        if (myRole === 'specialist') {
+          replySender = 'Dr. Sandeep Kumar (PHC Doctor)';
+          replyText = `Understood Dr. Ananya. We will prep the patient at G. Madugula PHC and arrange the punch biopsy core per protocol.`;
+        } else if (myRole === 'patient') {
+          replySender = 'Dr. Sandeep Kumar (PHC Doctor)';
+          replyText = `బాధపడకండి అప్పారావు గారు, నిపుణులైన వైద్యులు పరీక్షిస్తున్నారు. మేము పాడేరు ఆసుపత్రికి అవసరమైన పరీక్షలు ఏర్పాటు చేస్తాం.`;
+        }
+
+        const replyMsg = {
           id: Date.now() + 1,
           sender: replySender,
           text: replyText,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-    }, 1800);
+        };
+        setChatMessages((prev) => [...prev, replyMsg]);
+      }, 1600);
+    }
   };
 
-  // 7. Issue Biopsy Order
-  const handleIssueBiopsyOrder = (e) => {
-    e.preventDefault();
+  // Issue Biopsy Order
+  const handleOrderBiopsy = () => {
     setBiopsyOrdered(true);
-  };
+    setActiveSideTab('biopsy');
 
-  // 8. Clean Session End
-  const handleHangup = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach((track) => track.stop());
-    }
-    if (onEndCall) onEndCall();
+    // Broadcast biopsy order to other laptops
+    broadcastWebRTCData({
+      type: 'biopsy',
+      biopsyType,
+      biopsyUrgency,
+      biopsyNotes,
+      timestamp: new Date().toISOString(),
+    });
+
+    const sysMsg = {
+      id: Date.now(),
+      sender: 'SYSTEM CLINICAL AUDIT',
+      text: `✅ OFFICIAL BIOPSY REQUISITION ISSUED: ${biopsyType} (${biopsyUrgency}). Referral order dispatched to Area Hospital Paderu Histopathology Lab.`,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setChatMessages((prev) => [...prev, sysMsg]);
+    broadcastWebRTCData({ type: 'chat', message: sysMsg });
   };
 
   return (
     <div
       style={{
         background: '#090d16',
-        color: '#f8fafc',
         borderRadius: '20px',
-        padding: '20px',
-        minHeight: '85vh',
+        border: '1px solid #1e293b',
+        boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.75)',
+        color: '#f8fafc',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
-        border: '1.5px solid #1e293b',
-        fontFamily: '"DM Sans", -apple-system, BlinkMacSystemFont, sans-serif',
+        minHeight: '760px',
       }}
     >
-      {/* TOP HEADER: ROOM & WEBRTC STATUS */}
+      {/* 1. TOP SUITE HEADER & MULTI-DEVICE ROOM BAR */}
       <div
         style={{
+          background: 'linear-gradient(90deg, #0b1324 0%, #151e33 100%)',
+          padding: '12px 20px',
+          borderBottom: '1px solid #1e293b',
           display: 'flex',
+          flexWrap: 'wrap',
           justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
           gap: '12px',
-          borderBottom: '1px solid #1e293b',
-          paddingBottom: '16px',
-          marginBottom: '16px',
         }}
       >
+        {/* Left: Branding & Patient Context */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              backgroundColor: '#ef4444',
-              boxShadow: '0 0 10px #ef4444',
-              animation: 'pulse 1.5s infinite',
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+              display: 'grid',
+              placeItems: 'center',
+              boxShadow: '0 4px 12px rgba(249, 115, 22, 0.4)',
             }}
-          />
+          >
+            <Stethoscope size={22} color="#ffffff" />
+          </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                ITDA Tele-Oncology Gateway • Live WebRTC Encrypted (AES-256)
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
+                {language === 'te' ? 'ట్రైబల్ టెలి-కన్సల్టేషన్ సూట్' : 'Tribal Teleconsultation Suite'}
               </span>
-              <span style={{ fontSize: '11px', background: '#1e293b', color: '#38bdf8', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
-                ● REC 00:{formatTime(callDuration)}
-              </span>
-              <span style={{ fontSize: '11px', background: '#0f172a', color: '#94a3b8', padding: '2px 8px', borderRadius: '10px' }}>
-                Session: ROOM-PADERU-7821
+              <span
+                style={{
+                  background: '#f97316',
+                  color: '#ffffff',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                WEBRTC LIVE MESH
               </span>
             </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '2px 0 0 0', color: '#ffffff' }}>
-              {language === 'te'
-                ? 'బహుళ-పక్ష లైవ్ టెలికన్సల్టేషన్ (స్పెషలిస్ట్ ⇄ పీహెచ్‌సీ ⇄ రోగి)'
-                : 'Multi-Party Clinical Teleconsultation (Specialist ⇄ PHC Doctor ⇄ Patient)'}
-            </h2>
+            <div style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+              <span>Case: <strong style={{ color: '#f8fafc' }}>{patient.name}</strong> ({patient.ageSex})</span>
+              <span>•</span>
+              <span>Origin: <strong style={{ color: '#f8fafc' }}>{patient.assignedPhc?.name || 'G. Madugula PHC'}</strong></span>
+            </div>
           </div>
         </div>
 
-        {/* Flexible Multi-Party Mode Switcher */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#111827', padding: '6px 10px', borderRadius: '12px', border: '1px solid #374151' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af' }}>
-            {language === 'te' ? 'కాల్ మోడ్:' : 'Call Mode:'}
+        {/* Center: Interactive Room Code & Multi-Device Peer Status */}
+        <div
+          style={{
+            background: 'rgba(15, 23, 42, 0.7)',
+            border: '1px solid #334155',
+            borderRadius: '12px',
+            padding: '6px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Globe size={15} color="#38bdf8" />
+            {isEditingRoom ? (
+              <form onSubmit={handleApplyRoom} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="text"
+                  value={inputRoomCode}
+                  onChange={(e) => setInputRoomCode(e.target.value)}
+                  style={{
+                    background: '#1e293b',
+                    border: '1px solid #475569',
+                    color: '#ffffff',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    width: '140px',
+                  }}
+                  placeholder="e.g. paderu-101"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: '#f97316',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Join
+                </button>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Room:</span>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#38bdf8' }}>{roomCode}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingRoom(true)}
+                  title="Change room name"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    fontSize: '10.5px',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Edit
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={{ height: '16px', width: '1px', background: '#334155' }} />
+
+          {/* Connection status indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: connectedRoles.length > 0 ? '#10b981' : '#f59e0b',
+                display: 'inline-block',
+                boxShadow: connectedRoles.length > 0 ? '0 0 8px #10b981' : 'none',
+              }}
+            />
+            <span style={{ fontSize: '11px', fontWeight: 700, color: connectedRoles.length > 0 ? '#6ee7b7' : '#fcd34d' }}>
+              {connectedRoles.length > 0
+                ? `${connectedRoles.length + 1} Devices Live (${connectedRoles.join(' + ').toUpperCase()})`
+                : '1 Device (Standby for Peers)'}
+            </span>
+          </div>
+        </div>
+
+        {/* Right: Timer & End Call */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              background: '#0f172a',
+              border: '1px solid #334155',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12.5px',
+              fontWeight: 800,
+              color: '#38bdf8',
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 1.5s infinite' }} />
+            <span>● REC {formatTime(callDuration)}</span>
+          </div>
+
+          {onEndCall && (
+            <button
+              type="button"
+              onClick={onEndCall}
+              style={{
+                background: '#dc2626',
+                border: 'none',
+                color: '#ffffff',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
+              <PhoneOff size={14} />
+              <span>{language === 'te' ? 'కాల్ ముగించు' : 'End Call'}</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 2. MULTI-DEVICE INVITE & ROLE SELECTION BAR */}
+      <div
+        style={{
+          background: '#0d1526',
+          padding: '8px 20px',
+          borderBottom: '1px solid #1e293b',
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '10px',
+          fontSize: '11.5px',
+        }}
+      >
+        {/* Device Role Selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#94a3b8', fontWeight: 600 }}>This Laptop's Role:</span>
+          <div style={{ display: 'flex', background: '#090d16', padding: '3px', borderRadius: '8px', border: '1px solid #334155' }}>
+            <button
+              type="button"
+              onClick={() => handleChangeRole('specialist')}
+              style={{
+                background: myRole === 'specialist' ? '#f97316' : 'transparent',
+                color: myRole === 'specialist' ? '#ffffff' : '#94a3b8',
+                border: 'none',
+                padding: '3px 9px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              👑 Specialist Oncologist
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChangeRole('phc')}
+              style={{
+                background: myRole === 'phc' ? '#0d9488' : 'transparent',
+                color: myRole === 'phc' ? '#ffffff' : '#94a3b8',
+                border: 'none',
+                padding: '3px 9px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              🩺 PHC Doctor
+            </button>
+            <button
+              type="button"
+              onClick={() => handleChangeRole('patient')}
+              style={{
+                background: myRole === 'patient' ? '#ea580c' : 'transparent',
+                color: myRole === 'patient' ? '#ffffff' : '#94a3b8',
+                border: 'none',
+                padding: '3px 9px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              👤 Patient / ANM
+            </button>
+          </div>
+        </div>
+
+        {/* 1-Click Copy Invite Links for Other Laptop */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Link2 size={13} color="#38bdf8" /> Open on 2nd Laptop:
           </span>
           <button
             type="button"
-            onClick={() => setCallMode('3-way')}
+            onClick={() => handleCopyInviteLink(myRole === 'specialist' ? 'phc' : 'specialist')}
             style={{
-              background: callMode === '3-way' ? '#f97316' : 'transparent',
-              color: callMode === '3-way' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '5px 10px',
+              background: '#1e293b',
+              color: '#38bdf8',
+              border: '1px solid #334155',
+              padding: '4px 10px',
               borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 800,
+              fontSize: '11px',
+              fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '4px',
+              gap: '5px',
             }}
           >
-            <Users size={14} />
-            <span>3-Way (All 3)</span>
+            {copiedLinkRole === (myRole === 'specialist' ? 'phc' : 'specialist') ? (
+              <>
+                <Check size={12} color="#10b981" />
+                <span style={{ color: '#10b981' }}>Copied! Paste on Laptop 2</span>
+              </>
+            ) : (
+              <>
+                <Copy size={12} />
+                <span>
+                  Invite {myRole === 'specialist' ? 'PHC Doctor' : 'Specialist'}
+                </span>
+              </>
+            )}
           </button>
+
           <button
             type="button"
-            onClick={() => setCallMode('2-way-patient')}
+            onClick={() => handleCopyInviteLink('patient')}
             style={{
-              background: callMode === '2-way-patient' ? '#0d9488' : 'transparent',
-              color: callMode === '2-way-patient' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '5px 10px',
+              background: '#1e293b',
+              color: '#fdba74',
+              border: '1px solid #334155',
+              padding: '4px 10px',
               borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 800,
+              fontSize: '11px',
+              fontWeight: 700,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
             }}
           >
-            2-Way (Doc + Pt)
-          </button>
-          <button
-            type="button"
-            onClick={() => setCallMode('2-way-provider')}
-            style={{
-              background: callMode === '2-way-provider' ? '#2563eb' : 'transparent',
-              color: callMode === '2-way-provider' ? '#ffffff' : '#94a3b8',
-              border: 'none',
-              padding: '5px 10px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            2-Way (Doc + Spec)
+            {copiedLinkRole === 'patient' ? (
+              <>
+                <Check size={12} color="#10b981" />
+                <span style={{ color: '#10b981' }}>Copied! Paste on Mobile/Laptop</span>
+              </>
+            ) : (
+              <>
+                <Copy size={12} />
+                <span>Invite Patient/ANM</span>
+              </>
+            )}
           </button>
         </div>
       </div>
 
       {/* Screen Sharing Banner (if active) */}
       {isScreenSharing && (
-        <div style={{ background: '#1e3a8a', padding: '10px 16px', borderRadius: '12px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', fontSize: '13px', fontWeight: 700 }}>
+        <div
+          style={{
+            background: '#1e3a8a',
+            padding: '8px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '12.5px',
+            fontWeight: 700,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
             <ScreenShare size={18} />
-            <span>Sharing Diagnostic Screen / Slides with Room Participants</span>
+            <span>Broadcasting Diagnostic Screen / Histopathology Slides to All Devices</span>
           </div>
           <button
             type="button"
             onClick={handleToggleScreenShare}
-            style={{ background: '#ef4444', color: '#ffffff', border: 'none', padding: '4px 12px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 800, cursor: 'pointer' }}
+            style={{
+              background: '#ef4444',
+              color: '#ffffff',
+              border: 'none',
+              padding: '3px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
           >
             Stop Sharing
           </button>
         </div>
       )}
 
-      {/* MAIN STAGE: VIDEO TILES (LEFT) + CLINICAL DRAWER (RIGHT) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1.2fr)', gap: '18px', flex: 1 }}>
+      {/* 3. MAIN STAGE: VIDEO TILES (LEFT) + CLINICAL DRAWER (RIGHT) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1.2fr)', gap: '16px', padding: '16px', flex: 1 }}>
         {/* Left: Video Stage */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div
@@ -484,7 +1063,12 @@ export default function TeleconsultationSuite({
                 position: 'relative',
                 background: '#131d2e',
                 borderRadius: '16px',
-                border: activeCameraTile === 'specialist' ? '2.5px solid #f97316' : '1.5px solid #1e3a8a',
+                border:
+                  myRole === 'specialist' || activeCameraTile === 'specialist'
+                    ? '2.5px solid #f97316'
+                    : remoteStreams.specialist
+                    ? '2.5px solid #10b981'
+                    : '1.5px solid #1e3a8a',
                 overflow: 'hidden',
                 minHeight: '220px',
                 display: 'flex',
@@ -494,8 +1078,8 @@ export default function TeleconsultationSuite({
                 boxShadow: speakingParty === 'specialist' ? '0 0 20px rgba(249, 115, 22, 0.3)' : 'none',
               }}
             >
-              {/* Video Feed: Either Live Webcam if assigned to specialist, or High-Fidelity Remote Stream */}
-              {activeCameraTile === 'specialist' ? (
+              {/* VIDEO LAYER: Local Camera | Remote Live Stream | Simulated Fallback */}
+              {myRole === 'specialist' || activeCameraTile === 'specialist' ? (
                 videoOn ? (
                   <video
                     ref={localVideoRef}
@@ -507,13 +1091,15 @@ export default function TeleconsultationSuite({
                 ) : (
                   <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: '#0f172a' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
-                        <VideoOff size={28} />
+                      <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
+                        <VideoOff size={26} />
                       </div>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Camera Paused</span>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>Camera Paused</span>
                     </div>
                   </div>
                 )
+              ) : remoteStreams.specialist ? (
+                <RemoteStreamPlayer stream={remoteStreams.specialist} roleName="Specialist" />
               ) : (
                 <div style={{ position: 'absolute', inset: 0 }}>
                   <img
@@ -531,39 +1117,43 @@ export default function TeleconsultationSuite({
 
               {/* Tile Header Tags */}
               <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: '#fed7aa', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
-                  👑 HOST SPECIALIST
+                <span style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', color: '#fed7aa', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                  👑 SPECIALIST ONCOLOGIST
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {activeCameraTile === 'specialist' && (
+                  {myRole === 'specialist' ? (
                     <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
                       YOUR LIVE CAM
                     </span>
-                  )}
+                  ) : remoteStreams.specialist ? (
+                    <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
+                      REMOTE 2ND LAPTOP
+                    </span>
+                  ) : null}
                   <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
                     1080p • 24ms
                   </span>
                 </div>
               </div>
 
-              {/* Tile Footer Meta & Switch Cam Option */}
+              {/* Tile Footer Meta */}
               <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.88)', backdropFilter: 'blur(6px)', padding: '8px 12px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
                     {TERTIARY_SPECIALIST_CENTER.specialistName}
                   </div>
                   <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                    Area Hospital Paderu • Oral Oncology Review
+                    Area Hospital Paderu • Oral Oncology Division
                   </div>
                 </div>
-                {activeCameraTile !== 'specialist' && (
+                {myRole !== 'specialist' && !remoteStreams.specialist && (
                   <button
                     type="button"
                     onClick={() => setActiveCameraTile('specialist')}
-                    title="Switch your local webcam to this Specialist tile"
-                    style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10.5px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
+                    title="Preview your local webcam on this tile"
+                    style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
                   >
-                    Switch Cam Here
+                    Switch Cam
                   </button>
                 )}
               </div>
@@ -576,7 +1166,12 @@ export default function TeleconsultationSuite({
                   position: 'relative',
                   background: '#131d2e',
                   borderRadius: '16px',
-                  border: activeCameraTile === 'phc' ? '2.5px solid #0d9488' : '1.5px solid #0f766e',
+                  border:
+                    myRole === 'phc' || activeCameraTile === 'phc'
+                      ? '2.5px solid #0d9488'
+                      : remoteStreams.phc
+                      ? '2.5px solid #10b981'
+                      : '1.5px solid #0f766e',
                   overflow: 'hidden',
                   minHeight: '220px',
                   display: 'flex',
@@ -586,7 +1181,7 @@ export default function TeleconsultationSuite({
                   boxShadow: speakingParty === 'phc' ? '0 0 20px rgba(13, 148, 136, 0.3)' : 'none',
                 }}
               >
-                {activeCameraTile === 'phc' ? (
+                {myRole === 'phc' || activeCameraTile === 'phc' ? (
                   videoOn ? (
                     <video
                       ref={localVideoRef}
@@ -598,13 +1193,15 @@ export default function TeleconsultationSuite({
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: '#0f172a' }}>
                       <div style={{ textAlign: 'center' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
-                          <VideoOff size={28} />
+                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
+                          <VideoOff size={26} />
                         </div>
-                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Camera Paused</span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Camera Paused</span>
                       </div>
                     </div>
                   )
+                ) : remoteStreams.phc ? (
+                  <RemoteStreamPlayer stream={remoteStreams.phc} roleName="PHC Doctor" />
                 ) : (
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <img
@@ -621,15 +1218,19 @@ export default function TeleconsultationSuite({
                 )}
 
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: '#5eead4', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                  <span style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', color: '#5eead4', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
                     🩺 PHC MEDICAL OFFICER
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {activeCameraTile === 'phc' && (
+                    {myRole === 'phc' ? (
                       <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
                         YOUR LIVE CAM
                       </span>
-                    )}
+                    ) : remoteStreams.phc ? (
+                      <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
+                        REMOTE 2ND LAPTOP
+                      </span>
+                    ) : null}
                     <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
                       720p • 18ms
                     </span>
@@ -645,14 +1246,14 @@ export default function TeleconsultationSuite({
                       G. Madugula PHC • Referring Clinician
                     </div>
                   </div>
-                  {activeCameraTile !== 'phc' && (
+                  {myRole !== 'phc' && !remoteStreams.phc && (
                     <button
                       type="button"
                       onClick={() => setActiveCameraTile('phc')}
-                      title="Switch your local webcam to this PHC Doctor tile"
-                      style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10.5px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
+                      title="Preview your local webcam on this tile"
+                      style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
                     >
-                      Switch Cam Here
+                      Switch Cam
                     </button>
                   )}
                 </div>
@@ -666,7 +1267,12 @@ export default function TeleconsultationSuite({
                   position: 'relative',
                   background: '#131d2e',
                   borderRadius: '16px',
-                  border: activeCameraTile === 'patient' ? '2.5px solid #ea580c' : '1.5px solid #9a3412',
+                  border:
+                    myRole === 'patient' || activeCameraTile === 'patient'
+                      ? '2.5px solid #ea580c'
+                      : remoteStreams.patient
+                      ? '2.5px solid #10b981'
+                      : '1.5px solid #9a3412',
                   overflow: 'hidden',
                   minHeight: '220px',
                   display: 'flex',
@@ -677,7 +1283,7 @@ export default function TeleconsultationSuite({
                   boxShadow: speakingParty === 'patient' ? '0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
                 }}
               >
-                {activeCameraTile === 'patient' ? (
+                {myRole === 'patient' || activeCameraTile === 'patient' ? (
                   videoOn ? (
                     <video
                       ref={localVideoRef}
@@ -689,255 +1295,252 @@ export default function TeleconsultationSuite({
                   ) : (
                     <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: '#0f172a' }}>
                       <div style={{ textAlign: 'center' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
-                          <VideoOff size={28} />
+                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#1e293b', color: '#94a3b8', margin: '0 auto 8px auto', display: 'grid', placeItems: 'center' }}>
+                          <VideoOff size={26} />
                         </div>
-                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>Camera Paused</span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Camera Paused</span>
                       </div>
                     </div>
                   )
+                ) : remoteStreams.patient ? (
+                  <RemoteStreamPlayer stream={remoteStreams.patient} roleName="Patient" />
                 ) : (
                   <div style={{ position: 'absolute', inset: 0 }}>
                     <img
-                      src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80"
-                      alt="Patient with Village ANM"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                      src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80"
+                      alt="Patient Appa Rao with ANM"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.88 }}
                     />
                     {speakingParty === 'patient' && (
                       <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(234, 88, 12, 0.9)', color: '#fff', padding: '3px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Radio size={12} className="animate-pulse" /> Speaking...
+                        <Radio size={12} className="animate-pulse" /> Patient Responding...
                       </div>
                     )}
                   </div>
                 )}
 
                 <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: '#fed7aa', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
-                    👤 PATIENT &amp; VILLAGE ANM
+                  <span style={{ background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(4px)', color: '#fdba74', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                    👤 PATIENT & VILLAGE ANM FACILITATOR
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {activeCameraTile === 'patient' && (
+                    {myRole === 'patient' ? (
                       <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
                         YOUR LIVE CAM
                       </span>
-                    )}
+                    ) : remoteStreams.patient ? (
+                      <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
+                        REMOTE 2ND LAPTOP
+                      </span>
+                    ) : null}
                     <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
-                      4G Edge Gateway
+                      4G Solar Tele-Kiosk • 32ms
                     </span>
                   </div>
                 </div>
 
-                <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.88)', backdropFilter: 'blur(6px)', padding: '8px 12px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.88)', backdropFilter: 'blur(6px)', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#ffffff' }}>
-                      {patient.name} ({patient.ageSex})
+                      {patient.name} ({patient.ageSex}) • ANM Lakshmi Devi Present
                     </div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                      {patient.village}, {patient.mandal} • Accompanied by ANM {patient.assignedAnm?.name}
+                    <div style={{ fontSize: '11.5px', color: '#94a3b8' }}>
+                      Village Sub-Centre G. Madugula • High AI Suspicion (89% Concordance)
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#fdba74', background: '#7c2d12', padding: '3px 8px', borderRadius: '8px', fontWeight: 700 }}>
-                      Oral Cavity Exam Active
-                    </span>
-                    {activeCameraTile !== 'patient' && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveCameraTile('patient')}
-                        title="Switch your local webcam to this Patient tile"
-                        style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10.5px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
-                      >
-                        Switch Cam Here
-                      </button>
-                    )}
-                  </div>
+                  {myRole !== 'patient' && !remoteStreams.patient && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveCameraTile('patient')}
+                      title="Preview your local webcam on this tile"
+                      style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8', fontSize: '10px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}
+                    >
+                      Switch Cam
+                    </button>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* CALL CONTROLS FLOATING BAR */}
+          {/* Media & Camera Control Bar */}
           <div
             style={{
-              background: '#111827',
-              borderRadius: '16px',
-              padding: '12px 24px',
+              background: '#0b1324',
+              borderRadius: '14px',
+              padding: '12px 18px',
+              border: '1px solid #1e293b',
               display: 'flex',
+              flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              border: '1px solid #1f2937',
-              flexWrap: 'wrap',
               gap: '12px',
             }}
           >
-            {/* Left: Call Timer & Status */}
+            {/* Left: Mic, Video, Screen Share */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', fontWeight: 800, color: '#f97316' }}>
-                ⏱ {formatTime(callDuration)}
-              </span>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>|</span>
-              <span style={{ fontSize: '11px', color: '#22c55e', fontWeight: 700 }}>
-                ● Low Jitter (2ms)
-              </span>
-            </div>
-
-            {/* Center: Main Media Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {/* Mic Toggle */}
               <button
                 type="button"
                 onClick={handleToggleMic}
                 style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: micOn ? '#374151' : '#ef4444',
+                  background: micOn ? '#1e293b' : '#ef4444',
                   color: '#ffffff',
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s ease',
-                }}
-                title={micOn ? 'Mute Microphone' : 'Unmute Microphone'}
-              >
-                {micOn ? <Mic size={20} /> : <MicOff size={20} />}
-              </button>
-
-              {/* Video Camera Toggle */}
-              <button
-                type="button"
-                onClick={handleToggleVideo}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: videoOn ? '#374151' : '#ef4444',
-                  color: '#ffffff',
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s ease',
-                }}
-                title={videoOn ? 'Turn Off Camera' : 'Turn On Camera'}
-              >
-                {videoOn ? <Video size={20} /> : <VideoOff size={20} />}
-              </button>
-
-              {/* Real Screen Share */}
-              <button
-                type="button"
-                onClick={handleToggleScreenShare}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: isScreenSharing ? '#2563eb' : '#374151',
-                  color: '#ffffff',
-                  display: 'grid',
-                  placeItems: 'center',
-                  cursor: 'pointer',
-                }}
-                title="Share Screen or Slides with Participants"
-              >
-                <ScreenShare size={20} />
-              </button>
-
-              {/* Freeze-Frame Oral Cavity Snapshot Button */}
-              <button
-                type="button"
-                onClick={handleCaptureOralFreezeFrame}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '24px',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                  color: '#ffffff',
+                  border: '1px solid #334155',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   cursor: 'pointer',
-                  fontWeight: 800,
-                  fontSize: '12px',
-                  boxShadow: '0 4px 12px rgba(249, 115, 22, 0.35)',
                 }}
-                title="Freeze and capture an oral cavity frame for instant Gemini AI review"
               >
-                <Camera size={16} />
-                <span>{isCapturingSnapshot ? 'Capturing...' : '📸 Capture Oral Frame'}</span>
+                {micOn ? <Mic size={16} /> : <MicOff size={16} />}
+                <span>{micOn ? 'Mute Mic' : 'Unmute Mic'}</span>
               </button>
 
-              {/* End Call Button */}
               <button
                 type="button"
-                onClick={handleHangup}
+                onClick={handleToggleVideo}
                 style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#ef4444',
+                  background: videoOn ? '#1e293b' : '#ef4444',
                   color: '#ffffff',
-                  display: 'grid',
-                  placeItems: 'center',
+                  border: '1px solid #334155',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
                 }}
-                title="End Consultation Session"
               >
-                <PhoneOff size={22} />
+                {videoOn ? <Video size={16} /> : <VideoOff size={16} />}
+                <span>{videoOn ? 'Turn Off Cam' : 'Turn On Cam'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleScreenShare}
+                style={{
+                  background: isScreenSharing ? '#2563eb' : '#1e293b',
+                  color: '#ffffff',
+                  border: '1px solid #334155',
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                <ScreenShare size={16} />
+                <span>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</span>
               </button>
             </div>
 
-            {/* Right: Camera Status / Retry permission */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Center: Live Oral Freeze-Frame Snapshot Button */}
+            <button
+              type="button"
+              onClick={handleCaptureOralFreezeFrame}
+              disabled={isCapturingSnapshot}
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '9px 18px',
+                borderRadius: '10px',
+                fontSize: '12.5px',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(249, 115, 22, 0.4)',
+              }}
+            >
+              <Camera size={17} />
+              <span>{isCapturingSnapshot ? 'Extracting Frame...' : '📸 Capture Oral Freeze-Frame'}</span>
+            </button>
+
+            {/* Right: Mode Switcher */}
+            <div style={{ display: 'flex', background: '#090d16', padding: '3px', borderRadius: '8px', border: '1px solid #1e293b' }}>
               <button
                 type="button"
-                onClick={startCamera}
+                onClick={() => setCallMode('3-way')}
                 style={{
-                  background: '#1f2937',
-                  border: '1px solid #374151',
-                  color: '#94a3b8',
+                  background: callMode === '3-way' ? '#2563eb' : 'transparent',
+                  color: callMode === '3-way' ? '#ffffff' : '#94a3b8',
+                  border: 'none',
                   padding: '5px 10px',
-                  borderRadius: '16px',
-                  fontSize: '11px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
                 }}
-                title="Re-request camera permissions"
               >
-                <RefreshCw size={12} />
-                <span>Reset Cam</span>
+                3-Way
+              </button>
+              <button
+                type="button"
+                onClick={() => setCallMode('2-way-patient')}
+                style={{
+                  background: callMode === '2-way-patient' ? '#2563eb' : 'transparent',
+                  color: callMode === '2-way-patient' ? '#ffffff' : '#94a3b8',
+                  border: 'none',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Doc + Pt
+              </button>
+              <button
+                type="button"
+                onClick={() => setCallMode('2-way-provider')}
+                style={{
+                  background: callMode === '2-way-provider' ? '#2563eb' : 'transparent',
+                  color: callMode === '2-way-provider' ? '#ffffff' : '#94a3b8',
+                  border: 'none',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                Doc + Spec
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right: Clinical Dossier Drawer */}
+        {/* Right: Integrated Clinical Drawer */}
         <div
           style={{
-            background: '#111827',
+            background: '#0d1526',
             borderRadius: '16px',
-            border: '1px solid #1f2937',
+            border: '1px solid #1e293b',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
         >
-          {/* Drawer Tab Headers */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #1f2937', background: '#0b1120' }}>
+          {/* Drawer Tabs */}
+          <div style={{ display: 'flex', borderBottom: '1px solid #1e293b', background: '#090d16' }}>
             <button
               type="button"
               onClick={() => setActiveSideTab('clinical')}
               style={{
                 flex: 1,
-                padding: '12px',
-                background: activeSideTab === 'clinical' ? '#111827' : 'transparent',
+                padding: '12px 10px',
+                background: activeSideTab === 'clinical' ? '#0d1526' : 'transparent',
                 color: activeSideTab === 'clinical' ? '#f97316' : '#94a3b8',
                 border: 'none',
                 borderBottom: activeSideTab === 'clinical' ? '2.5px solid #f97316' : 'none',
@@ -950,19 +1553,20 @@ export default function TeleconsultationSuite({
                 gap: '6px',
               }}
             >
-              <FileText size={14} />
-              <span>{language === 'te' ? 'క్లినికల్ పరిశీలనలు' : 'Clinical Findings'}</span>
+              <Activity size={15} />
+              <span>AI & Findings</span>
             </button>
+
             <button
               type="button"
               onClick={() => setActiveSideTab('biopsy')}
               style={{
                 flex: 1,
-                padding: '12px',
-                background: activeSideTab === 'biopsy' ? '#111827' : 'transparent',
-                color: activeSideTab === 'biopsy' ? '#0d9488' : '#94a3b8',
+                padding: '12px 10px',
+                background: activeSideTab === 'biopsy' ? '#0d1526' : 'transparent',
+                color: activeSideTab === 'biopsy' ? '#f97316' : '#94a3b8',
                 border: 'none',
-                borderBottom: activeSideTab === 'biopsy' ? '2.5px solid #0d9488' : 'none',
+                borderBottom: activeSideTab === 'biopsy' ? '2.5px solid #f97316' : 'none',
                 fontWeight: 800,
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -972,19 +1576,20 @@ export default function TeleconsultationSuite({
                 gap: '6px',
               }}
             >
-              <Stethoscope size={14} />
-              <span>{language === 'te' ? 'బయాప్సీ ఆర్డర్' : 'Order Biopsy'}</span>
+              <FileText size={15} />
+              <span>Biopsy Order</span>
             </button>
+
             <button
               type="button"
               onClick={() => setActiveSideTab('chat')}
               style={{
                 flex: 1,
-                padding: '12px',
-                background: activeSideTab === 'chat' ? '#111827' : 'transparent',
-                color: activeSideTab === 'chat' ? '#38bdf8' : '#94a3b8',
+                padding: '12px 10px',
+                background: activeSideTab === 'chat' ? '#0d1526' : 'transparent',
+                color: activeSideTab === 'chat' ? '#f97316' : '#94a3b8',
                 border: 'none',
-                borderBottom: activeSideTab === 'chat' ? '2.5px solid #38bdf8' : 'none',
+                borderBottom: activeSideTab === 'chat' ? '2.5px solid #f97316' : 'none',
                 fontWeight: 800,
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -994,224 +1599,212 @@ export default function TeleconsultationSuite({
                 gap: '6px',
               }}
             >
-              <MessageSquare size={14} />
-              <span>{language === 'te' ? 'లైవ్ చాట్' : 'Live Chat'}</span>
+              <MessageSquare size={15} />
+              <span>In-Call Chat</span>
             </button>
           </div>
 
-          {/* Drawer Body Content */}
-          <div style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
-            {/* TAB 1: CLINICAL FINDINGS & ORAL CAPTURE */}
-            {activeSideTab === 'clinical' && (
-              <div>
-                {/* Live Freeze-Frame Oral Photo */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#f97316', textTransform: 'uppercase' }}>
-                      ORAL CAVITY FREEZE-FRAME
-                    </span>
-                    <span style={{ fontSize: '10px', color: '#10b981', fontWeight: 700 }}>
-                      ● High Clarity
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      border: '1.5px solid #374151',
-                      height: '150px',
-                      position: 'relative',
-                      background: '#030712',
-                    }}
-                  >
-                    <img
-                      src={capturedOralPhoto}
-                      alt="Oral lesion freeze frame"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                    <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.75)', padding: '3px 8px', borderRadius: '6px', fontSize: '10.5px', color: '#fed7aa' }}>
-                      Right Buccal Mucosa • 2.2 cm Plaque (Indurated)
-                    </div>
-                  </div>
+          {/* TAB 1: CLINICAL FINDINGS & ORAL FREEZE-FRAME SNAPSHOT */}
+          {activeSideTab === 'clinical' && (
+            <div style={{ padding: '16px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Captured Oral Freeze-Frame Card */}
+              <div style={{ background: '#131d2e', borderRadius: '12px', padding: '12px', border: '1px solid #1e3a8a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Sparkles size={14} color="#f97316" /> Captured Oral Freeze-Frame
+                  </span>
+                  <span style={{ fontSize: '10px', background: '#f97316', color: '#fff', padding: '2px 7px', borderRadius: '8px', fontWeight: 800 }}>
+                    GEMINI AI READY
+                  </span>
                 </div>
-
-                {/* Gemini AI Concordance Box */}
-                <div style={{ background: '#1e293b', padding: '12px', borderRadius: '10px', marginBottom: '14px', border: '1px solid #334155' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#f43f5e', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Sparkles size={14} /> GEMINI MULTIMODAL CONCORDANCE
-                    </span>
-                    <span style={{ background: '#881337', color: '#fecdd3', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', fontWeight: 800 }}>
-                      89% High Suspicion
-                    </span>
+                <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', height: '150px', background: '#000' }}>
+                  <img
+                    src={capturedOralPhoto}
+                    alt="Oral lesion freeze-frame"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.7)', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', color: '#5eead4' }}>
+                    Right Buccal Plaque • 8-Week History
                   </div>
-                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#ffffff', marginTop: '4px' }}>
-                    {patient.aiAssessment?.triageClassification || 'High Suspicion - Potentially Malignant'}
-                  </div>
-                  <small style={{ color: '#94a3b8', fontSize: '10.5px', display: 'block', marginTop: '2px' }}>
-                    Non-scrapable homogeneous plaque with dysplastic verrucous borders. Matches reverse smoker oral keratosis.
-                  </small>
-                </div>
-
-                {/* Habit History */}
-                <div style={{ marginBottom: '14px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>EXPOSURE HISTORY (NOCR / ACS):</span>
-                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: '#e2e8f0', lineHeight: 1.5 }}>
-                    {patient.exposureHistory?.map((h, i) => (
-                      <li key={i}>{h.label}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Symptoms */}
-                <div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>REPORTED SYMPTOMS:</span>
-                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: '#e2e8f0', lineHeight: 1.5 }}>
-                    {patient.symptoms?.map((s, i) => (
-                      <li key={i}>{s.label}</li>
-                    ))}
-                  </ul>
                 </div>
               </div>
-            )}
 
-            {/* TAB 2: ORDER BIOPSY REQUISITION */}
-            {activeSideTab === 'biopsy' && (
-              <div>
-                {!biopsyOrdered ? (
-                  <form onSubmit={handleIssueBiopsyOrder}>
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                        INVESTIGATION PROCEDURE:
-                      </label>
-                      <select
-                        value={biopsyType}
-                        onChange={(e) => setBiopsyType(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px' }}
-                      >
-                        <option value="Punch Biopsy (4mm Core)">Punch Biopsy (4mm Core - Histopathology)</option>
-                        <option value="Incisional Wedge Biopsy">Incisional Wedge Biopsy</option>
-                        <option value="Brush Cytology (OralCDx)">Brush Cytology (OralCDx Diagnostic)</option>
-                        <option value="Toluidine Blue Staining">Toluidine Blue In-Vivo Staining</option>
-                      </select>
-                    </div>
-
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
-                        CLINICAL INSTRUCTIONS &amp; HISTOPATH NOTES:
-                      </label>
-                      <textarea
-                        rows={4}
-                        value={biopsyNotes}
-                        onChange={(e) => setBiopsyNotes(e.target.value)}
-                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}
-                      />
-                    </div>
-
-                    <div style={{ background: '#0f172a', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b', marginBottom: '16px', fontSize: '11px', color: '#94a3b8' }}>
-                      <div>• Destination: <strong>Area Hospital Paderu Histopathology Lab</strong></div>
-                      <div>• Referring MO: <strong>Dr. Sandeep Kumar (G. Madugula PHC)</strong></div>
-                      <div>• Supervised By: <strong>Dr. Ananya Varma, MD (Surgical Oncology)</strong></div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      style={{
-                        width: '100%',
-                        padding: '11px',
-                        borderRadius: '10px',
-                        border: 'none',
-                        background: '#0d9488',
-                        color: '#ffffff',
-                        fontWeight: 800,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        boxShadow: '0 4px 14px rgba(13, 148, 136, 0.35)',
-                      }}
-                    >
-                      <CheckCircle2 size={16} />
-                      <span>Issue Official Punch Biopsy Requisition</span>
-                    </button>
-                  </form>
-                ) : (
-                  <div style={{ background: '#064e3b', border: '1.5px solid #059669', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
-                    <CheckCircle2 size={36} color="#34d399" style={{ margin: '0 auto 8px auto' }} />
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#ffffff', fontWeight: 800 }}>
-                      Biopsy Order Dispatched Successfully!
-                    </h4>
-                    <p style={{ margin: 0, fontSize: '11.5px', color: '#a7f3d0' }}>
-                      Order #BIO-PADERU-2026-8812 routed to Area Hospital Paderu Lab.
-                    </p>
-                    <div style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      <button
-                        type="button"
-                        onClick={() => window.print()}
-                        style={{ background: '#ffffff', color: '#065f46', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        <Printer size={13} /> Print Requisition
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBiopsyOrdered(false)}
-                        style={{ background: 'transparent', color: '#a7f3d0', border: '1px solid #059669', padding: '6px 12px', borderRadius: '6px', fontSize: '11.5px', cursor: 'pointer' }}
-                      >
-                        Edit Order
-                      </button>
-                    </div>
-                  </div>
-                )}
+              {/* AI Triage & Concordance Banner */}
+              <div style={{ background: '#1c1917', border: '1px solid #78350f', borderRadius: '12px', padding: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800, color: '#fde047' }}>
+                    ⚠️ {patient.aiAssessment?.triageClassification || 'High Suspicion - Malignancy Alert'}
+                  </span>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#4ade80' }}>
+                    {patient.aiAssessment?.concordanceScore || 89}% Concordance
+                  </span>
+                </div>
+                <p style={{ fontSize: '11.5px', color: '#d6d3d1', margin: '8px 0 0 0', lineHeight: 1.5 }}>
+                  AI multi-modal vision detects localized mucosal thickening with irregular margins. Concordant with clinical presentation of Adda Poga reverse smoker palate keratosis.
+                </p>
               </div>
-            )}
 
-            {/* TAB 3: ENCRYPTED LIVE CLINICAL CHAT */}
-            {activeSideTab === 'chat' && (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
-                  {chatMessages.map((m) => (
-                    <div
-                      key={m.id}
-                      style={{
-                        background: m.sender.includes('Specialist') ? '#1e293b' : '#0f172a',
-                        border: m.sender.includes('Specialist') ? '1px solid #334155' : '1px solid #1e293b',
-                        padding: '10px 12px',
-                        borderRadius: '10px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 800, color: m.sender.includes('Specialist') ? '#f97316' : '#38bdf8' }}>
-                          {m.sender}
-                        </span>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{m.time}</span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#e2e8f0', lineHeight: 1.4 }}>
-                        {m.text}
-                      </p>
+              {/* Exposure Factors */}
+              <div style={{ background: '#131d2e', borderRadius: '12px', padding: '12px', border: '1px solid #1e293b' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Key Risk Factors & Exposures
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                  {patient.exposureHistory?.map((exp, idx) => (
+                    <div key={idx} style={{ fontSize: '11.5px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: '#ef4444' }}>●</span>
+                      <span>{exp.label}</span>
                     </div>
                   ))}
                 </div>
-
-                <form onSubmit={handleSendChat} style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    placeholder="Type clinical observation..."
-                    value={newChatText}
-                    onChange={(e) => setNewChatText(e.target.value)}
-                    style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px', outline: 'none' }}
-                  />
-                  <button
-                    type="submit"
-                    style={{ background: '#f97316', border: 'none', color: '#ffffff', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
-                  >
-                    <Send size={14} />
-                  </button>
-                </form>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* TAB 2: BIOPSY ORDER REQUISITION */}
+          {activeSideTab === 'biopsy' && (
+            <div style={{ padding: '16px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {biopsyOrdered ? (
+                <div style={{ background: '#022c22', border: '1.5px solid #059669', borderRadius: '12px', padding: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#34d399', fontWeight: 800, fontSize: '13px' }}>
+                    <CheckCircle2 size={18} />
+                    <span>Official Biopsy Requisition Active</span>
+                  </div>
+                  <div style={{ marginTop: '10px', fontSize: '11.5px', color: '#a7f3d0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div><strong>Requisition ID:</strong> BIO-PADERU-2026-8812</div>
+                    <div><strong>Procedure:</strong> {biopsyType}</div>
+                    <div><strong>Urgency:</strong> {biopsyUrgency}</div>
+                    <div><strong>Authorized By:</strong> Dr. Ananya Varma, MD (Oral Oncology)</div>
+                    <div><strong>Target Lab:</strong> Area Hospital Paderu Histopathology Division</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    style={{
+                      marginTop: '12px',
+                      background: '#059669',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Printer size={15} />
+                    <span>Print Formal Requisition Slip</span>
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      Biopsy Protocol & Method
+                    </label>
+                    <select
+                      value={biopsyType}
+                      onChange={(e) => setBiopsyType(e.target.value)}
+                      style={{ width: '100%', background: '#131d2e', border: '1px solid #334155', color: '#fff', padding: '8px 10px', borderRadius: '8px', fontSize: '12px' }}
+                    >
+                      <option>Punch Biopsy (4mm Core)</option>
+                      <option>Incisional Scalpel Biopsy</option>
+                      <option>Exfoliative Cytology Scraping</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      Clinical Urgency Level
+                    </label>
+                    <select
+                      value={biopsyUrgency}
+                      onChange={(e) => setBiopsyUrgency(e.target.value)}
+                      style={{ width: '100%', background: '#131d2e', border: '1px solid #334155', color: '#fff', padding: '8px 10px', borderRadius: '8px', fontSize: '12px' }}
+                    >
+                      <option>Within 48 Hours (High Priority)</option>
+                      <option>Within 7 Days (Standard Review)</option>
+                      <option>Immediate / Same-Day Escalation</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      Pathologist Clinical Notes & Instructions
+                    </label>
+                    <textarea
+                      value={biopsyNotes}
+                      onChange={(e) => setBiopsyNotes(e.target.value)}
+                      rows={4}
+                      style={{ width: '100%', background: '#131d2e', border: '1px solid #334155', color: '#fff', padding: '8px 10px', borderRadius: '8px', fontSize: '11.5px', lineHeight: 1.5 }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleOrderBiopsy}
+                    style={{
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '10px 16px',
+                      borderRadius: '10px',
+                      fontSize: '12.5px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 15px rgba(5, 150, 105, 0.4)',
+                    }}
+                  >
+                    <ShieldCheck size={16} />
+                    <span>Authorize Biopsy Order to Paderu</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: IN-CALL CLINICAL CHAT */}
+          {activeSideTab === 'chat' && (
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {chatMessages.map((msg) => (
+                  <div key={msg.id} style={{ background: '#131d2e', borderRadius: '10px', padding: '10px 12px', border: '1px solid #1e293b' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 800, color: msg.sender.includes('Specialist') ? '#fdba74' : msg.sender.includes('PHC') ? '#5eead4' : '#f8fafc' }}>
+                        {msg.sender}
+                      </span>
+                      <span style={{ fontSize: '10px', color: '#64748b' }}>{msg.time}</span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#cbd5e1', margin: 0, lineHeight: 1.45 }}>{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chat Input */}
+              <form onSubmit={handleSendChat} style={{ padding: '12px', borderTop: '1px solid #1e293b', background: '#090d16', display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={newChatText}
+                  onChange={(e) => setNewChatText(e.target.value)}
+                  placeholder="Type clinical observation..."
+                  style={{ flex: 1, background: '#131d2e', border: '1px solid #334155', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px' }}
+                />
+                <button
+                  type="submit"
+                  style={{ background: '#f97316', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                >
+                  <Send size={15} />
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </div>

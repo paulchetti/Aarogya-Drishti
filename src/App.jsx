@@ -52,6 +52,25 @@ export default function App() {
     link.href = '/logo.png?v=' + Date.now();
   }, [viewMode]);
 
+  // Direct role & teleconsultation routing from URL query params (e.g. invite links)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const roleParam = params.get('role');
+      if (roleParam === 'specialist') {
+        handleSwitchDashboard('specialist_dashboard');
+      } else if (roleParam === 'patient') {
+        handleSwitchDashboard('patient');
+      } else if (roleParam === 'anm') {
+        handleSwitchDashboard('anm_portal');
+      } else if (roleParam === 'doctor' || roleParam === 'phc') {
+        handleSwitchDashboard('phc_dashboard');
+      }
+    } catch (e) {
+      console.warn('URL param parse error:', e);
+    }
+  }, []);
+
   const showToast = (message) => {
     if (toastTimerRef.current) {
       clearTimeout(toastTimerRef.current);

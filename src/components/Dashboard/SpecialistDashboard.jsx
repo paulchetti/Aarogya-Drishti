@@ -29,7 +29,10 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isTelehealthOpen, setIsTelehealthOpen] = useState(false);
+  const [isTelehealthOpen, setIsTelehealthOpen] = useState(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get('teleconsult') === 'true' || !!p.get('room');
+  });
   const [selectedCase, setSelectedCase] = useState(null);
 
   const demoPatient = getAllPatients().find((p) => p.id === 'ADP-2026-0046') || getAllPatients()[0];
