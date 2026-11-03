@@ -512,6 +512,7 @@ export default function ANMPortalLayout({
             {activeModule === 'live_teleconsult' && (
               <TeleconsultationSuite
                 patientData={teleconsultPatient}
+                currentUserRole="anm"
                 onEndCall={() => setActiveModule(null)}
               />
             )}

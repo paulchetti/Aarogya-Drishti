@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../../styles/dashboard.css';
 import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
@@ -10,13 +11,20 @@ import RightSidebar from './RightSidebar';
 import PatientModal from './PatientModal';
 import ScreeningModal from './ScreeningModal';
 import AIChatBot from './AIChatBot';
-import '../../styles/dashboard.css';
+import InitiateReferralModal from './InitiateReferralModal';
+import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
+import { getAllPatients } from '../../services/referralRoutingService';
 
 export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [isTelehealthOpen, setIsTelehealthOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState(null);
+
+  const defaultDemoPatient = getAllPatients().find((p) => p.id === 'ADP-2026-0046') || getAllPatients()[0];
 
   const handleNavSelect = (navName) => {
     setActiveNav(navName);
@@ -24,6 +32,12 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
       setIsPatientModalOpen(true);
     } else if (navName === 'Diagnostic & Triage Assessment') {
       setIsScreeningModalOpen(true);
+    } else if (navName === 'Care Continuity Tracking' || navName === 'Inbound Referral Triage Queue') {
+      setSelectedPatient(defaultDemoPatient);
+      setIsReferralModalOpen(true);
+    } else if (navName === 'Virtual Consultation Queue') {
+      setSelectedPatient(defaultDemoPatient);
+      setIsTelehealthOpen(true);
     } else if (onToast) {
       onToast(`Navigating to ${navName}`);
     }
@@ -38,13 +52,15 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
         setIsScreeningModalOpen(true);
         break;
       case 'initiate-referral':
-        if (onToast) onToast('Initiating Referral Request to Area Hospital / Oncology Specialist...');
+        setSelectedPatient(defaultDemoPatient);
+        setIsReferralModalOpen(true);
         break;
       case 'appointment-scheduling':
         if (onToast) onToast('Opening Appointment Scheduling & Slot Management...');
         break;
       case 'virtual-consultation-queue':
-        if (onToast) onToast('Loading Virtual Consultation Queue (3 Pending Clinician Reviews)...');
+        setSelectedPatient(defaultDemoPatient);
+        setIsTelehealthOpen(true);
         break;
       case 'facility-reports':
         if (onToast) onToast('Generating Facility Utilization & Clinical Reports...');
@@ -63,7 +79,9 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
 
   const handleScreeningComplete = (action) => {
     if (action === 'refer') {
-      if (onToast) onToast('Initiated Outbound Referral Request to Area Hospital!');
+      setSelectedPatient(defaultDemoPatient);
+      setIsReferralModalOpen(true);
+      if (onToast) onToast('Opening Specialist Referral Form...');
     } else {
       if (onToast) onToast('Care Continuity Tracking: Follow-up scheduled.');
     }
@@ -99,6 +117,7 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
             onNavSelect={handleNavSelect}
             isMenuOpen={isMenuOpen}
             onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+            menuTitle="PHC Dashboard Options"
           />
 
           <div className="dash-facility-badge">
@@ -110,25 +129,37 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
         {/* Central Canvas Area - Fills Full Display */}
         <main className="dash-content-canvas full-display">
           <div className="dash-center-col">
-            {/* Welcome Banner */}
-            <WelcomeBanner doctorName="Dr. Sandeep Kumar" />
+            {isTelehealthOpen ? (
+              <div style={{ marginBottom: '24px' }}>
+                <TeleconsultationSuite
+                  patientData={selectedPatient || defaultDemoPatient}
+                  currentUserRole="doctor"
+                  onEndCall={() => setIsTelehealthOpen(false)}
+                />
+              </div>
+            ) : (
+              <>
+                {/* Welcome Banner */}
+                <WelcomeBanner doctorName="Dr. Sandeep Kumar" />
 
-            {/* 4 Stat Metric Cards with Exact Bottom Colored Lines */}
-            <StatCards />
+                {/* 4 Stat Metric Cards with Exact Bottom Colored Lines */}
+                <StatCards />
 
-            {/* Middle 2 Charts (Screening Overview + Lesion Types) */}
-            <div className="charts-dual-row">
-              <ScreeningChart />
-              <LesionDonutChart />
-            </div>
+                {/* Middle 2 Charts (Screening Overview + Lesion Types) */}
+                <div className="charts-dual-row">
+                  <ScreeningChart />
+                  <LesionDonutChart />
+                </div>
 
-            {/* Recent Patients Table */}
-            <RecentPatientsTable
-              onViewPatient={(p) => {
-                if (p && onToast) onToast(`Opening records for ${p.name} (${p.id})`);
-                else if (onToast) onToast('Viewing all longitudinal records...');
-              }}
-            />
+                {/* Recent Patients Table */}
+                <RecentPatientsTable
+                  onViewPatient={(p) => {
+                    setSelectedPatient(p || defaultDemoPatient);
+                    setIsReferralModalOpen(true);
+                  }}
+                />
+              </>
+            )}
           </div>
 
           {/* Right Action & Info Sidebar */}
@@ -160,9 +191,23 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
         onComplete={handleScreeningComplete}
       />
 
+      {/* Escalate Specialist Referral Modal */}
+      <InitiateReferralModal
+        isOpen={isReferralModalOpen}
+        patient={selectedPatient || defaultDemoPatient}
+        onClose={() => setIsReferralModalOpen(false)}
+        onReferralCreated={(updated) => {
+          setSelectedPatient(updated);
+          if (onToast) onToast(`Referral issued to ${updated.referral?.destinationHospital}!`);
+        }}
+        onStartVideoCall={(pt) => {
+          setSelectedPatient(pt);
+          setIsTelehealthOpen(true);
+        }}
+      />
+
       {/* AI Clinical Copilot Chatbot */}
       <AIChatBot dashboardType="phc_dashboard" />
     </div>
   );
 }
-

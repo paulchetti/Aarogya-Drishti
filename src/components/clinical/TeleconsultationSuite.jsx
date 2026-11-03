@@ -1,59 +1,95 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Mic,
   MicOff,
   Video,
   VideoOff,
   PhoneOff,
-  Share2,
   Activity,
   FileText,
   MessageSquare,
   ShieldCheck,
   Send,
-  Plus,
-  HeartPulse,
   CheckCircle2,
-  User,
-  Sparkles
+  Users,
+  Building2,
+  Stethoscope,
+  Sparkles,
+  Printer,
+  AlertTriangle,
+  Maximize2,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
+import { TERTIARY_SPECIALIST_CENTER } from '../../services/referralRoutingService';
 
 export default function TeleconsultationSuite({
   patientData,
+  currentUserRole = 'doctor', // 'doctor' (PHC) | 'specialist' | 'patient'
   onEndCall,
-  onOpenRx
 }) {
+  const { language } = useLanguage();
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
-  const [screenSharing, setScreenSharing] = useState(false);
-  const [activeSideTab, setActiveSideTab] = useState('vitals'); // 'vitals' | 'rx' | 'chat'
-  const [callDuration, setCallDuration] = useState(145); // in seconds
+  const [callMode, setCallMode] = useState('3-way'); // '3-way' (Specialist + PHC + Patient) | '2-way-patient' (Specialist + Patient) | '2-way-provider' (Specialist + PHC Doctor)
+  const [activeSideTab, setActiveSideTab] = useState('clinical'); // 'clinical' | 'biopsy' | 'chat'
+  const [callDuration, setCallDuration] = useState(128); // seconds
+
   const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: 'Doctor', text: 'Hello! I have reviewed your clinical intake questionnaire and latest lipid profile.', time: '09:01 AM' },
-    { id: 2, sender: 'Patient', text: 'Good morning Doctor. Yes, I have been feeling occasional fatigue after morning walks.', time: '09:02 AM' },
-    { id: 3, sender: 'Doctor', text: 'Your vitals are steady at 125/82 mmHg. I am making a minor adjustment to your statin dose.', time: '09:03 AM' }
+    {
+      id: 1,
+      sender: 'Dr. Sandeep Kumar (PHC Doctor)',
+      senderTe: 'డాక్టర్ సందీప్ (పీహెచ్‌సీ వైద్యులు)',
+      text: 'Good afternoon Dr. Ananya. Presenting 46yo male from G. Madugula with an 8-week persistent white cheek plaque and 18-year tobacco chew history.',
+      time: '02:01 PM',
+    },
+    {
+      id: 2,
+      sender: 'Dr. Ananya Varma (Specialist Oncologist)',
+      senderTe: 'డాక్టర్ అనన్య వర్మ (స్పెషలిస్ట్)',
+      text: 'Thank you Dr. Sandeep. The photographic clarity of the right buccal mucosa is excellent. I observe non-homogeneous verrucous margins. We must proceed with a punch biopsy.',
+      time: '02:02 PM',
+    },
+    {
+      id: 3,
+      sender: 'Lakshmi Devi (Village ANM with Patient)',
+      senderTe: 'లక్ష్మీ దేవి (గ్రామ ఏఎన్‌ఎం)',
+      text: 'Doctor, the patient confirms pain when eating spices and feels roughness on the inner cheek.',
+      time: '02:03 PM',
+    },
   ]);
   const [newChatText, setNewChatText] = useState('');
 
-  // Live Prescription Builder State
-  const [liveRx, setLiveRx] = useState({
-    medicine: 'Atorvastatin Calcium',
-    dosage: '20 mg',
-    timing: 'Once daily at bedtime',
-    instructions: 'Take after dinner. Maintain low cholesterol diet.'
-  });
-  const [rxIssued, setRxIssued] = useState(false);
+  // Biopsy Order State
+  const [biopsyOrdered, setBiopsyOrdered] = useState(false);
+  const [biopsyType, setBiopsyType] = useState('Punch Biopsy (4mm Core)');
+  const [biopsyNotes, setBiopsyNotes] = useState(
+    '4mm punch biopsy from representative indurated margin of right buccal leukoplakic plaque. Formalin fixed for histopathological dysplastic grading.'
+  );
 
   const patient = patientData || {
-    name: 'Bessie Cooper',
-    age: '28 years',
-    gender: 'Female',
-    appointedFor: 'Cardio-metabolic teleconsultation',
-    abhaId: '91-4829-1029-4501',
-    vitals: { bp: '122/80', hr: '74 bpm', spo2: '99%', temp: '98.4°F' }
+    id: 'ADP-2026-0046',
+    name: 'Appa Rao (G. Madugula Case)',
+    nameTe: 'అప్పారావు (జి. మాడుగుల)',
+    ageSex: '46 / M',
+    village: 'G. Madugula',
+    mandal: 'G. Madugula',
+    assignedPhc: { name: 'G. Madugula Primary Health Centre' },
+    assignedAnm: { name: 'Lakshmi Devi, GNM' },
+    exposureHistory: [
+      { label: 'Tobacco Chewing (Gutkha/Khaini - 18 yrs, 6 pkts/day)' },
+      { label: 'Reverse Smoking (Adda Poga - 10 yrs)' },
+    ],
+    symptoms: [
+      { label: 'Persistent White Cheek Patch (> 8 weeks)' },
+      { label: 'Burning Sensation on Spices' },
+    ],
+    aiAssessment: {
+      triageClassification: 'High Suspicion - Potentially Malignant',
+      concordanceScore: 89,
+    },
   };
 
-  // Timer effect
+  // Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setCallDuration((prev) => prev + 1);
@@ -72,370 +108,627 @@ export default function TeleconsultationSuite({
     if (!newChatText.trim()) return;
     const msg = {
       id: Date.now(),
-      sender: 'You',
+      sender:
+        currentUserRole === 'specialist'
+          ? 'Dr. Ananya Varma (Specialist)'
+          : currentUserRole === 'patient'
+          ? `${patient.name} (Patient)`
+          : 'Dr. Sandeep Kumar (PHC Doctor)',
       text: newChatText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     setChatMessages([...chatMessages, msg]);
     setNewChatText('');
   };
 
-  const handleIssueRx = (e) => {
+  const handleIssueBiopsyOrder = (e) => {
     e.preventDefault();
-    setRxIssued(true);
-    setTimeout(() => setRxIssued(false), 4000);
+    setBiopsyOrdered(true);
   };
 
   return (
-    <div className="dashboard-content-area feature-view-container">
-      {/* Telehealth Room Container */}
-      <div className="teleconsult-room-wrapper">
-        {/* Main Video Feed Stage */}
-        <div className="video-stage-card">
-          {/* Header Info Overlay */}
-          <div className="call-overlay-header">
-            <span className="live-indicator" />
-            <span className="call-timer">{formatTime(callDuration)}</span>
-            <span style={{ opacity: 0.5 }}>|</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <ShieldCheck size={15} color="#10b981" />
-              <span>ABDM Encrypted HD (1080p)</span>
+    <div
+      style={{
+        background: '#090d16',
+        color: '#f8fafc',
+        borderRadius: '20px',
+        padding: '20px',
+        minHeight: '85vh',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
+        border: '1.5px solid #1e293b',
+      }}
+    >
+      {/* Top Header Bar */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          borderBottom: '1px solid #1e293b',
+          paddingBottom: '16px',
+          marginBottom: '16px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: '#ef4444',
+              boxShadow: '0 0 10px #ef4444',
+              animation: 'pulse 1.5s infinite',
+            }}
+          />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: 800, color: '#f97316', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                ITDA Tele-Oncology Gateway • WebRTC Encrypted (AES-256)
+              </span>
+              <span style={{ fontSize: '11px', background: '#1e293b', color: '#94a3b8', padding: '2px 8px', borderRadius: '10px' }}>
+                Session: ROOM-PADERU-7821
+              </span>
             </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '2px 0 0 0', color: '#ffffff' }}>
+              {language === 'te'
+                ? 'బహుళ-పక్ష టెలికన్సల్టేషన్ (స్పెషలిస్ట్ ⇄ పీహెచ్‌సీ ⇄ రోగి)'
+                : 'Multi-Party Clinical Teleconsultation (Specialist ⇄ PHC Doctor ⇄ Patient)'}
+            </h2>
           </div>
+        </div>
 
-          {/* Primary Doctor/Patient Feed */}
-          <div className="video-feed-main">
-            {videoOn ? (
+        {/* Flexible Multi-Party Mode Switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#111827', padding: '6px 10px', borderRadius: '12px', border: '1px solid #374151' }}>
+          <span style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af' }}>
+            {language === 'te' ? 'కాల్ మోడ్:' : 'Call Mode:'}
+          </span>
+          <button
+            type="button"
+            onClick={() => setCallMode('3-way')}
+            style={{
+              background: callMode === '3-way' ? '#f97316' : 'transparent',
+              color: callMode === '3-way' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Users size={14} />
+            <span>3-Way (All 3)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setCallMode('2-way-patient')}
+            style={{
+              background: callMode === '2-way-patient' ? '#0d9488' : 'transparent',
+              color: callMode === '2-way-patient' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            2-Way (Doc + Pt)
+          </button>
+          <button
+            type="button"
+            onClick={() => setCallMode('2-way-provider')}
+            style={{
+              background: callMode === '2-way-provider' ? '#2563eb' : 'transparent',
+              color: callMode === '2-way-provider' ? '#ffffff' : '#94a3b8',
+              border: 'none',
+              padding: '5px 10px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            2-Way (Doc + Spec)
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid: Video Stage (Left) + Clinical Dossier Drawer (Right) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(320px, 1.2fr)', gap: '18px', flex: 1 }}>
+        {/* Left: Video Tiles Stage */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: callMode === '3-way' ? '1fr 1fr' : '1fr',
+              gap: '12px',
+              flex: 1,
+            }}
+          >
+            {/* Tile 1: Specialist Oncologist */}
+            <div
+              style={{
+                position: 'relative',
+                background: '#131d2e',
+                borderRadius: '16px',
+                border: '1.5px solid #1e3a8a',
+                overflow: 'hidden',
+                minHeight: '220px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '14px',
+              }}
+            >
               <img
-                src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=900&auto=format&fit=crop&q=80"
-                alt="Doctor Teleconsult Stream"
-                className="simulated-video-img"
+                src="https://images.unsplash.com/photo-1594824813583-36603a110a11?auto=format&fit=crop&w=600&q=80"
+                alt="Dr. Ananya Varma Specialist"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  opacity: 0.88,
+                }}
               />
-            ) : (
-              <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                <VideoOff size={48} style={{ margin: '0 auto 12px' }} />
-                <p>Camera feed paused</p>
+              <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', color: '#93c5fd', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                  👑 HOST SPECIALIST
+                </span>
+                <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
+                  HD 1080p
+                </span>
+              </div>
+              <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)', padding: '8px 12px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                  {TERTIARY_SPECIALIST_CENTER.specialistName}
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  Area Hospital Paderu • Surgical Oncology Review
+                </div>
+              </div>
+            </div>
+
+            {/* Tile 2: PHC Medical Officer (Visible in 3-way or 2-way provider) */}
+            {(callMode === '3-way' || callMode === '2-way-provider') && (
+              <div
+                style={{
+                  position: 'relative',
+                  background: '#131d2e',
+                  borderRadius: '16px',
+                  border: '1.5px solid #0f766e',
+                  overflow: 'hidden',
+                  minHeight: '220px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '14px',
+                }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80"
+                  alt="Dr. Sandeep Kumar PHC MO"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: 0.88,
+                  }}
+                />
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', color: '#5eead4', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                    🩺 PHC MEDICAL OFFICER
+                  </span>
+                  <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
+                    HD 720p
+                  </span>
+                </div>
+                <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)', padding: '8px 12px', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#ffffff' }}>
+                    Dr. Sandeep Kumar, MBBS
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                    G. Madugula PHC • Patient Attending Doctor
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Doctor Info Pill on video */}
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '90px',
-                left: '24px',
-                background: 'rgba(15, 23, 42, 0.75)',
-                backdropFilter: 'blur(8px)',
-                padding: '8px 16px',
-                borderRadius: '16px',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px'
-              }}
-            >
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
-              <div>
-                <strong style={{ fontSize: '0.9rem' }}>Dr. Andrew Sharma (Cardiologist)</strong>
-                <div style={{ fontSize: '0.72rem', color: '#a7f3d0' }}>Speaking • Connected via Aarogya Telehealth</div>
-              </div>
-            </div>
-
-            {/* Picture-in-Picture (Patient Self Stream) */}
-            <div className="pip-self-feed">
-              <img
-                src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80"
-                alt="Patient Self View"
-                className="pip-self-img"
-              />
+            {/* Tile 3: Patient & ANM in Village Sub-Centre (Visible in 3-way or 2-way patient) */}
+            {(callMode === '3-way' || callMode === '2-way-patient') && (
               <div
                 style={{
-                  position: 'absolute',
-                  bottom: '6px',
-                  left: '8px',
-                  background: 'rgba(0,0,0,0.6)',
-                  padding: '2px 8px',
-                  borderRadius: '8px',
-                  fontSize: '0.68rem',
-                  color: '#ffffff'
+                  position: 'relative',
+                  background: '#131d2e',
+                  borderRadius: '16px',
+                  border: '1.5px solid #ea580c',
+                  overflow: 'hidden',
+                  minHeight: '220px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  padding: '14px',
+                  gridColumn: callMode === '3-way' ? 'span 2' : 'span 1',
                 }}
               >
-                {patient.name} (You)
+                <img
+                  src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80"
+                  alt="Patient with Village ANM"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: 0.84,
+                  }}
+                />
+                <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', color: '#fed7aa', padding: '3px 9px', borderRadius: '8px', fontSize: '11px', fontWeight: 800 }}>
+                    👤 PATIENT & VILLAGE ANM
+                  </span>
+                  <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
+                    4G Tribal Edge
+                  </span>
+                </div>
+                <div style={{ position: 'relative', zIndex: 2, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)', padding: '8px 12px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#ffffff' }}>
+                      {patient.name} ({patient.ageSex})
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                      {patient.village}, {patient.mandal} • Accompanied by ANM {patient.assignedAnm?.name}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#fdba74', background: '#7c2d12', padding: '2px 8px', borderRadius: '8px', fontWeight: 700 }}>
+                    Oral Examination Active
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Floating Controls Bar */}
-          <div className="video-controls-bar">
-            {/* Mic Toggle */}
+          {/* Call Controls Floating Bar */}
+          <div
+            style={{
+              background: '#111827',
+              borderRadius: '16px',
+              padding: '12px 20px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '16px',
+              border: '1px solid #1f2937',
+            }}
+          >
+            <div style={{ fontSize: '13px', fontWeight: 800, color: '#94a3b8', marginRight: '14px' }}>
+              ⏱ {formatTime(callDuration)}
+            </div>
+
             <button
-              className={`ctrl-btn ${!micOn ? 'off' : ''}`}
+              type="button"
               onClick={() => setMicOn(!micOn)}
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                border: 'none',
+                background: micOn ? '#374151' : '#ef4444',
+                color: '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}
               title={micOn ? 'Mute Microphone' : 'Unmute Microphone'}
             >
               {micOn ? <Mic size={20} /> : <MicOff size={20} />}
             </button>
 
-            {/* Video Toggle */}
             <button
-              className={`ctrl-btn ${!videoOn ? 'off' : ''}`}
+              type="button"
               onClick={() => setVideoOn(!videoOn)}
-              title={videoOn ? 'Turn Video Off' : 'Turn Video On'}
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                border: 'none',
+                background: videoOn ? '#374151' : '#ef4444',
+                color: '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}
+              title={videoOn ? 'Turn Off Video' : 'Turn On Video'}
             >
               {videoOn ? <Video size={20} /> : <VideoOff size={20} />}
             </button>
 
-            {/* Screen Share */}
             <button
-              className={`ctrl-btn ${screenSharing ? 'active' : ''}`}
-              onClick={() => setScreenSharing(!screenSharing)}
-              title="Share Screen"
-            >
-              <Share2 size={20} />
-            </button>
-
-            {/* Vitals Sidebar Toggle */}
-            <button
-              className={`ctrl-btn ${activeSideTab === 'vitals' ? 'active' : ''}`}
-              onClick={() => setActiveSideTab('vitals')}
-              title="Live Vitals HUD"
-            >
-              <Activity size={20} />
-            </button>
-
-            {/* Rx Pad Toggle */}
-            <button
-              className={`ctrl-btn ${activeSideTab === 'rx' ? 'active' : ''}`}
-              onClick={() => setActiveSideTab('rx')}
-              title="Prescription Pad"
-            >
-              <FileText size={20} />
-            </button>
-
-            {/* Chat Toggle */}
-            <button
-              className={`ctrl-btn ${activeSideTab === 'chat' ? 'active' : ''}`}
-              onClick={() => setActiveSideTab('chat')}
-              title="In-Call Chat"
-            >
-              <MessageSquare size={20} />
-            </button>
-
-            {/* End Call */}
-            <button
-              className="ctrl-btn ctrl-btn-hangup"
+              type="button"
               onClick={onEndCall}
-              title="End Teleconsultation"
+              style={{
+                background: '#dc2626',
+                color: '#ffffff',
+                border: 'none',
+                padding: '10px 22px',
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(220, 38, 38, 0.4)',
+              }}
             >
-              <PhoneOff size={22} />
+              <PhoneOff size={18} />
+              <span>{language === 'te' ? 'కాల్ ముగించండి' : 'End Consultation'}</span>
             </button>
           </div>
         </div>
 
-        {/* Side Panel: Clinical Dossier, Prescription Pad & Chat */}
-        <div className="teleconsult-sidepanel">
-          <div className="sidepanel-tabs">
+        {/* Right: Side Drawer with Tabs */}
+        <div
+          style={{
+            background: '#111827',
+            borderRadius: '16px',
+            border: '1.5px solid #1f2937',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Tabs */}
+          <div style={{ display: 'flex', borderBottom: '1px solid #1f2937', background: '#0b1120' }}>
             <button
-              className={`sidepanel-tab-btn ${activeSideTab === 'vitals' ? 'active' : ''}`}
-              onClick={() => setActiveSideTab('vitals')}
+              type="button"
+              onClick={() => setActiveSideTab('clinical')}
+              style={{
+                flex: 1,
+                padding: '12px 8px',
+                background: activeSideTab === 'clinical' ? '#111827' : 'transparent',
+                color: activeSideTab === 'clinical' ? '#f97316' : '#94a3b8',
+                border: 'none',
+                borderBottom: activeSideTab === 'clinical' ? '2.5px solid #f97316' : 'none',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
             >
-              Vitals & Intake
+              {language === 'te' ? 'క్లినికల్ కేస్' : 'Clinical Dossier'}
             </button>
             <button
-              className={`sidepanel-tab-btn ${activeSideTab === 'rx' ? 'active' : ''}`}
-              onClick={() => setActiveSideTab('rx')}
+              type="button"
+              onClick={() => setActiveSideTab('biopsy')}
+              style={{
+                flex: 1,
+                padding: '12px 8px',
+                background: activeSideTab === 'biopsy' ? '#111827' : 'transparent',
+                color: activeSideTab === 'biopsy' ? '#0d9488' : '#94a3b8',
+                border: 'none',
+                borderBottom: activeSideTab === 'biopsy' ? '2.5px solid #0d9488' : 'none',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
             >
-              Digital Rx Pad
+              {language === 'te' ? 'బయాప్సీ ఆర్డర్' : 'Biopsy Orders'}
             </button>
             <button
-              className={`sidepanel-tab-btn ${activeSideTab === 'chat' ? 'active' : ''}`}
+              type="button"
               onClick={() => setActiveSideTab('chat')}
+              style={{
+                flex: 1,
+                padding: '12px 8px',
+                background: activeSideTab === 'chat' ? '#111827' : 'transparent',
+                color: activeSideTab === 'chat' ? '#3b82f6' : '#94a3b8',
+                border: 'none',
+                borderBottom: activeSideTab === 'chat' ? '2.5px solid #3b82f6' : 'none',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+              }}
             >
-              In-Call Chat
+              {language === 'te' ? 'లైవ్ చాట్' : 'Audit Chat'}
             </button>
           </div>
 
-          <div className="sidepanel-body">
-            {/* TAB 1: Live Patient Vitals & Intake */}
-            {activeSideTab === 'vitals' && (
+          {/* Drawer Content */}
+          <div style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+            {activeSideTab === 'clinical' && (
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                  <img
-                    src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80"
-                    alt={patient.name}
-                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div>
-                    <strong style={{ fontSize: '0.95rem' }}>{patient.name}</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#0d9488' }}>ABHA: {patient.abhaId}</div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
-                  CONNECTED IOMT VITALS HUD
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-                  <div style={{ background: '#f0fdfa', border: '1px solid #ccfbf1', padding: '12px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#0d9488', fontWeight: 600 }}>BLOOD PRESSURE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f766e' }}>
-                      {patient.vitals?.bp || '122/80'}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Normal Range</div>
-                  </div>
-
-                  <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', padding: '12px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 600 }}>HEART RATE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#b91c1c' }}>
-                      {patient.vitals?.hr || '74 bpm'}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Sinus Rhythm</div>
-                  </div>
-
-                  <div style={{ background: '#eff6ff', border: '1px solid #dbeafe', padding: '12px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#3b82f6', fontWeight: 600 }}>BLOOD OXYGEN</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1d4ed8' }}>
-                      {patient.vitals?.spo2 || '99%'}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Optimal SpO2</div>
-                  </div>
-
-                  <div style={{ background: '#fefce8', border: '1px solid #fef08a', padding: '12px', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.72rem', color: '#ca8a04', fontWeight: 600 }}>TEMPERATURE</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#854d0e' }}>
-                      {patient.vitals?.temp || '98.4°F'}
-                    </div>
-                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Afebrile</div>
-                  </div>
-                </div>
-
-                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', fontSize: '0.82rem' }}>
-                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
-                    Chief Complaint / Intake Reason:
-                  </div>
-                  <div style={{ color: '#475569' }}>
-                    {patient.appointedFor || 'Cardiovascular checkup & follow-up statin optimization.'}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: Live Digital Prescription Builder */}
-            {activeSideTab === 'rx' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h4 style={{ margin: 0, fontSize: '0.95rem' }}>Issue Live Prescription</h4>
-                  <span style={{ fontSize: '0.75rem', color: '#0d9488', fontWeight: 600 }}>ABDM Compliant</span>
-                </div>
-
-                {rxIssued && (
+                {/* Oral Lesion Photo Preview */}
+                <div style={{ marginBottom: '16px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: '#f97316', textTransform: 'uppercase' }}>
+                    PATIENT ORAL CAVITY CAPTURE
+                  </span>
                   <div
                     style={{
-                      background: '#ecfdf5',
-                      color: '#065f46',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      marginBottom: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
+                      marginTop: '6px',
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      border: '1.5px solid #374151',
+                      height: '140px',
+                      position: 'relative',
+                      background: '#030712',
                     }}
                   >
-                    <CheckCircle2 size={16} />
-                    <span>Prescription issued and linked to patient ABHA!</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleIssueRx}>
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label>Medication</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={liveRx.medicine}
-                      onChange={(e) => setLiveRx({ ...liveRx, medicine: e.target.value })}
+                    <img
+                      src={patient.oralPhotos?.[0] || 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=400&q=80'}
+                      alt="Buccal lesion scan"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
+                    <div style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.7)', padding: '2px 8px', borderRadius: '6px', fontSize: '10.5px', color: '#fed7aa' }}>
+                      Site: Right Buccal Mucosa • 2.2 cm Plaque
+                    </div>
                   </div>
+                </div>
 
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label>Dosage & Strength</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={liveRx.dosage}
-                      onChange={(e) => setLiveRx({ ...liveRx, dosage: e.target.value })}
-                    />
+                {/* Gemini AI Concordance Box */}
+                <div style={{ background: '#1e293b', padding: '12px', borderRadius: '10px', marginBottom: '14px', border: '1px solid #334155' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: '#f43f5e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={14} /> GEMINI MULTIMODAL TRIAGE
+                    </span>
+                    <span style={{ background: '#881337', color: '#fecdd3', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', fontWeight: 800 }}>
+                      89% Concordance
+                    </span>
                   </div>
-
-                  <div className="form-group" style={{ marginBottom: '10px' }}>
-                    <label>Timing & Schedule</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={liveRx.timing}
-                      onChange={(e) => setLiveRx({ ...liveRx, timing: e.target.value })}
-                    />
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#ffffff', marginTop: '4px' }}>
+                    {patient.aiAssessment?.triageClassification || 'High Suspicion - Potentially Malignant'}
                   </div>
+                  <small style={{ color: '#94a3b8', fontSize: '10.5px' }}>
+                    Non-scrapable homogeneous plaque with dysplastic verrucous borders.
+                  </small>
+                </div>
 
-                  <div className="form-group" style={{ marginBottom: '14px' }}>
-                    <label>Doctor Instructions</label>
-                    <textarea
-                      className="form-control"
-                      rows={2}
-                      value={liveRx.instructions}
-                      onChange={(e) => setLiveRx({ ...liveRx, instructions: e.target.value })}
-                    />
-                  </div>
+                {/* Habit & Exposure History */}
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>EXPOSURE HISTORY (NOCR / ACS):</span>
+                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: '#e2e8f0', lineHeight: 1.5 }}>
+                    {patient.exposureHistory?.map((h, i) => (
+                      <li key={i}>{h.label}</li>
+                    ))}
+                  </ul>
+                </div>
 
-                  <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                    <CheckCircle2 size={16} />
-                    <span>Sign & Issue Digital Rx</span>
-                  </button>
-                </form>
+                {/* Reported Symptoms */}
+                <div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8' }}>REPORTED SYMPTOMS:</span>
+                  <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', fontSize: '12px', color: '#e2e8f0', lineHeight: 1.5 }}>
+                    {patient.symptoms?.map((s, i) => (
+                      <li key={i}>{s.label}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             )}
 
-            {/* TAB 3: In-Call Clinical Chat */}
+            {activeSideTab === 'biopsy' && (
+              <div>
+                {!biopsyOrdered ? (
+                  <form onSubmit={handleIssueBiopsyOrder}>
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                        INVESTIGATION PROCEDURE:
+                      </label>
+                      <select
+                        value={biopsyType}
+                        onChange={(e) => setBiopsyType(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px' }}
+                      >
+                        <option value="Punch Biopsy (4mm Core)">Punch Biopsy (4mm Core - Histopathology)</option>
+                        <option value="Incisional Wedge Biopsy">Incisional Wedge Biopsy</option>
+                        <option value="Brush Cytology (OralCDx)">Brush Cytology (OralCDx Diagnostic)</option>
+                        <option value="Toluidine Blue Staining">Toluidine Blue In-Vivo Staining</option>
+                      </select>
+                    </div>
+
+                    <div style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                        CLINICAL INSTRUCTIONS & HISTOPATH NOTES:
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={biopsyNotes}
+                        onChange={(e) => setBiopsyNotes(e.target.value)}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', background: '#1e293b', border: '1px solid #334155', color: '#ffffff', fontSize: '12px', lineHeight: 1.4 }}
+                      />
+                    </div>
+
+                    <div style={{ background: '#0f172a', padding: '10px', borderRadius: '8px', border: '1px solid #1e293b', marginBottom: '16px', fontSize: '11px', color: '#94a3b8' }}>
+                      <strong>Designated Lab:</strong> Pathology Unit, Area Hospital Paderu. Transportation via ITDA cold-chain sample dispatch.
+                    </div>
+
+                    <button
+                      type="submit"
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {language === 'te' ? 'బయాప్సీ ల్యాబ్ ఆర్డర్ జారీ చేయండి' : 'Issue Official Biopsy Order'}
+                    </button>
+                  </form>
+                ) : (
+                  <div style={{ background: '#064e3b', border: '1px solid #059669', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
+                    <CheckCircle2 size={32} color="#34d399" style={{ margin: '0 auto 8px auto' }} />
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#ffffff' }}>
+                      {language === 'te' ? 'బయాప్సీ ఆర్డర్ జారీ చేయబడింది!' : 'Biopsy Order Issued Successfully!'}
+                    </h4>
+                    <p style={{ fontSize: '11.5px', color: '#a7f3d0', margin: '0 0 14px 0' }}>
+                      Order ID: <strong>BIO-PADERU-2026-8812</strong> • Scheduled for 09:00 AM at Area Hospital Paderu.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      style={{
+                        background: '#ffffff',
+                        color: '#065f46',
+                        border: 'none',
+                        padding: '6px 14px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Printer size={14} />
+                      <span>{language === 'te' ? 'ఆర్డర్ స్లిప్ ముద్రించండి' : 'Print Biopsy Order Slip'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {activeSideTab === 'chat' && (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
-                  {chatMessages.map((msg) => {
-                    const isMe = msg.sender === 'You' || msg.sender === 'Doctor';
-                    return (
-                      <div
-                        key={msg.id}
-                        style={{
-                          alignSelf: isMe ? 'flex-end' : 'flex-start',
-                          maxWidth: '85%',
-                          background: isMe ? '#0d9488' : '#f1f5f9',
-                          color: isMe ? '#ffffff' : '#1e293b',
-                          padding: '8px 12px',
-                          borderRadius: '12px',
-                          fontSize: '0.82rem'
-                        }}
-                      >
-                        <div style={{ fontSize: '0.68rem', opacity: 0.8, marginBottom: '2px' }}>
-                          {msg.sender} • {msg.time}
-                        </div>
-                        <div>{msg.text}</div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '12px' }}>
+                  {chatMessages.map((m) => (
+                    <div key={m.id} style={{ background: '#1e293b', padding: '8px 10px', borderRadius: '8px', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f97316', fontWeight: 700, fontSize: '10.5px' }}>
+                        <span>{language === 'te' ? (m.senderTe || m.sender) : m.sender}</span>
+                        <span style={{ color: '#64748b' }}>{m.time}</span>
                       </div>
-                    );
-                  })}
+                      <p style={{ margin: '4px 0 0 0', color: '#f1f5f9', lineHeight: 1.4 }}>{m.text}</p>
+                    </div>
+                  ))}
                 </div>
 
-                <form onSubmit={handleSendChat} style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                <form onSubmit={handleSendChat} style={{ display: 'flex', gap: '6px' }}>
                   <input
                     type="text"
-                    className="form-control"
-                    placeholder="Type in-call message..."
+                    placeholder={language === 'te' ? 'క్లినికల్ నోట్స్ నమోదు చేయండి...' : 'Type encounter note...'}
                     value={newChatText}
                     onChange={(e) => setNewChatText(e.target.value)}
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '0.84rem' }}
+                    style={{ flex: 1, padding: '7px 10px', borderRadius: '6px', background: '#1e293b', border: '1px solid #374151', color: '#ffffff', fontSize: '12px' }}
                   />
-                  <button type="submit" className="btn-primary" style={{ padding: '8px 14px' }}>
-                    <Send size={15} />
+                  <button
+                    type="submit"
+                    style={{ background: '#f97316', border: 'none', borderRadius: '6px', padding: '7px 12px', color: '#ffffff', cursor: 'pointer' }}
+                  >
+                    <Send size={14} />
                   </button>
                 </form>
               </div>
@@ -446,4 +739,3 @@ export default function TeleconsultationSuite({
     </div>
   );
 }
-

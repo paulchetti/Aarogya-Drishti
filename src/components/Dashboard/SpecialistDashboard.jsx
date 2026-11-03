@@ -5,6 +5,8 @@ import WelcomeBanner from './WelcomeBanner';
 import StatCards from './StatCards';
 import ScreeningModal from './ScreeningModal';
 import AIChatBot from './AIChatBot';
+import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
+import { getAllPatients } from '../../services/referralRoutingService';
 import '../../styles/dashboard.css';
 import {
   AIIcon,
@@ -25,7 +27,10 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isTelehealthOpen, setIsTelehealthOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
+
+  const demoPatient = getAllPatients().find((p) => p.id === 'ADP-2026-0046') || getAllPatients()[0];
 
   const specialistMenuItems = [
     { name: 'Inbound Referral Triage Queue', icon: <ReferralIcon /> },
@@ -158,7 +163,10 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
   const handleNavSelect = (navName) => {
     setActiveNav(navName);
-    if (navName === 'Telehealth Video Gateway' || navName === 'Diagnostic Orders & Lab Workups') {
+    if (navName === 'Telehealth Video Gateway') {
+      setSelectedCase(demoPatient);
+      setIsTelehealthOpen(true);
+    } else if (navName === 'Diagnostic Orders & Lab Workups' || navName === 'High-Acuity Priority Cases') {
       setIsReviewModalOpen(true);
     } else if (onToast) {
       onToast(`Navigating to ${navName}`);
@@ -169,8 +177,9 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
     switch (action) {
       case 'telehealth-gateway':
       case 'launch-teleconsult':
-        setIsReviewModalOpen(true);
-        if (onToast) onToast('Connecting to Telehealth Video Gateway (Encrypted WebRTC)...');
+        setSelectedCase(demoPatient);
+        setIsTelehealthOpen(true);
+        if (onToast) onToast('Launching Multi-Party Telehealth Video Gateway...');
         break;
       case 'diagnostic-orders':
       case 'review-biopsy':
@@ -234,15 +243,25 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
         {/* Central Canvas Area - Fills Full Display */}
         <main className="dash-content-canvas full-display">
           <div className="dash-center-col">
-            {/* Welcome Banner */}
-            <WelcomeBanner
-              doctorName="Dr. Ananya Varma, MD"
-              roleSubtitle="Specialist Dashboard • Head of Oral Oncology & Tertiary Review"
-              photoUrl="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=640&q=85"
-            />
+            {isTelehealthOpen ? (
+              <div style={{ marginBottom: '24px' }}>
+                <TeleconsultationSuite
+                  patientData={selectedCase || demoPatient}
+                  currentUserRole="specialist"
+                  onEndCall={() => setIsTelehealthOpen(false)}
+                />
+              </div>
+            ) : (
+              <>
+                {/* Welcome Banner */}
+                <WelcomeBanner
+                  doctorName="Dr. Ananya Varma, MD"
+                  roleSubtitle="Specialist Dashboard • Head of Oral Oncology & Tertiary Review"
+                  photoUrl="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=640&q=85"
+                />
 
-            {/* 4 Stat Metric Cards with Colored Lines */}
-            <StatCards cards={specialistStats} />
+                {/* 4 Stat Metric Cards with Colored Lines */}
+                <StatCards cards={specialistStats} />
 
             {/* Middle 2 Charts */}
             <div className="charts-dual-row">
@@ -461,7 +480,31 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                         <td>
                           <span className={`status-pill ${r.statusClass}`}>{r.status}</span>
                         </td>
-                        <td style={{ textAlign: 'right' }}>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCase(r);
+                              setIsTelehealthOpen(true);
+                              if (onToast) onToast(`Launching 3-Way Telehealth Gateway for ${r.name}`);
+                            }}
+                            style={{
+                              background: '#f97316',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '6px 11px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              marginRight: '6px',
+                            }}
+                          >
+                            <span>📹 3-Way Video</span>
+                          </button>
                           <button
                             type="button"
                             onClick={() => {
@@ -474,16 +517,16 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                               color: '#ffffff',
                               border: 'none',
                               borderRadius: '8px',
-                              padding: '6px 12px',
+                              padding: '6px 11px',
                               fontSize: '0.78rem',
                               fontWeight: 700,
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
+                              gap: '5px',
                             }}
                           >
-                            <span>🔬 Review Scan</span>
+                            <span>🔬 Review</span>
                           </button>
                         </td>
                       </tr>
@@ -492,6 +535,8 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                 </table>
               </div>
             </div>
+            </>
+            )}
           </div>
 
           {/* Right Action & Info Sidebar */}

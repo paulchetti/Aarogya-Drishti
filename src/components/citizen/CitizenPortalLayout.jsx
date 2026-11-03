@@ -484,7 +484,10 @@ export default function CitizenPortalLayout({
 
           <div className="patient-focused-body">
             {activeModule === 'intake' && (
-              <PatientIntakeView onStartTeleconsult={handleStartTeleconsult} />
+              <PatientIntakeView
+                onStartTeleconsult={handleStartTeleconsult}
+                onOpenScreening={() => setIsScreeningOpen(true)}
+              />
             )}
 
             {activeModule === 'ehr' && <EHRHistoryView />}
@@ -503,6 +506,7 @@ export default function CitizenPortalLayout({
             {activeModule === 'teleconsult' && (
               <TeleconsultationSuite
                 patientData={teleconsultPatient}
+                currentUserRole="patient"
                 onEndCall={() => setActiveModule(null)}
               />
             )}
