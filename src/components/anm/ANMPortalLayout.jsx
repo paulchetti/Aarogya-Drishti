@@ -196,6 +196,31 @@ export default function ANMPortalLayout({
                 </div>
               </div>
 
+                            {/* One-touch Telugu Switcher */}
+              <button
+                type="button"
+                className="patient-logout-btn"
+                onClick={toggleLanguage}
+                title="Switch between English and Telugu (ఒకే టచ్‌తో తెలుగు మార్చండి)"
+                style={{
+                  background: language === 'te' ? '#ffedd5' : '#ffffff',
+                  color: language === 'te' ? '#c2410c' : '#334155',
+                  border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+                  fontWeight: 800,
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  marginRight: '8px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                }}
+              >
+                <span>🌐</span>
+                <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+              </button>
+
               <button
                 className="patient-logout-btn"
                 onClick={onLogout}
@@ -474,7 +499,29 @@ export default function ANMPortalLayout({
               {activeModule === 'live_teleconsult' && (language === 'te' ? 'లైవ్ వీడియో టెలికన్సల్టేషన్ విభాగం' : 'Live Video Teleconsultation Suite')}
             </div>
 
-            <div className="patient-focused-actions">
+            <div className="patient-focused-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                title="Switch between English and Telugu"
+                style={{
+                  background: language === 'te' ? '#ffedd5' : '#ffffff',
+                  color: language === 'te' ? '#c2410c' : '#334155',
+                  border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+                  fontWeight: 800,
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '0.8rem',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+                }}
+              >
+                <span>🌐</span>
+                <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+              </button>
               <span className="patient-status-indicator">{language === 'te' ? '● యాక్టివ్ సెషన్ • సబ్-సెంటర్ పాడేరు' : '● Active Session • Sub-Centre Paderu'}</span>
             </div>
           </div>
