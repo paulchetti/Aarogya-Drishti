@@ -8,59 +8,199 @@
   font-family: var(--font-body, 'DM Sans', -apple-system, sans-serif);
 }
 
-/* Floating Trigger Button */
+/* Floating Trigger Button: Mini Hospital with Circling Ambulance */
 .ai-chatbot-trigger {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  gap: 12px;
+  background: linear-gradient(135deg, #072725 0%, #0d9488 55%, #0f766e 100%);
   color: #ffffff;
-  border: 2px solid #ffffff;
-  border-radius: 32px;
-  padding: 10px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 40px;
+  padding: 6px 18px 6px 6px;
   font-size: 0.88rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(13, 148, 136, 0.4), 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 12px 30px rgba(13, 148, 136, 0.45), 0 4px 12px rgba(0, 0, 0, 0.18);
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   outline: none;
+  user-select: none;
 }
 
 .ai-chatbot-trigger:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 14px 30px rgba(13, 148, 136, 0.5), 0 6px 14px rgba(0, 0, 0, 0.15);
-  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 16px 36px rgba(13, 148, 136, 0.55), 0 6px 16px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(135deg, #042f2e 0%, #0f766e 55%, #115e59 100%);
+  border-color: #ffffff;
 }
 
-.ai-trigger-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
+/* 1. Orbit Stage containing Hospital & Circling Road */
+.hospital-orbit-stage {
+  position: relative;
+  width: 62px;
+  height: 62px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  animation: pulse-ring 2s infinite ease-in-out;
+  flex-shrink: 0;
 }
 
-.ai-trigger-badge {
-  background: #f97316;
+/* Dashed Circular Road Track */
+.hospital-orbit-track {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  animation: road-track-spin 22s linear infinite;
+}
+
+@keyframes road-track-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 2. Central Mini Hospital Building */
+.hospital-building-center {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: transform 0.25s ease;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.ai-chatbot-trigger:hover .hospital-building-center {
+  transform: scale(1.06);
+}
+
+.hospital-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* 3. Circling Ambulance Animation */
+.ambulance-rotator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 4;
+  animation: ambulance-circle-orbit 5s linear infinite;
+}
+
+/* Ambulance accelerates smoothly when hovering! */
+.ai-chatbot-trigger:hover .ambulance-rotator {
+  animation-duration: 2s;
+}
+
+@keyframes ambulance-circle-orbit {
+  0% {
+    transform: rotate(0deg) translateX(28px) rotate(90deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(28px) rotate(450deg);
+  }
+}
+
+.ambulance-vehicle {
+  position: absolute;
+  top: -8px;
+  left: -14px;
+  width: 28px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ambulance-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+}
+
+/* Flashing Emergency Siren on Ambulance Roof */
+.ambulance-siren {
+  position: absolute;
+  top: -2.5px;
+  left: 10px;
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444, 0 0 10px #3b82f6;
+  animation: siren-strobe 0.5s infinite alternate ease-in-out;
+  z-index: 6;
+}
+
+.ai-chatbot-trigger:hover .ambulance-siren {
+  animation-duration: 0.22s;
+}
+
+@keyframes siren-strobe {
+  0% {
+    background: #ef4444;
+    box-shadow: 0 0 6px #ef4444, 0 0 12px #ef4444;
+  }
+  100% {
+    background: #3b82f6;
+    box-shadow: 0 0 6px #3b82f6, 0 0 12px #3b82f6;
+  }
+}
+
+/* 4. Trigger Label & Real-Time Status Pill */
+.hospital-trigger-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.trigger-main-title {
   color: #ffffff;
-  font-size: 0.68rem;
   font-weight: 800;
-  padding: 2px 7px;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.94rem;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-@keyframes pulse-ring {
+.trigger-sub-status {
+  color: #a7f3d0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.pulse-siren-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  animation: siren-dot-pulse 1.4s infinite ease-in-out;
+}
+
+@keyframes siren-dot-pulse {
   0%, 100% {
     transform: scale(1);
+    opacity: 1;
   }
   50% {
-    transform: scale(1.12);
+    transform: scale(1.4);
+    opacity: 0.6;
   }
 }
 

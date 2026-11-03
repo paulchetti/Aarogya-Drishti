@@ -387,17 +387,106 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
   return (
     <>
       <div className="ai-chatbot-wrapper">
-        {/* Floating Trigger Button */}
+        {/* Floating Trigger Button: Mini Hospital with Circling Ambulance */}
         {!isOpen && (
           <button
             type="button"
-            className="ai-chatbot-trigger"
+            className="ai-chatbot-trigger hospital-themed"
             onClick={() => setIsOpen(true)}
-            title="Open Drishti AI Copilot"
+            title="Aarogya AI Copilot • 24x7 Emergency Clinical Assistance"
+            aria-label="Open AI Copilot"
           >
-            <div className="ai-trigger-icon">✨</div>
-            <span>AI Copilot</span>
-            <span className="ai-trigger-badge">Active</span>
+            {/* Circular Orbit & Hospital Arena */}
+            <div className="hospital-orbit-stage">
+              {/* Outer Circular Road Orbit Track */}
+              <div className="hospital-orbit-track" />
+
+              {/* Circling Ambulance with Live Emergency Siren */}
+              <div className="ambulance-rotator">
+                <div className="ambulance-vehicle">
+                  {/* Flashing Emergency Beacon */}
+                  <div className="ambulance-siren" />
+
+                  {/* Vector Ambulance SVG */}
+                  <svg viewBox="0 0 28 18" className="ambulance-svg">
+                    {/* Van Main Body */}
+                    <path d="M2 13V5C2 3.9 2.9 3 4 3H16V13H2Z" fill="#FFFFFF" />
+                    {/* Cabin Hood Front */}
+                    <path d="M16 6H20.5L25 10.5V13H16V6Z" fill="#FFFFFF" />
+                    {/* Red Emergency Side Stripe */}
+                    <rect x="2" y="9" width="22" height="2" fill="#ef4444" />
+                    {/* Red Medical Cross on Flank */}
+                    <rect x="7" y="5.5" width="4" height="1.2" fill="#ef4444" rx="0.3" />
+                    <rect x="8.4" y="4.1" width="1.2" height="4" fill="#ef4444" rx="0.3" />
+                    {/* Windshield & Side Windows */}
+                    <path d="M17 7H20L23.5 10.5H17V7Z" fill="#0284c7" />
+                    <rect x="3.5" y="4.5" width="2.5" height="3" fill="#0284c7" rx="0.5" />
+                    {/* Wheels */}
+                    <circle cx="7" cy="13.5" r="2.2" fill="#1e293b" />
+                    <circle cx="7" cy="13.5" r="0.9" fill="#94a3b8" />
+                    <circle cx="20" cy="13.5" r="2.2" fill="#1e293b" />
+                    <circle cx="20" cy="13.5" r="0.9" fill="#94a3b8" />
+                    {/* Front Headlight Light Beam */}
+                    <polygon points="25,11 28,9.8 28,12.2" fill="#fef08a" opacity="0.85" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Central Mini Hospital Building */}
+              <div className="hospital-building-center">
+                <svg viewBox="0 0 36 36" className="hospital-svg">
+                  <defs>
+                    <linearGradient id="hospBgGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0d9488" />
+                      <stop offset="100%" stopColor="#064e3b" />
+                    </linearGradient>
+                    <linearGradient id="hospWallGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ffffff" />
+                      <stop offset="100%" stopColor="#e2e8f0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Circular Hospital Yard Base */}
+                  <circle cx="18" cy="18" r="17" fill="url(#hospBgGrad)" />
+
+                  {/* Hospital Main Building Block */}
+                  <rect x="8" y="11" width="20" height="18" rx="2" fill="url(#hospWallGrad)" />
+
+                  {/* Rooftop Emergency Helipad / Tower Top */}
+                  <rect x="13" y="7" width="10" height="5" rx="1.5" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="0.5" />
+                  {/* Rooftop Red Cross */}
+                  <rect x="16.5" y="8" width="3" height="1" fill="#dc2626" rx="0.2" />
+                  <rect x="17.5" y="7" width="1" height="3" fill="#dc2626" rx="0.2" />
+
+                  {/* Facade Big Medical Red Cross */}
+                  <rect x="15" y="13.5" width="6" height="2" fill="#dc2626" rx="0.3" />
+                  <rect x="17" y="11.5" width="2" height="6" fill="#dc2626" rx="0.3" />
+
+                  {/* Clinic Windows with Illuminated Blue Glow */}
+                  <rect x="10.5" y="18" width="3" height="2.5" rx="0.5" fill="#38bdf8" />
+                  <rect x="22.5" y="18" width="3" height="2.5" rx="0.5" fill="#38bdf8" />
+                  <rect x="10.5" y="22" width="3" height="2.5" rx="0.5" fill="#38bdf8" />
+                  <rect x="22.5" y="22" width="3" height="2.5" rx="0.5" fill="#38bdf8" />
+
+                  {/* Glass Sliding Doors */}
+                  <rect x="15.5" y="22" width="5" height="7" rx="0.5" fill="#0284c7" />
+                  <rect x="16" y="22.5" width="1.8" height="6" fill="#7dd3fc" />
+                  <rect x="18.2" y="22.5" width="1.8" height="6" fill="#7dd3fc" />
+
+                  {/* Entry Foundation Steps */}
+                  <rect x="6" y="28" width="24" height="2" rx="1" fill="#94a3b8" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Label & Active Status */}
+            <div className="hospital-trigger-label">
+              <span className="trigger-main-title">AI Copilot</span>
+              <span className="trigger-sub-status">
+                <span className="pulse-siren-dot" />
+                {language === 'te' ? '24/7 క్లినికల్ ఏఐ' : '24x7 Active'}
+              </span>
+            </div>
           </button>
         )}
 
