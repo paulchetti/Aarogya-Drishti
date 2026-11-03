@@ -1,10 +1,13 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SocialAuth({ onSocialClick }) {
+  const { t } = useLanguage();
+
   return (
     <>
       <div className="or-divider">
-        <span></span> or continue with <span></span>
+        <span></span> {t('orContinueWith', 'or continue with')} <span></span>
       </div>
       <div className="social-row">
         <button
@@ -43,4 +46,3 @@ export default function SocialAuth({ onSocialClick }) {
     </>
   );
 }
-

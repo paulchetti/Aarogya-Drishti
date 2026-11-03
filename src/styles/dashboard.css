@@ -101,17 +101,21 @@ html, body {
 }
 
 .dash-brand-logo-img {
-  height: 58px;
-  width: 58px;
+  height: 54px;
+  width: 54px;
   object-fit: contain;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
-  background: transparent;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+  border-radius: 50%;
+  border: 2.5px solid #f97316;
+  background: #ffffff;
+  padding: 2px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dash-brand-logo-img:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.45);
 }
 
 .dash-brand-icon {

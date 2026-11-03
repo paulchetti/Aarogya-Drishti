@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SocialAuth from './SocialAuth';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginForm({
   onSwitchMode,
@@ -7,6 +8,7 @@ export default function LoginForm({
   onForgotPassword,
   onSocialClick,
 }) {
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -37,24 +39,33 @@ export default function LoginForm({
         <b>AAROGYA DRISHTI</b>
       </div>
 
-      <div className="eyebrow">WELCOME BACK</div>
+      <div className="eyebrow">{t('welcomeBackEyebrow', 'WELCOME BACK')}</div>
       <h1>
-        Good to see<br />
-        <em>you again.</em>
+        {language === 'te' ? (
+          <>
+            మిమ్మల్ని మళ్ళీ కలవడం<br />
+            <em>ఆనందంగా ఉంది.</em>
+          </>
+        ) : (
+          <>
+            Good to see<br />
+            <em>you again.</em>
+          </>
+        )}
       </h1>
       <p className="form-intro">
-        Sign in to continue to your secure healthcare workspace.
+        {t('signInIntro', 'Sign in to continue to your secure healthcare workspace.')}
       </p>
 
       <div className="field">
-        <label htmlFor="loginEmail">Email address</label>
+        <label htmlFor="loginEmail">{t('emailAddress', 'Email address')}</label>
         <div className="input-wrap">
           <span className="field-icon">✉</span>
           <input
             id="loginEmail"
             name="email"
             type="email"
-            placeholder="Enter your email"
+            placeholder={t('enterEmail', 'Enter your email')}
             autoComplete="email"
             value={formData.email}
             onChange={handleChange}
@@ -65,9 +76,9 @@ export default function LoginForm({
 
       <div className="field">
         <div className="label-line">
-          <label htmlFor="loginPassword">Password</label>
+          <label htmlFor="loginPassword">{t('password', 'Password')}</label>
           <button type="button" onClick={onForgotPassword}>
-            Forgot password?
+            {t('forgotPassword', 'Forgot password?')}
           </button>
         </div>
         <div className="input-wrap">
@@ -76,7 +87,7 @@ export default function LoginForm({
             id="loginPassword"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
+            placeholder={t('enterPassword', 'Enter your password')}
             autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
@@ -88,7 +99,7 @@ export default function LoginForm({
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? t('hide', 'Hide') : t('show', 'Show')}
           </button>
         </div>
       </div>
@@ -101,11 +112,11 @@ export default function LoginForm({
           checked={formData.rememberMe}
           onChange={handleChange}
         />
-        Remember me
+        {t('rememberMe', 'Remember me')}
       </label>
 
       <button className="primary-btn" type="submit">
-        Log in securely <span>→</span>
+        {t('logInSecurely', 'Log in securely →')}
       </button>
 
       {/* Quick Demo Access Buttons for instant review */}
@@ -125,7 +136,7 @@ export default function LoginForm({
             cursor: 'pointer'
           }}
         >
-          ⚡ Demo Citizen Login
+          {t('demoCitizenLogin', '⚡ Demo Citizen Login')}
         </button>
         <button
           type="button"
@@ -142,7 +153,7 @@ export default function LoginForm({
             cursor: 'pointer'
           }}
         >
-          ⚡ Demo Doctor Login
+          {t('demoDoctorLogin', '⚡ Demo Doctor Login')}
         </button>
       </div>
 

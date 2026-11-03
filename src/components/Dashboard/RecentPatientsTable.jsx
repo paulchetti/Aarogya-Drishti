@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const admissions = [
   {
@@ -53,11 +54,22 @@ const admissions = [
   },
 ];
 
+const statusTranslations = {
+  'Normal': 'సాధారణం (Normal)',
+  'Under Review': 'సమీక్షలో ఉంది (Review)',
+  'Suspicious': 'అనుమానాస్పదం (Suspicious)',
+  'Follow-up': 'ఫాలో-అప్ (Follow-up)',
+};
+
 export default function RecentPatientsTable({ onViewPatient }) {
+  const { language } = useLanguage();
+
   return (
     <div className="table-card">
       <div className="table-header">
-        <h3>Recent Admissions / Registrations</h3>
+        <h3>
+          {language === 'te' ? 'ఇటీవలి నమోదులు / రిజిస్ట్రేషన్లు' : 'Recent Admissions / Registrations'}
+        </h3>
         <a
           href="#view-all"
           className="view-all-link"
@@ -66,7 +78,7 @@ export default function RecentPatientsTable({ onViewPatient }) {
             if (onViewPatient) onViewPatient(null);
           }}
         >
-          View All Admissions / Registrations <span>→</span>
+          {language === 'te' ? 'అన్ని నమోదులు చూడండి' : 'View All Admissions / Registrations'} <span>→</span>
         </a>
       </div>
 
@@ -74,12 +86,12 @@ export default function RecentPatientsTable({ onViewPatient }) {
         <table className="patient-table">
           <thead>
             <tr>
-              <th>Patient ID</th>
-              <th>Name</th>
-              <th>Age / Sex</th>
-              <th>Village</th>
-              <th>Screening Date</th>
-              <th>Status</th>
+              <th>{language === 'te' ? 'రోగి ఐడి' : 'Patient ID'}</th>
+              <th>{language === 'te' ? 'పేరు' : 'Name'}</th>
+              <th>{language === 'te' ? 'వయస్సు / లింగం' : 'Age / Sex'}</th>
+              <th>{language === 'te' ? 'గ్రామం' : 'Village'}</th>
+              <th>{language === 'te' ? 'స్క్రీనింగ్ తేదీ' : 'Screening Date'}</th>
+              <th>{language === 'te' ? 'స్థితి' : 'Status'}</th>
               <th></th>
             </tr>
           </thead>
@@ -105,7 +117,9 @@ export default function RecentPatientsTable({ onViewPatient }) {
                 <td>{p.village}</td>
                 <td style={{ color: '#64748b' }}>{p.date}</td>
                 <td>
-                  <span className={`status-pill ${p.statusClass}`}>{p.status}</span>
+                  <span className={`status-pill ${p.statusClass}`}>
+                    {language === 'te' ? (statusTranslations[p.status] || p.status) : p.status}
+                  </span>
                 </td>
                 <td>
                   <button

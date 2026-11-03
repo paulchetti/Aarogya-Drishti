@@ -1,7 +1,20 @@
 import React from 'react';
 import { UserIcon, TargetIcon, WarningIcon, CalendarIcon } from '../Icons';
+import { useLanguage } from '../../context/LanguageContext';
+
+const titleTranslations = {
+  'Recent Admissions / Registrations': 'ఇటీవలి నమోదులు / రిజిస్ట్రేషన్లు',
+  'Total Outbound Referrals': 'మొత్తం రెఫరల్స్ (బయటకు పంపినవి)',
+  'Pending Follow-ups': 'పెండింగ్‌లో ఉన్న ఫాలో-అప్‌లు',
+  'Completed Follow-ups': 'పూర్తయిన ఫాలో-అప్‌లు',
+  'vs. last month': 'గత నెలతో పోలిస్తే',
+  'vs. last week': 'గత వారంతో పోలిస్తే',
+  'this month': 'ఈ నెలలో',
+};
 
 export default function StatCards({ cards = null }) {
+  const { language } = useLanguage();
+
   const defaultCards = [
     {
       title: 'Recent Admissions / Registrations',
@@ -47,19 +60,26 @@ export default function StatCards({ cards = null }) {
 
   const items = cards || defaultCards;
 
+  const translate = (text) => {
+    if (language === 'te' && titleTranslations[text]) {
+      return titleTranslations[text];
+    }
+    return text;
+  };
+
   return (
     <div className="stat-cards-grid">
       {items.map((card, i) => (
         <div key={i} className={`metric-card ${card.cardBorder}`}>
           <div>
             <div className={`metric-icon-circle ${card.colorClass}`}>{card.icon}</div>
-            <div className="metric-title" title={card.title}>{card.title}</div>
+            <div className="metric-title" title={translate(card.title)}>{translate(card.title)}</div>
           </div>
           <div className="metric-value-row">
             <span className="metric-number">{card.value}</span>
             <div className="metric-trend-box">
               <span className={`metric-trend-val ${card.trendColor}`}>{card.trend}</span>
-              <span className="metric-trend-sub">{card.subtext}</span>
+              <span className="metric-trend-sub">{translate(card.subtext)}</span>
             </div>
           </div>
         </div>

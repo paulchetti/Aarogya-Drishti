@@ -90,11 +90,20 @@ export default function Header({ onOpenDashboard }) {
         <img
           src="/logo.png"
           alt="Aarogya Drishti Logo"
-          style={{ width: '54px', height: '54px', objectFit: 'contain' }}
+          style={{
+            width: '52px',
+            height: '52px',
+            objectFit: 'contain',
+            borderRadius: '50%',
+            border: '2.5px solid #f97316',
+            background: '#ffffff',
+            padding: '2px',
+            boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)'
+          }}
         />
         <span className="brand-copy">
           <strong>AAROGYA <b>DRISHTI</b></strong>
-          <small>EARLY CARE. BETTER TOMORROWS.</small>
+          <small>{language === 'te' ? 'ముందస్తు సంరక్షణ. మెరుగైన రేపు.' : 'EARLY CARE. BETTER TOMORROWS.'}</small>
         </span>
       </a>
 
@@ -149,7 +158,7 @@ export default function Header({ onOpenDashboard }) {
                 transition: 'all 0.2s ease',
               }}
             >
-              <span>📊 Open Dashboard</span>
+              <span>📊 {language === 'te' ? 'డాష్‌బోర్డ్ తెరవండి' : 'Open Dashboard'}</span>
               <span style={{ fontSize: '0.7rem' }}>{isDropdownOpen ? '▲' : '▼'}</span>
             </button>
 

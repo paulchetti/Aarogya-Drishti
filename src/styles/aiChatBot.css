@@ -127,21 +127,24 @@
 }
 
 .ai-avatar-badge {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 50%;
+  border: 2px solid #f97316;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .ai-avatar-img {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
+  border-radius: 50%;
 }
 
 .ai-header-meta h4 {

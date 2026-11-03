@@ -96,6 +96,32 @@ export const translations = {
     listenAudio: 'Listen to Clinical Advice (Audio)',
     fontSizeToggle: 'Text Size',
     accessibilityMenu: 'Accessibility',
+
+    // Auth & Login
+    welcomeBackEyebrow: 'WELCOME BACK',
+    goodToSeeYou: 'Good to see you again.',
+    signInIntro: 'Sign in to continue to your secure healthcare workspace.',
+    emailAddress: 'Email address',
+    enterEmail: 'Enter your email',
+    password: 'Password',
+    enterPassword: 'Enter your password',
+    show: 'Show',
+    hide: 'Hide',
+    forgotPassword: 'Forgot password?',
+    rememberMe: 'Remember me',
+    logInSecurely: 'Log in securely →',
+    demoCitizenLogin: '⚡ Demo Citizen Login',
+    demoDoctorLogin: '⚡ Demo Doctor Login',
+    orContinueWith: 'or continue with',
+    helloThere: 'Hello, there!',
+    healthierTomorrow: 'A HEALTHIER TOMORROW STARTS HERE',
+    newToAarogya: 'New to Aarogya Drishti? Create an account to get started.',
+    citizenLogin: 'Citizen login',
+    employeeLogin: 'Employee login',
+    welcomeBackPanel: 'Welcome back!',
+    stayConnected: 'Sign in and stay connected to your care journey.',
+    compassionateCare: 'Compassionate care. Connected communities.',
+    welcomeBannerBack: 'Welcome Back,',
   },
 
   te: {
@@ -191,6 +217,32 @@ export const translations = {
     listenAudio: 'సలహాను తెలుగులో వినండి (ఆడియో)',
     fontSizeToggle: 'అక్షరాల పరిమాణం',
     accessibilityMenu: 'యాక్సెసిబిలిటీ',
+
+    // Auth & Login
+    welcomeBackEyebrow: 'తిరిగి స్వాగతం',
+    goodToSeeYou: 'మిమ్మల్ని మళ్ళీ కలవడం ఆనందంగా ఉంది.',
+    signInIntro: 'మీ సురక్షిత ఆరోగ్య కార్యస్థలానికి లాగిన్ అవ్వండి.',
+    emailAddress: 'ఈమెయిల్ చిరునామా',
+    enterEmail: 'మీ ఈమెయిల్ నమోదు చేయండి',
+    password: 'పాస్‌వర్డ్',
+    enterPassword: 'మీ పాస్‌వర్డ్ నమోదు చేయండి',
+    show: 'చూపించు',
+    hide: 'దాచు',
+    forgotPassword: 'పాస్‌వర్డ్ మర్చిపోయారా?',
+    rememberMe: 'నన్ను గుర్తుంచుకో',
+    logInSecurely: 'సురక్షితంగా లాగిన్ అవ్వండి →',
+    demoCitizenLogin: '⚡ పౌర డెమో లాగిన్',
+    demoDoctorLogin: '⚡ వైద్యుల డెమో లాగిన్',
+    orContinueWith: 'లేదా వీటితో లాగిన్ అవ్వండి',
+    helloThere: 'నమస్కారం, హలో!',
+    healthierTomorrow: 'ఆరోగ్యవంతమైన రేపటి ప్రయాణం ఇక్కడే ప్రారంభం',
+    newToAarogya: 'ఆరోగ్య దృష్టికి కొత్తవారా? ఖాతా సృష్టించండి.',
+    citizenLogin: 'పౌర లాగిన్',
+    employeeLogin: 'సిబ్బంది లాగిన్',
+    welcomeBackPanel: 'తిరిగి స్వాగతం!',
+    stayConnected: 'మీ ఆరోగ్య సంరక్షణ ప్రయాణంతో అనుసంధానమై ఉండండి.',
+    compassionateCare: 'ఆత్మీయ సంరక్షణ • అనుసంధానిత గిరిజన సమాజాలు.',
+    welcomeBannerBack: 'నమస్కారం, స్వాగతం,',
   },
 };
 
@@ -283,3 +335,4 @@ export function useLanguage() {
   }
   return context;
 }
+

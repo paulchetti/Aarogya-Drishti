@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import SocialAuth from './SocialAuth';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function RegisterForm({ onSwitchMode, onSubmit, onSocialClick }) {
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,24 +31,35 @@ export default function RegisterForm({ onSwitchMode, onSubmit, onSocialClick }) 
         <b>AAROGYA DRISHTI</b>
       </div>
 
-      <div className="eyebrow">CREATE YOUR ACCOUNT</div>
+      <div className="eyebrow">{language === 'te' ? 'మీ ఖాతాను సృష్టించండి' : 'CREATE YOUR ACCOUNT'}</div>
       <h1>
-        Join our care<br />
-        <em>community.</em>
+        {language === 'te' ? (
+          <>
+            మా సంరక్షణ సంఘంలో<br />
+            <em>చేరండి.</em>
+          </>
+        ) : (
+          <>
+            Join our care<br />
+            <em>community.</em>
+          </>
+        )}
       </h1>
       <p className="form-intro">
-        Create a secure account to access your healthcare journey.
+        {language === 'te'
+          ? 'మీ ఆరోగ్య సంరక్షణ ప్రయాణాన్ని ప్రారంభించడానికి సురక్షితమైన ఖాతాను సృష్టించండి.'
+          : 'Create a secure account to access your healthcare journey.'}
       </p>
 
       <div className="field">
-        <label htmlFor="regName">Full name</label>
+        <label htmlFor="regName">{language === 'te' ? 'పూర్తి పేరు' : 'Full name'}</label>
         <div className="input-wrap">
           <span className="field-icon">◉</span>
           <input
             id="regName"
             name="name"
             type="text"
-            placeholder="Enter your full name"
+            placeholder={language === 'te' ? 'మీ పూర్తి పేరును నమోదు చేయండి' : 'Enter your full name'}
             autoComplete="name"
             value={formData.name}
             onChange={handleChange}
@@ -56,7 +69,7 @@ export default function RegisterForm({ onSwitchMode, onSubmit, onSocialClick }) 
       </div>
 
       <div className="field">
-        <label htmlFor="regEmail">Email address</label>
+        <label htmlFor="regEmail">{t('emailAddress', 'Email address')}</label>
         <div className="input-wrap">
           <span className="field-icon">✉</span>
           <input
@@ -73,14 +86,14 @@ export default function RegisterForm({ onSwitchMode, onSubmit, onSocialClick }) 
       </div>
 
       <div className="field">
-        <label htmlFor="regPassword">Create password</label>
+        <label htmlFor="regPassword">{language === 'te' ? 'పాస్‌వర్డ్ సృష్టించండి' : 'Create password'}</label>
         <div className="input-wrap">
           <span className="field-icon">⌑</span>
           <input
             id="regPassword"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="At least 8 characters"
+            placeholder={language === 'te' ? 'కనీసం 8 అక్షరాలు' : 'At least 8 characters'}
             minLength={8}
             autoComplete="new-password"
             value={formData.password}
@@ -93,24 +106,23 @@ export default function RegisterForm({ onSwitchMode, onSubmit, onSocialClick }) 
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
-            {showPassword ? 'Hide' : 'Show'}
+            {showPassword ? t('hide', 'Hide') : t('show', 'Show')}
           </button>
         </div>
       </div>
 
       <button className="primary-btn" type="submit">
-        Create account <span>→</span>
+        {language === 'te' ? 'ఖాతా సృష్టించండి →' : 'Create account →'}
       </button>
 
       <SocialAuth onSocialClick={onSocialClick} />
 
       <p className="mobile-switch">
-        Already have an account?{' '}
+        {language === 'te' ? 'ఇప్పటికే ఖాతా ఉందా? ' : "Already have an account? "}
         <button type="button" onClick={() => onSwitchMode('login')}>
-          Log in
+          {language === 'te' ? 'లాగిన్ అవ్వండి' : 'Log in'}
         </button>
       </p>
     </form>
   );
 }
-
