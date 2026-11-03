@@ -10,12 +10,12 @@
   <meta http-equiv="Expires" content="0" />
   <title>Aarogya Drishti | Healthcare &amp; Citizen Care Portal</title>
   <script>
-    // Auto-clean any stale Service Workers or cached application shells from previous localhost projects (e.g. Ruralcart)
+    // Auto-clean any stale Service Workers or cached application shells from previous localhost projects (such as Ruralcart)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister().then(() => {
-            console.log('[Aarogya Drishti] Unregistered legacy service worker:', registration.scope);
+        for (let registration of registrations) {
+          registration.unregister().then(function(boolean) {
+            console.log('[Aarogya Drishti] Purged stale service worker:', registration.scope);
           });
         }
       });
