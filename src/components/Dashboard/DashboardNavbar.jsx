@@ -13,7 +13,7 @@ export default function DashboardNavbar({
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const { language, toggleLanguage, isOffline, fontSize, setFontSize } = useLanguage();
+  const { language, toggleLanguage, t, isOffline, fontSize, setFontSize } = useLanguage();
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
