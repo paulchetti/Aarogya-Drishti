@@ -1,250 +1,264 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 const LanguageContext = createContext();
 
-export const translations = {
-  en: {
-    // Branding & Header
-    appTitle: 'AAROGYA DRISHTI',
-    appSubtitle: 'AI-Assisted Oral Cancer Detection & Patient Care Platform',
-    itdaBadge: 'ITDA Paderu • Alluri Sitharama Raju District',
-    switchLang: 'తెలుగు',
-    currentLang: 'English',
-    onlineStatus: 'Online (ABDM Cloud)',
-    offlineStatus: 'Offline Mode (Edge Storage)',
-    syncStatus: 'Sync Queue: 0 Pending',
+// Master Comprehensive Dictionary mapping ANY English string/phrase across the app to Telugu
+export const MASTER_TELUGU_DICTIONARY = {
+  // Brand & Header
+  'AAROGYA DRISHTI': 'ఆరోగ్య దృష్టి',
+  'Arogya Drishti': 'ఆరోగ్య దృష్టి',
+  'Aarogya Drishti': 'ఆరోగ్య దృష్టి',
+  'EARLY CARE. BETTER TOMORROWS.': 'ముందస్తు సంరక్షణ • మెరుగైన రేపు.',
+  'Early Care. Better Tomorrows.': 'ముందస్తు సంరక్షణ • మెరుగైన రేపు.',
+  'CITIZEN CARE PORTAL': 'పౌర సంరక్షణ పోర్టల్',
+  'Citizen Care Portal': 'పౌర సంరక్షణ పోర్టల్',
+  'Citizen Portal': 'పౌర పోర్టల్',
+  'PHC Dashboard': 'ప్రాథమిక ఆరోగ్య కేంద్రం (PHC) డాష్‌బోర్డ్',
+  'Specialist Dashboard': 'స్పెషలిస్ట్ డాష్‌బోర్డ్',
+  'District Administrator Dashboard': 'జిల్లా అడ్మినిస్ట్రేటర్ డాష్‌బోర్డ్',
+  'System Administrator Dashboard': 'సిస్టమ్ అడ్మినిస్ట్రేటర్ డాష్‌బోర్డ్',
+  'ANM Portal': 'ఏఎన్‌ఎం (ANM) పోర్టల్',
+  'Doctor Portal': 'వైద్యుల పోర్టల్',
+  'ITDA Paderu • Alluri Sitharama Raju District': 'ఐటీడీఏ పాడేరు • అల్లూరి సీతారామరాజు జిల్లా',
+  'Online (ABDM Cloud)': 'ఆన్‌లైన్ (ABDM క్లౌడ్)',
+  'Offline Mode (Edge Storage)': 'ఆఫ్‌లైన్ మోడ్ (ఎడ్జ్ స్టోరేజ్)',
+  'Sync Queue: 0 Pending': 'సమకాలీకరణ క్యూ: 0 పెండింగ్',
+  'Open Dashboard': 'డాష్‌బోర్డ్ తెరవండి',
+  'Select Dashboard / Portal': 'డాష్‌బోర్డ్ / పోర్టల్ ఎంచుకోండి',
+  'Quick Access': 'శీఘ్ర ప్రవేశం',
+  'Menu': 'మెనూ',
+  'Logout': 'లాగౌట్',
+  'Log out of citizen portal': 'పౌర పోర్టల్ నుండి లాగౌట్ అవ్వండి',
+  'Need help?': 'సహాయం కావాలా?',
+  'Your information is protected': 'మీ సమాచారం భద్రంగా రక్షించబడింది',
+  'Accessibility': 'యాక్సెసిబిలిటీ',
+  'Text Size': 'అక్షరాల పరిమాణం',
 
-    // Roles & Portals
-    phcDoctor: 'PHC Medical Officer',
-    specialist: 'Oral Oncology Specialist',
-    districtAdmin: 'District Administrator (DMHO)',
-    systemAdmin: 'System & Security Administrator',
-    anmWorker: 'ANM Village Health Worker',
-    citizen: 'Citizen Care Portal',
+  // Auth & Login
+  'WELCOME BACK': 'తిరిగి స్వాగతం',
+  'Good to see you again.': 'మిమ్మల్ని మళ్ళీ కలవడం ఆనందంగా ఉంది.',
+  'Good to see': 'మిమ్మల్ని మళ్ళీ కలవడం',
+  'you again.': 'ఆనందంగా ఉంది.',
+  'Sign in to continue to your secure healthcare workspace.': 'మీ సురక్షిత ఆరోగ్య కార్యస్థలానికి లాగిన్ అవ్వండి.',
+  'Email address': 'ఈమెయిల్ చిరునామా',
+  'Enter your email': 'మీ ఈమెయిల్ నమోదు చేయండి',
+  'Password': 'పాస్‌వర్డ్',
+  'Enter your password': 'మీ పాస్‌వర్డ్ నమోదు చేయండి',
+  'Show': 'చూపించు',
+  'Hide': 'దాచు',
+  'Forgot password?': 'పాస్‌వర్డ్ మర్చిపోయారా?',
+  'Remember me': 'నన్ను గుర్తుంచుకో',
+  'Log in securely': 'సురక్షితంగా లాగిన్ అవ్వండి',
+  'Log in securely →': 'సురక్షితంగా లాగిన్ అవ్వండి →',
+  '⚡ Demo Citizen Login': '⚡ పౌర డెమో లాగిన్',
+  '⚡ Demo Doctor Login': '⚡ వైద్యుల డెమో లాగిన్',
+  'or continue with': 'లేదా వీటితో లాగిన్ అవ్వండి',
+  'A HEALTHIER TOMORROW STARTS HERE': 'ఆరోగ్యవంతమైన రేపటి ప్రయాణం ఇక్కడే ప్రారంభం',
+  'Hello, there!': 'నమస్కారం, హలో!',
+  'Hello,': 'నమస్కారం,',
+  'there!': 'హలో!',
+  'New to Aarogya Drishti? Create an account to get started.': 'ఆరోగ్య దృష్టికి కొత్తవారా? ఖాతా సృష్టించండి.',
+  'Citizen login': 'పౌర లాగిన్',
+  'Employee login': 'సిబ్బంది లాగిన్',
+  'Welcome back!': 'తిరిగి స్వాగతం!',
+  'Welcome': 'స్వాగతం',
+  'back!': 'తిరిగి!',
+  'YOUR HEALTH, IN FOCUS': 'మీ ఆరోగ్యం, మా దృష్టి',
+  'Sign in and stay connected to your care journey.': 'మీ ఆరోగ్య సంరక్షణ ప్రయాణంతో అనుసంధానమై ఉండండి.',
+  'Compassionate care. Connected communities.': 'ఆత్మీయ సంరక్షణ • అనుసంధానిత గిరిజన సమాజాలు.',
+  'CREATE YOUR ACCOUNT': 'మీ ఖాతాను సృష్టించండి',
+  'Join our care community.': 'మా సంరక్షణ సంఘంలో చేరండి.',
+  'Create a secure account to access your healthcare journey.': 'మీ ఆరోగ్య సంరక్షణ ప్రయాణాన్ని ప్రారంభించడానికి సురక్షితమైన ఖాతాను సృష్టించండి.',
+  'Full name': 'పూర్తి పేరు',
+  'Enter your full name': 'మీ పూర్తి పేరును నమోదు చేయండి',
+  'Create password': 'పాస్‌వర్డ్ సృష్టించండి',
+  'At least 8 characters': 'కనీసం 8 అక్షరాలు',
+  'Create account': 'ఖాతా సృష్టించండి',
+  'Create account →': 'ఖాతా సృష్టించండి →',
+  'Already have an account?': 'ఇప్పటికే ఖాతా ఉందా?',
+  'Log in': 'లాగిన్ అవ్వండి',
+  "Don't have an account?": 'ఖాతా లేదా?',
 
-    // Actions & Buttons
-    openDashboard: 'Open Dashboard',
-    startScreening: 'Start AI Oral Screening',
-    capturePhoto: 'Capture Oral Photo',
-    retakePhoto: 'Retake Photo',
-    switchCamera: 'Switch Camera',
-    analyzeLesion: 'Analyze Oral Lesion with Gemini AI →',
-    analyzing: 'Analyzing with Gemini AI...',
-    urgentReferral: 'Initiate Urgent Referral Request →',
-    routineFollowup: 'Log Routine Follow-up',
-    printReport: 'Print Clinical Summary',
-    loadDemoCase: '🎯 Load Hackathon Demo Case (G. Madugula)',
-    uploadDevice: 'Upload Photo from Device',
-    quickBenchmarks: 'Quick Clinical Benchmarks:',
-    reExamine: '← Re-examine / Retake',
+  // Citizen Portal
+  'Select an Aarogya Drishti citizen healthcare service:': 'ఆరోగ్య దృష్టి పౌర ఆరోగ్య సంరక్షణ సేవను ఎంచుకోండి:',
+  'Patient Intake & Registration': 'రోగి నమోదు & ప్రవేశం',
+  'Patient Intake &': 'రోగి నమోదు &',
+  'Registration': 'ప్రవేశం (రిజిస్ట్రేషన్)',
+  'ABHA Registration & Citizen Intake': 'ఆభా (ABHA) నమోదు & పౌర వివరాలు',
+  'EHR History & Active Prescriptions': 'ఈహెచ్ఆర్ (EHR) చరిత్ర & మందుల చీటీలు',
+  'EHR History &': 'ఈహెచ్ఆర్ చరిత్ర &',
+  'Active Prescriptions': 'మందుల చీటీలు',
+  'Health Records & Active Medications': 'ఆరోగ్య రికార్డులు & క్రియాశీల మందులు',
+  'Scheduled Consultations': 'షెడ్యూల్ చేసిన సంప్రదింపులు',
+  'Scheduled': 'షెడ్యూల్ చేసిన',
+  'Consultations': 'సంప్రదింపులు',
+  'Doctor Appointments & Booking': 'వైద్యుల అపాయింట్‌మెంట్లు & బుకింగ్',
+  'Clinical Intake Questionnaire & Triage': 'క్లినికల్ ప్రశ్నాపత్రం & ట్రయాజ్',
+  'Clinical Intake': 'క్లినికల్ ప్రవేశం',
+  'Questionnaire & Triage': 'ప్రశ్నాపత్రం & ట్రయాజ్',
+  'Pre-Consultation Symptom Assessment': 'సంప్రదింపుల పూర్వ లక్షణాల అంచనా',
+  'Teleconsultation Suite': 'టెలికన్సల్టేషన్ విభాగం',
+  'Encrypted WebRTC Telehealth': 'సురక్షిత వీడియో వైద్య సంప్రదింపులు',
+  'AI Oral Screening': 'ఏఐ నోటి స్క్రీనింగ్',
+  'AI Oral Health & Oral Cancer Screening': 'ఏఐ నోటి ఆరోగ్యం & నోటి క్యాన్సర్ స్క్రీనింగ్',
+  'Back to Dashboard': 'డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళండి',
+  'Citizen Rahul': 'పౌరుడు రాహుల్',
 
-    // Anatomical Sites
-    siteSelection: 'Select Oral Cavity Anatomical Site for Examination:',
-    buccalMucosa: 'Buccal Mucosa (Cheek)',
-    lateralTongue: 'Lateral Tongue',
-    gingivaGums: 'Gingiva / Gums',
-    hardSoftPalate: 'Hard & Soft Palate',
-    floorOfMouth: 'Floor of Mouth',
-    labialMucosa: 'Labial Mucosa / Lower Lip',
+  // Dashboard Common & Banners
+  'Welcome Back,': 'నమస్కారం, స్వాగతం,',
+  'Welcome Back': 'నమస్కారం, స్వాగతం',
+  'Early Detection Saves Lives': 'ముందస్తు గుర్తింపు ప్రాణాలను కాపాడుతుంది',
+  'Connecting Rural Communities to Specialist Care': 'గ్రామీణ ప్రజలను స్పెషలిస్ట్ వైద్యంతో అనుసంధానించడం',
+  'Recent Admissions / Registrations': 'ఇటీవలి నమోదులు / రిజిస్ట్రేషన్లు',
+  'Total Outbound Referrals': 'మొత్తం రెఫరల్స్ (బయటకు పంపినవి)',
+  'Pending Follow-ups': 'పెండింగ్‌లో ఉన్న ఫాలో-అప్‌లు',
+  'Completed Follow-ups': 'పూర్తయిన ఫాలో-అప్‌లు',
+  'vs. last month': 'గత నెలతో పోలిస్తే',
+  'vs. last week': 'గత వారంతో పోలిస్తే',
+  'this month': 'ఈ నెలలో',
+  'View All Admissions / Registrations': 'అన్ని నమోదులు చూడండి',
+  'Patient ID': 'రోగి ఐడి',
+  'Name': 'పేరు',
+  'Age / Sex': 'వయస్సు / లింగం',
+  'Village': 'గ్రామం',
+  'Screening Date': 'స్క్రీనింగ్ తేదీ',
+  'Status': 'స్థితి',
+  'Normal': 'సాధారణం (Normal)',
+  'Under Review': 'సమీక్షలో ఉంది (Review)',
+  'Suspicious': 'అనుమానాస్పదం (Suspicious)',
+  'Follow-up': 'ఫాలో-అప్ (Follow-up)',
+  'Urgent': 'అత్యవసరం (Urgent)',
 
-    // Habits & Exposures
-    habitSelection: 'Reported High-Risk Habit (NOCR / ACS):',
-    tobaccoChewing: 'Tobacco Chewing (Gutkha/Khaini/Paan)',
-    arecaNut: 'Areca Nut / Betel Quid without Tobacco (OSMF Etiology)',
-    reverseSmoking: 'Reverse Smoking (Adda Poga / Chutta - Tribal Agency)',
-    bidiSmoking: 'Bidi / Cigarette Smoking',
-    alcoholTobacco: 'Alcohol + Tobacco (High Synergistic Risk)',
-    noHabits: 'Non-User / No Known Habits',
+  // Sidebar Menu Items
+  'Direct / Walk-in Registration': 'ప్రత్యక్ష రోగి నమోదు (వాక్-ఇన్)',
+  'EHR Clinical Documentation': 'ఈహెచ్ఆర్ క్లినికల్ రికార్డులు',
+  'Diagnostic & Triage Assessment': 'నోటి పరీక్ష & ఏఐ ట్రయాజ్ అంచనా',
+  'Care Continuity Tracking': 'నిరంతర సంరక్షణ & ఫాలో-అప్',
+  'Appointment Scheduling & Slot Management': 'అపాయింట్‌మెంట్లు & షెడ్యూలింగ్',
+  'Facility Utilization & Clinical Reports': 'క్లినికల్ వినియోగం & నివేదికలు',
+  'Virtual Consultation Queue': 'వీడియో టెలికన్సల్టేషన్ క్యూ',
+  'Clinician Profile & Credentials': 'వైద్యుల ప్రొఫైల్ & వివరాలు',
+  'Initiate Referral Request': 'రెఫరల్ అభ్యర్థన ప్రారంభించండి',
+  'Quick Links': 'శీఘ్ర లింకులు',
 
-    // Symptoms
-    symptomsTitle: 'Oral Symptoms Under Assessment:',
-    ulcer14Days: 'Persistent Ulcer > 14 Days',
-    whiteRedPatch: 'White or Red Mucosal Patch',
-    trismus: 'Restricted Mouth Opening (Trismus)',
-    burningSensation: 'Burning Sensation with Spices',
-    painBleeding: 'Local Pain or Unprovoked Bleeding',
-    swallowingDifficulty: 'Difficulty in Swallowing / Dysphagia',
+  // Specialist Dashboard Items
+  'Inbound Referral Triage Queue': 'ఇన్‌బౌండ్ రెఫరల్ ట్రయాజ్ క్యూ',
+  'High-Acuity Priority Cases': 'అత్యవసర ప్రాధాన్యత కేసులు (హై-అక్యూటీ)',
+  'Longitudinal EMR Records': 'దీర్ఘకాలిక ఈఎంఆర్ (EMR) రికార్డులు',
+  'Clinical Encounter Notes': 'క్లినికల్ సంప్రదింపు నోట్స్',
+  'Diagnostic Orders & Lab Workups': 'రోగనిర్ధారణ ఆదేశాలు & ల్యాబ్ వర్కప్స్',
+  'Inter-Provider Clinical Feedback': 'వైద్యుల మధ్య క్లినికల్ ఫీడ్‌బ్యాక్',
+  'Specialist Consultation Schedule': 'స్పెషలిస్ట్ సంప్రదింపుల షెడ్యూల్',
+  'Diagnostic Summary Report': 'రోగనిర్ధారణ సారాంశ నివేదిక',
+  'Telehealth Video Gateway': 'టెలిహెల్త్ వీడియో గేట్‌వే',
+  'Specialist Directory & Availability Settings': 'స్పెషలిస్ట్ డైరెక్టరీ & లభ్యత సెట్టింగ్‌లు',
+  'Specialist Referral Triage & Teleconsults': 'స్పెషలిస్ట్ రెఫరల్ ట్రయాజ్ & టెలికన్సల్ట్స్',
+  'Weekly referrals triaged from 11 ITDA Paderu PHCs': '11 ఐటీడీఏ పాడేరు పీహెచ్‌సీల నుండి వచ్చిన వారపు రెఫరల్స్',
+  'Monthly Inflow': 'నెలవారీ రాక',
+  'Histopathological Case Distribution': 'హిస్టోపాథాలజీ కేసుల పంపిణీ',
+  'Confirmed lesion stages from punch biopsy workups': 'పంచ్ బయాప్సీ ద్వారా నిర్ధారించబడిన లెసియన్ దశలు',
 
-    // Clinical Quality & Warnings
-    frameLesion: 'ALIGN LESION IN FOCUS',
-    liveFeed: 'LIVE FEED',
-    connectingCamera: 'Connecting to Camera...',
-    cameraNotice: 'Camera Access Notice',
-    allowCamera: 'Start Camera',
-    useSample: 'Use Clinical Sample',
-    darkCaptureWarning: 'Camera Captured A Dark / Black Image',
-    darkCaptureAdvice: 'Please open laptop privacy shutter or use good ambient lighting.',
-    lightingOptimal: 'Optimal',
-    lightingLow: 'Low Light',
-    lightingDark: 'Dark / Obstructed',
-    focusClear: 'Clear Focus',
-    glareControlled: 'Controlled',
+  // District Admin Dashboard Items
+  'Jurisdictional Macro-Analytics & Surveillance Dashboard': 'అధికార పరిధి స్థూల-విశ్లేషణలు & నిఘా డాష్‌బోర్డ్',
+  'Jurisdictional Macro-Analytics, Screening Quotas & Backlog Tracker': 'అధికార పరిధి స్థూల-విశ్లేషణలు, స్క్రీనింగ్ కోటాలు & బ్యాక్‌లాగ్ ట్రాకర్',
+  'Mobile Van GPS Fleet Status': 'మొబైల్ వ్యాన్ జీపీఎస్ ఫ్లీట్ స్థితి',
+  'District DMHO Administrative Options': 'జిల్లా డీఎంహెచ్‌ఓ పరిపాలనా ఆప్షన్స్',
+  'Mandal-wise Screening Target vs Achievement': 'మండలాల వారీ స్క్రీనింగ్ లక్ష్యం vs సాధన',
+  'Habit & Etiological Prevalence': 'అలవాట్లు & కారణాల ప్రాబల్యం',
+  'Adda Poga (Reverse Smoking) Hotspots': 'అడ్డ పొగ (రివర్స్ స్మోకింగ్) ప్రభావిత ప్రాంతాలు',
+  'Tribal Agency Population Coverage': 'గిరిజన ప్రాంత జనాభా కవరేజ్',
 
-    // Classifications & Results
-    triageClassification: 'TRIAGE CLASSIFICATION',
-    clinicalImpression: 'CLINICAL IMPRESSION',
-    diagnosticConcordance: 'DIAGNOSTIC CONCORDANCE',
-    visualBiomarkers: 'Multimodal Visual Biomarkers',
-    habitCorrelation: 'Habit & Epidemiological Risk Correlation (NOCR)',
-    malignancyRisk: 'Malignant Progression Assessment (ScienceDirect / ACS)',
-    clinicalActionPlan: 'Recommended Clinical Action Plan',
-    differentialDiagnosis: 'Differential Diagnoses Considered',
-    clinicalDisclaimer: 'NOT FOR UNINSPECTED FINAL DIAGNOSIS • Photographs supplement, and never replace, full physical clinical examination and indicated biopsy.',
-    scientificGrounding: 'Scientific Grounding: WHO 5th Ed • NOCR India • ScienceDirect (pii/S2772906024001390) • Cleveland Clinic • American Cancer Society',
+  // System Admin Dashboard Items
+  'Identity and Access Management (IAM) & Provisioning Console': 'ఐడెంటిటీ అండ్ యాక్సెస్ మేనేజ్‌మెంట్ (IAM) & కేటాయింపు కన్సోల్',
+  'Identity and Access Management (IAM) & System Audit Event Log': 'ఐడెంటిటీ & యాక్సెస్ మేనేజ్‌మెంట్ (IAM) & సిస్టమ్ ఆడిట్ ఈవెంట్ లాగ్',
+  'System Admin Operations Console': 'సిస్టమ్ అడ్మిన్ ఆపరేషన్స్ కన్సోల్',
+  'Edge-to-Cloud Sync Status': 'ఎడ్జ్-టు-క్లౌడ్ సమకాలీకరణ స్థితి',
+  'ABHA RSA Cryptographic Health': 'ఆభా (ABHA) ఆర్‌ఎస్ఏ క్రిప్టోగ్రాఫిక్ భద్రత',
+  'Zero-Trust Access Gateway': 'జీరో-ట్రస్ట్ యాక్సెస్ గేట్‌వే',
+  'AI Multi-Model Inference Health': 'ఏఐ మల్టీ-మోడల్ ఇన్ఫరెన్స్ ఆరోగ్యం',
 
-    // Accessibility
-    listenAudio: 'Listen to Clinical Advice (Audio)',
-    fontSizeToggle: 'Text Size',
-    accessibilityMenu: 'Accessibility',
+  // Screening & Clinical Terms
+  'Select Oral Cavity Anatomical Site for Examination:': 'పరీక్ష కోసం నోటిలోని భాగాన్ని ఎంచుకోండి:',
+  'Reported High-Risk Habit (NOCR / ACS):': 'రోగి నివేదించిన అధిక-ప్రమాదకర అలవాటు:',
+  'Oral Symptoms Under Assessment:': 'పరిశీలనలో ఉన్న నోటి లక్షణాలు:',
+  'Persistent Ulcer > 14 Days': '14 రోజులకు పైగా తగ్గని పుండు',
+  'White or Red Mucosal Patch': 'తెలుపు లేదా ఎరుపు రంగు పాచ్',
+  'Restricted Mouth Opening (Trismus)': 'నోరు తెరవడంలో ఇబ్బంది (ట్రిస్మస్)',
+  'Burning Sensation with Spices': 'కారంతో మంట మండే అనుభూతి',
+  'Local Pain or Unprovoked Bleeding': 'నోటి నొప్పి లేదా రక్తస్రావం',
+  'Difficulty in Swallowing / Dysphagia': 'మింగడంలో ఇబ్బంది',
+  'Buccal Mucosa (Cheek)': 'బుగ్గ లోపలి భాగం (బుక్కల్ మ్యూకోసా)',
+  'Lateral Tongue': 'నాలుక పక్క భాగం',
+  'Gingiva / Gums': 'చిగుళ్ళు (గమ్స్)',
+  'Hard & Soft Palate': 'అంగిలి (గట్టి & మెత్తటి అంగిలి)',
+  'Floor of Mouth': 'నాలుక కింద భాగం (ఫ్లోర్ ఆఫ్ మౌత్)',
+  'Labial Mucosa / Lower Lip': 'పెదవి లోపలి భాగం / క్రింది పెదవి',
+  'Tobacco Chewing (Gutkha/Khaini/Paan)': 'పొగాకు నమలడం (గుట్కా/ఖైనీ/పాన్)',
+  'Areca Nut / Betel Quid without Tobacco (OSMF Etiology)': 'వక్క / తమలపాకులు (OSMF కారణం)',
+  'Reverse Smoking (Adda Poga / Chutta - Tribal Agency)': 'రివర్స్ స్మోకింగ్ (అడ్డ పొగ / చుట్ట - గిరిజన ప్రాంతం)',
+  'Bidi / Cigarette Smoking': 'బీడీ / సిగరెట్ తాగడం',
+  'Alcohol + Tobacco (High Synergistic Risk)': 'మద్యం + పొగాకు (అత్యంత ప్రమాదకరం)',
+  'Non-User / No Known Habits': 'ఏ అలవాట్లు లేని వ్యక్తి',
+  'ALIGN LESION IN FOCUS': 'లెసియన్‌ను కెమెరా ఫోకస్‌లో ఉంచండి',
+  'LIVE FEED': 'లైవ్ కెమెరా',
+  'Start Camera': 'కెమెరా ప్రారంభించండి',
+  'Capture Oral Photo': 'నోటి ఫోటో తీయండి',
+  'Retake Photo': 'మళ్ళీ ఫోటో తీయండి',
+  'Switch Camera': 'కెమెరా మార్చండి',
+  'Upload Photo from Device': 'డివైజ్ నుండి ఫోటో అప్‌లోడ్ చేయండి',
+  'Use Clinical Sample': 'క్లినికల్ నమూనాను ఉపయోగించండి',
+  'Analyze Oral Lesion with Gemini AI →': 'జెమిని ఏఐతో నోటి లెసియన్‌ను విశ్లేషించండి →',
+  'Analyzing with Gemini AI...': 'జెమిని ఏఐతో విశ్లేషిస్తోంది...',
+  'Initiate Urgent Referral Request →': 'అత్యవసర రెఫరల్ అభ్యర్థన ప్రారంభించండి →',
+  'Log Routine Follow-up': 'సాధారణ ఫాలో-అప్‌గా నమోదు చేయండి',
+  'Print Clinical Summary': 'క్లినికల్ సారాంశాన్ని ముద్రించండి',
+  '🎯 Load Hackathon Demo Case (G. Madugula)': '🎯 హాకథాన్ డెమో కేస్ లోడ్ చేయండి (జి. మాడుగుల)',
+  'Load Hackathon Demo Case (G. Madugula)': 'హాకథాన్ డెమో కేస్ లోడ్ చేయండి (జి. మాడుగుల)',
+  'Listen to Clinical Advice (Audio)': 'సలహాను తెలుగులో వినండి (ఆడియో)',
+  'TRIAGE CLASSIFICATION': 'ట్రయాజ్ వర్గీకరణ',
+  'CLINICAL IMPRESSION': 'క్లినికల్ నిర్ధారణ / అభిప్రాయం',
+  'DIAGNOSTIC CONCORDANCE': 'రోగనిర్ధారణ కచ్చితత్వం (ఏఐ స్కోరు)',
+  'Multimodal Visual Biomarkers': 'గుర్తించిన దృశ్య బయోమార్కర్లు',
+  'Habit & Epidemiological Risk Correlation (NOCR)': 'అలవాట్లు మరియు మహమ్మారి శాస్త్ర ప్రమాదం (NOCR)',
+  'Malignant Progression Assessment (ScienceDirect / ACS)': 'కేన్సర్‌గా మారే ప్రమాద అంచనా (సైన్స్‌డైరెక్ట్ / ACS)',
+  'Recommended Clinical Action Plan': 'సిఫార్సు చేసిన వైద్య కార్యాచరణ ప్రణాళిక',
+  'Differential Diagnoses Considered': 'పరిశీలించిన ఇతర రోగనిర్ధారణలు',
+  'Camera Access Notice': 'కెమెరా యాక్సెస్ నోటీసు',
+  'Clear Focus': 'స్పష్టమైన ఫోకస్',
+  'Controlled': 'నియంత్రిత కాంతి',
+  'Optimal': 'అనుకూలమైన కాంతి',
+  'Low Light': 'తక్కువ కాంతి',
 
-    // Auth & Login
-    welcomeBackEyebrow: 'WELCOME BACK',
-    goodToSeeYou: 'Good to see you again.',
-    signInIntro: 'Sign in to continue to your secure healthcare workspace.',
-    emailAddress: 'Email address',
-    enterEmail: 'Enter your email',
-    password: 'Password',
-    enterPassword: 'Enter your password',
-    show: 'Show',
-    hide: 'Hide',
-    forgotPassword: 'Forgot password?',
-    rememberMe: 'Remember me',
-    logInSecurely: 'Log in securely →',
-    demoCitizenLogin: '⚡ Demo Citizen Login',
-    demoDoctorLogin: '⚡ Demo Doctor Login',
-    orContinueWith: 'or continue with',
-    helloThere: 'Hello, there!',
-    healthierTomorrow: 'A HEALTHIER TOMORROW STARTS HERE',
-    newToAarogya: 'New to Aarogya Drishti? Create an account to get started.',
-    citizenLogin: 'Citizen login',
-    employeeLogin: 'Employee login',
-    welcomeBackPanel: 'Welcome back!',
-    stayConnected: 'Sign in and stay connected to your care journey.',
-    compassionateCare: 'Compassionate care. Connected communities.',
-    welcomeBannerBack: 'Welcome Back,',
-  },
-
-  te: {
-    // Branding & Header
-    appTitle: 'ఆరోగ్య దృష్టి',
-    appSubtitle: 'ఏఐ ఆధారిత నోటి క్యాన్సర్ ముందస్తు గుర్తింపు &amp; టెలిమెడిసిన్ వేదిక',
-    itdaBadge: 'ఐటీడీఏ పాడేరు • అల్లూరి సీతారామరాజు జిల్లా',
-    switchLang: 'English',
-    currentLang: 'తెలుగు',
-    onlineStatus: 'ఆన్‌లైన్ (ABDM క్లౌడ్)',
-    offlineStatus: 'ఆఫ్‌లైన్ మోడ్ (స్థానిక నిల్వ)',
-    syncStatus: 'సింక్ వరుస: 0 పెండింగ్',
-
-    // Roles & Portals
-    phcDoctor: 'పీహెచ్‌సీ వైద్యాధికారి (MO)',
-    specialist: 'ఓరల్ ఆంకాలజీ నిపుణుడు',
-    districtAdmin: 'జిల్లా వైద్యాధికారి (DMHO పాడేరు)',
-    systemAdmin: 'సిస్టమ్ &amp; సైబర్ సెక్యూరిటీ అడ్మిన్',
-    anmWorker: 'ఏఎన్‌ఎం / గ్రామ ఆరోగ్య కార్యకర్త',
-    citizen: 'పౌర సంరక్షణ పోర్టల్',
-
-    // Actions & Buttons
-    openDashboard: 'డాష్‌బోర్డ్ తెరవండి',
-    startScreening: 'ఏఐ నోటి స్క్రీనింగ్ ప్రారంభించండి',
-    capturePhoto: 'నోటి ఫోటో తీయండి',
-    retakePhoto: 'మళ్ళీ ఫోటో తీయండి',
-    switchCamera: 'కెమెరా మార్చండి',
-    analyzeLesion: 'జెమినీ ఏఐతో నోటి పుండును విశ్లేషించండి →',
-    analyzing: 'జెమినీ ఏఐ విశ్లేషిస్తోంది...',
-    urgentReferral: 'అత్యవసర నిపుణుల రిఫరల్ పంపండి →',
-    routineFollowup: 'సాధారణ తనిఖీని నమోదు చేయండి',
-    printReport: 'క్లినికల్ నివేదికను ప్రింట్ చేయండి',
-    loadDemoCase: '🎯 హ్యాకథాన్ డెమో కేస్ (జి. మాడుగుల)',
-    uploadDevice: 'పరికరం నుండి ఫోటోను ఎంచుకోండి',
-    quickBenchmarks: 'త్వరిత క్లినికల్ నమూనాలు:',
-    reExamine: '← మళ్ళీ తనిఖీ చేయండి',
-
-    // Anatomical Sites
-    siteSelection: 'పరీక్ష కోసం నోటి శరీర భాగాన్ని ఎంచుకోండి:',
-    buccalMucosa: 'బుక్కల్ మ్యూకోసా (బుగ్గ లోపలి భాగం)',
-    lateralTongue: 'నాలుక ప్రక్క భాగాలు (అంచులు)',
-    gingivaGums: 'చిగుళ్ళు (చిగుళ్ల ప్రాంతం)',
-    hardSoftPalate: 'అంగిలి (గట్టి &amp; మెత్తని తాలవ్యము)',
-    floorOfMouth: 'నోటి నేల భాగం (నాలుక కింద)',
-    labialMucosa: 'పెదవి లోపలి భాగం (క్రింది పెదవి)',
-
-    // Habits & Exposures
-    habitSelection: 'రోగి అలవాట్లు (NOCR / ACS మార్గదర్శకాలు):',
-    tobaccoChewing: 'పొగాకు నమలడం (గుట్కా / ఖైనీ / పాన్ మసాలా)',
-    arecaNut: 'వక్క / తమలపాకులు నమలడం (OSMF కారణం)',
-    reverseSmoking: 'అడ్డా పొగ / చుట్ట తిరగబెట్టి కాల్చడం (గిరిజన ప్రాంతాల అలవాటు)',
-    bidiSmoking: 'బీడీ / సిగరెట్ ధూమపానం',
-    alcoholTobacco: 'మద్యపానం + పొగాకు (అత్యంత ప్రమాదకరం)',
-    noHabits: 'ఎటువంటి అలవాట్లు లేనివారు',
-
-    // Symptoms
-    symptomsTitle: 'లక్షణాలు మరియు వ్యవధి:',
-    ulcer14Days: '14 రోజులకు పైగా తగ్గని నోటి పుండు',
-    whiteRedPatch: 'తెల్లటి లేదా ఎర్రటి మచ్చ (ల్యూకోప్లాకియా / ఎరిత్రోప్లాకియా)',
-    trismus: 'నోరు సరిగ్గా తెరవలేకపోవడం (ట్రిస్మస్ / OSMF)',
-    burningSensation: 'కారం తిన్నప్పుడు నోరు తీవ్రంగా మండడం',
-    painBleeding: 'నోటిలో అకస్మాత్తుగా నొప్పి లేదా రక్తస్రావం',
-    swallowingDifficulty: 'ఆహారం మింగడంలో తీవ్రమైన ఇబ్బంది',
-
-    // Clinical Quality & Warnings
-    frameLesion: 'పుండును కెమెరా ఫ్రేమ్‌లో ఉంచండి',
-    liveFeed: 'లైవ్ కెమెరా ఫీడ్',
-    connectingCamera: 'కెమెరాకు కనెక్ట్ అవుతోంది...',
-    cameraNotice: 'కెమెరా అనుమతి గమనిక',
-    allowCamera: 'కెమెరాను ప్రారంభించండి',
-    useSample: 'క్లినికల్ నమూనాను వాడండి',
-    darkCaptureWarning: 'కెమెరా చిత్రం చాలా చీకటిగా వచ్చింది',
-    darkCaptureAdvice: 'దయచేసి ల్యాప్‌టాప్ షట్టర్ తెరవండి లేదా మంచి వెలుతురులో ఫోటో తీయండి.',
-    lightingOptimal: 'సరైన వెలుతురు',
-    lightingLow: 'తక్కువ వెలుతురు',
-    lightingDark: 'చీకటి / అడ్డంకి',
-    focusClear: 'స్పష్టమైన ఫోకస్',
-    glareControlled: 'నియంత్రిత కాంతి',
-
-    // Classifications & Results
-    triageClassification: 'ట్రయాజ్ వర్గీకరణ',
-    clinicalImpression: 'క్లినికల్ నిర్ధారణ / అభిప్రాయం',
-    diagnosticConcordance: 'రోగనిర్ధారణ కచ్చితత్వం (ఏఐ స్కోరు)',
-    visualBiomarkers: 'గుర్తించిన దృశ్య బయోమార్కర్లు',
-    habitCorrelation: 'అలవాట్లు మరియు మహమ్మారి శాస్త్ర ప్రమాదం (NOCR)',
-    malignancyRisk: 'కేన్సర్‌గా మారే ప్రమాద అంచనా (సైన్స్‌డైరెక్ట్ / ACS)',
-    clinicalActionPlan: 'సిఫార్సు చేసిన వైద్య కార్యాచరణ ప్రణాళిక',
-    differentialDiagnosis: 'పరిశీలించిన ఇతర రోగనిర్ధారణలు',
-    clinicalDisclaimer: 'ఇది తుది వైద్య నిర్ధారణ కాదు • ఫోటోలు పూర్తి శారీరక పరీక్ష మరియు బయాప్సీకి ప్రత్యామ్నాయం కావు.',
-    scientificGrounding: 'శాస్త్రీయ ఆధారాలు: డబ్ల్యూహెచ్‌ఓ (5వ ఎడిషన్) • NOCR ఇండియా • సైన్స్‌డైరెక్ట్ • క్లీవ్‌ల్యాండ్ క్లినిక్ • అమెరికన్ క్యాన్సర్ సొసైటీ',
-
-    // Accessibility
-    listenAudio: 'సలహాను తెలుగులో వినండి (ఆడియో)',
-    fontSizeToggle: 'అక్షరాల పరిమాణం',
-    accessibilityMenu: 'యాక్సెసిబిలిటీ',
-
-    // Auth & Login
-    welcomeBackEyebrow: 'తిరిగి స్వాగతం',
-    goodToSeeYou: 'మిమ్మల్ని మళ్ళీ కలవడం ఆనందంగా ఉంది.',
-    signInIntro: 'మీ సురక్షిత ఆరోగ్య కార్యస్థలానికి లాగిన్ అవ్వండి.',
-    emailAddress: 'ఈమెయిల్ చిరునామా',
-    enterEmail: 'మీ ఈమెయిల్ నమోదు చేయండి',
-    password: 'పాస్‌వర్డ్',
-    enterPassword: 'మీ పాస్‌వర్డ్ నమోదు చేయండి',
-    show: 'చూపించు',
-    hide: 'దాచు',
-    forgotPassword: 'పాస్‌వర్డ్ మర్చిపోయారా?',
-    rememberMe: 'నన్ను గుర్తుంచుకో',
-    logInSecurely: 'సురక్షితంగా లాగిన్ అవ్వండి →',
-    demoCitizenLogin: '⚡ పౌర డెమో లాగిన్',
-    demoDoctorLogin: '⚡ వైద్యుల డెమో లాగిన్',
-    orContinueWith: 'లేదా వీటితో లాగిన్ అవ్వండి',
-    helloThere: 'నమస్కారం, హలో!',
-    healthierTomorrow: 'ఆరోగ్యవంతమైన రేపటి ప్రయాణం ఇక్కడే ప్రారంభం',
-    newToAarogya: 'ఆరోగ్య దృష్టికి కొత్తవారా? ఖాతా సృష్టించండి.',
-    citizenLogin: 'పౌర లాగిన్',
-    employeeLogin: 'సిబ్బంది లాగిన్',
-    welcomeBackPanel: 'తిరిగి స్వాగతం!',
-    stayConnected: 'మీ ఆరోగ్య సంరక్షణ ప్రయాణంతో అనుసంధానమై ఉండండి.',
-    compassionateCare: 'ఆత్మీయ సంరక్షణ • అనుసంధానిత గిరిజన సమాజాలు.',
-    welcomeBannerBack: 'నమస్కారం, స్వాగతం,',
-  },
+  // AI Copilot
+  'Drishti AI Copilot': 'దృష్టి ఏఐ కోపైలట్',
+  'Ask Drishti AI clinical copilot...': 'దృష్టి ఏఐ క్లినికల్ కోపైలట్‌ను అడగండి...',
+  'Ask Drishti AI...': 'దృష్టి ఏఐని అడగండి...',
+  'Send': 'పంపండి',
+  'Offline Ready': 'ఆఫ్‌లైన్ సిద్ధంగా ఉంది',
+  'AI Engine: Gemini 2.5 Flash Multimodal': 'ఏఐ ఇంజిన్: జెమిని 2.5 ఫ్లాష్ మల్టీమోడల్',
+  'How can I assist you today?': 'ఈరోజు నేను మీకు ఎలా సహాయపడగలను?',
+  'Just now': 'ఇప్పుడే',
+  'Online': 'ఆన్‌లైన్',
+  'Active': 'యాక్టివ్',
+  'Options': 'ఎంపికలు',
 };
+
+// Fast lookup helper
+export function getTeluguTranslation(englishText) {
+  if (!englishText || typeof englishText !== 'string') return englishText;
+  const trimmed = englishText.trim();
+  if (MASTER_TELUGU_DICTIONARY[trimmed]) {
+    return MASTER_TELUGU_DICTIONARY[trimmed];
+  }
+  // Try case-insensitive lookup
+  const lower = trimmed.toLowerCase();
+  for (const [key, val] of Object.entries(MASTER_TELUGU_DICTIONARY)) {
+    if (key.toLowerCase() === lower) {
+      return val;
+    }
+  }
+  return englishText;
+}
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
@@ -252,13 +266,13 @@ export function LanguageProvider({ children }) {
       const saved = localStorage.getItem('aarogya_language');
       if (saved === 'te' || saved === 'en') return saved;
     }
-    return 'en';
+    return 'te'; // Default to Telugu so every user gets seamless vernacular experience!
   });
 
   const [isOffline, setIsOffline] = useState(
     typeof navigator !== 'undefined' ? !navigator.onLine : false
   );
-  const [fontSize, setFontSize] = useState('normal'); // 'normal' | 'large' | 'xlarge'
+  const [fontSize, setFontSize] = useState('normal');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -283,11 +297,19 @@ export function LanguageProvider({ children }) {
     setLanguage((prev) => (prev === 'en' ? 'te' : 'en'));
   };
 
-  const t = (key, fallback = '') => {
-    return translations[language]?.[key] || translations.en?.[key] || fallback || key;
+  // The universal translation function
+  const t = (keyOrText, fallback = '') => {
+    if (language === 'te') {
+      if (MASTER_TELUGU_DICTIONARY[keyOrText]) {
+        return MASTER_TELUGU_DICTIONARY[keyOrText];
+      }
+      const match = getTeluguTranslation(keyOrText);
+      if (match !== keyOrText) return match;
+    }
+    return fallback || keyOrText;
   };
 
-  // Text to Speech for low-literacy tribal citizens
+  // Text to Speech in Telugu/English
   const speakText = (text) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     try {
@@ -300,6 +322,127 @@ export function LanguageProvider({ children }) {
       console.warn('Speech synthesis unavailable:', e);
     }
   };
+
+  // UNIVERSAL DOM TRANSLATION ENGINE
+  // Automatically traverses all visible text nodes, buttons, headings, and input placeholders
+  // and translates EVERY English string into Telugu when language === 'te'!
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const originalMap = new WeakMap();
+    let isTranslating = false;
+
+    // Sort dictionary keys by descending length so full sentences match first
+    const sortedDictionaryKeys = Object.keys(MASTER_TELUGU_DICTIONARY).sort(
+      (a, b) => b.length - a.length
+    );
+
+    const translateNode = (node) => {
+      if (!node) return;
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const raw = node.nodeValue;
+        if (!raw || !raw.trim()) return;
+        const trimmed = raw.trim();
+
+        if (language === 'te') {
+          // Direct phrase check
+          if (MASTER_TELUGU_DICTIONARY[trimmed]) {
+            if (!originalMap.has(node)) {
+              originalMap.set(node, raw);
+            }
+            node.nodeValue = raw.replace(trimmed, MASTER_TELUGU_DICTIONARY[trimmed]);
+            return;
+          }
+
+          // Substring sentence replacement
+          let replaced = raw;
+          let changed = false;
+          for (const phrase of sortedDictionaryKeys) {
+            if (replaced.includes(phrase)) {
+              replaced = replaced.replaceAll(phrase, MASTER_TELUGU_DICTIONARY[phrase]);
+              changed = true;
+            }
+          }
+          if (changed) {
+            if (!originalMap.has(node)) {
+              originalMap.set(node, raw);
+            }
+            node.nodeValue = replaced;
+          }
+        } else if (language === 'en') {
+          if (originalMap.has(node)) {
+            node.nodeValue = originalMap.get(node);
+          }
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Skip scripts, styles, pre, code
+        if (['SCRIPT', 'STYLE', 'CODE', 'PRE', 'NOSCRIPT'].includes(node.tagName)) return;
+
+        // Input Placeholders
+        if (node.placeholder) {
+          const pTrim = node.placeholder.trim();
+          if (language === 'te') {
+            const te = getTeluguTranslation(pTrim);
+            if (te && te !== pTrim) {
+              if (!node.dataset.origPlaceholder) {
+                node.dataset.origPlaceholder = node.placeholder;
+              }
+              node.placeholder = te;
+            }
+          } else if (node.dataset.origPlaceholder) {
+            node.placeholder = node.dataset.origPlaceholder;
+          }
+        }
+
+        // Title tooltips
+        if (node.title) {
+          const tTrim = node.title.trim();
+          if (language === 'te') {
+            const te = getTeluguTranslation(tTrim);
+            if (te && te !== tTrim) {
+              if (!node.dataset.origTitle) {
+                node.dataset.origTitle = node.title;
+              }
+              node.title = te;
+            }
+          } else if (node.dataset.origTitle) {
+            node.title = node.dataset.origTitle;
+          }
+        }
+
+        // Traverse children
+        node.childNodes.forEach(translateNode);
+      }
+    };
+
+    // Perform translation on entire document body
+    translateNode(document.body);
+
+    // Live MutationObserver for dynamically injected modals, cards, tabs, and tables
+    const observer = new MutationObserver((mutations) => {
+      if (isTranslating) return;
+      isTranslating = true;
+      try {
+        for (const mutation of mutations) {
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(translateNode);
+          }
+        }
+      } finally {
+        isTranslating = false;
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [language]);
 
   return (
     <LanguageContext.Provider
@@ -323,10 +466,10 @@ export function useLanguage() {
   const context = useContext(LanguageContext);
   if (!context) {
     return {
-      language: 'en',
+      language: 'te',
       setLanguage: () => {},
       toggleLanguage: () => {},
-      t: (key, fallback = '') => translations.en?.[key] || fallback || key,
+      t: (key, fallback = '') => getTeluguTranslation(key) || fallback || key,
       isOffline: false,
       fontSize: 'normal',
       setFontSize: () => {},
@@ -335,4 +478,3 @@ export function useLanguage() {
   }
   return context;
 }
-

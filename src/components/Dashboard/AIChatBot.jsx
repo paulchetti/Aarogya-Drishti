@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/aiChatBot.css';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   hasGeminiApiKey,
   analyzeOralLesionWithGemini,
@@ -7,6 +8,7 @@ import {
 } from '../../services/geminiOralCancerService';
 
 export default function AIChatBot({ dashboardType = 'phc_dashboard' }) {
+  const { language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [inputText, setInputText] = useState('');
@@ -15,6 +17,47 @@ export default function AIChatBot({ dashboardType = 'phc_dashboard' }) {
 
   // Setup initial conversation based on active dashboard
   const getInitialMessages = (type) => {
+    if (language === 'te') {
+      switch (type) {
+        case 'specialist_dashboard':
+          return [
+            {
+              sender: 'bot',
+              time: 'ఇప్పుడే',
+              text: 'నమస్కారం డాక్టర్ అనన్య వర్మ. స్పెషలిస్ట్ ఏఐ సహాయకుడు సిద్ధంగా ఉన్నాడు. నోటి క్యాన్సర్ TNM స్టేజింగ్, బయాప్సీ రివ్యూ, హిస్టోపాథాలజీ విశ్లేషణలో నేను సహాయపడగలను. దిగువన ఉన్న 📷 బటన్ ద్వారా నోటి ఫోటోను అప్‌లోడ్ చేసి తక్షణ జెమిని ఏఐ విశ్లేషణ పొందవచ్చు.',
+              citation: 'ఏఐ ఇంజిన్: జెమిని 2.5 ఫ్లాష్ మల్టీమోడల్ / ఆంకాలజీ మోడల్',
+            },
+          ];
+        case 'district_admin_dashboard':
+          return [
+            {
+              sender: 'bot',
+              time: 'ఇప్పుడే',
+              text: 'నమస్కారం డీఎంహెచ్‌ఓ డాక్టర్ వెంకటేశ్వరరావు గారు. జిల్లా హెల్త్ ఇంటెలిజెన్స్ కోపైలట్ యాక్టివ్‌గా ఉంది. 11 మండలాల స్క్రీనింగ్ కవరేజ్, మొబైల్ వ్యాన్ జీపీఎస్ మరియు అలవాట్ల విశ్లేషణను నేను పర్యవేక్షిస్తున్నాను.',
+              citation: 'డేటా మూలం: ఐటీడీఏ పాడేరు HMIS & ABDM స్టేట్ గేట్‌వే',
+            },
+          ];
+        case 'system_admin_dashboard':
+          return [
+            {
+              sender: 'bot',
+              time: 'ఇప్పుడే',
+              text: 'సిస్టమ్ కోపైలట్ ప్రారంభించబడింది. 48 ఫీల్డ్ ఎడ్జ్ నోడ్‌లు, సమకాలీకరణ క్యూలు, ఆభా RSA కీలు మరియు ఏఐ పైప్‌లైన్‌లు సజావుగా పనిచేస్తున్నాయి.',
+              citation: 'టెలిమెట్రీ: జీరో-ట్రస్ట్ గేట్‌వే & WAF మానిటర్',
+            },
+          ];
+        default:
+          return [
+            {
+              sender: 'bot',
+              time: 'ఇప్పుడే',
+              text: 'నమస్కారం డాక్టర్ సందీప్! నేను మీ ప్రాథమిక ఆరోగ్య కేంద్ర (PHC) ఏఐ కోపైలట్‌ను. రోగి నోటి స్క్రీనింగ్, రివర్స్ స్మోకింగ్ విశ్లేషణ లేదా స్పెషలిస్ట్ రెఫరల్‌లో మీకు ఎలా సహాయపడగలను? నోటి ఫోటోను విశ్లేషించడానికి 📷 క్లిక్ చేయండి.',
+              citation: 'మోడల్: గూగుల్ జెమిని మల్టీమోడల్ + డ్యూయల్ ట్రయాజ్ ఇంజిన్',
+            },
+          ];
+      }
+    }
+
     switch (type) {
       case 'specialist_dashboard':
         return [
@@ -56,6 +99,39 @@ export default function AIChatBot({ dashboardType = 'phc_dashboard' }) {
   };
 
   const getQuickChips = (type) => {
+    if (language === 'te') {
+      switch (type) {
+        case 'specialist_dashboard':
+          return [
+            'నాలుక లెసియన్ కోసం TNM స్టేజింగ్',
+            'బయాప్సీ vs సైటాలజీ మార్గదర్శకాలు',
+            'ఎరిత్రోప్లాకియా కేన్సర్ ప్రమాద నియమాలు',
+            'వర్చువల్ ట్యూమర్ బోర్డ్ షెడ్యూల్',
+          ];
+        case 'district_admin_dashboard':
+          return [
+            '11 మండలాల స్క్రీనింగ్ బ్యాక్‌లాగ్ సారాంశం',
+            'మొబైల్ స్క్రీనింగ్ వ్యాన్ ఫ్లీట్ స్థితి',
+            'రివర్స్ స్మోకింగ్ ప్రభావిత ప్రాంతాలు',
+            'ABDM నెలవారీ హెల్త్ నివేదిక',
+          ];
+        case 'system_admin_dashboard':
+          return [
+            'ఆఫ్‌లైన్ ఎడ్జ్ సమకాలీకరణ క్యూ తనిఖీ',
+            'ఆభా టోకెన్ RSA కీ స్థితి',
+            'ఏఐ మల్టీ-మోడల్ ఇన్ఫరెన్స్ వేగం',
+            'WAF సెక్యూరిటీ లాగ్‌లు',
+          ];
+        default:
+          return [
+            'OSMF గ్రేడ్ II స్టేజింగ్ ఎలా చేయాలి?',
+            'ఎరిత్రోప్లాకియా vs ల్యూకోప్లాకియా ట్రయాజ్',
+            'ఏరియా ఆసుపత్రికి తక్షణ రెఫరల్ నిబంధనలు',
+            'రివర్స్ స్మోకింగ్ పాలటల్ మార్గదర్శకాలు',
+          ];
+      }
+    }
+
     switch (type) {
       case 'specialist_dashboard':
         return [
@@ -342,10 +418,10 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
                   />
                 </div>
                 <div className="ai-header-meta">
-                  <h4>Drishti AI Copilot</h4>
+                  <h4>{language === 'te' ? 'దృష్టి ఏఐ కోపైలట్' : 'Drishti AI Copilot'}</h4>
                   <div className="ai-header-status">
                     <span className="ai-status-dot"></span>
-                    <span>Gemini Oncology Active</span>
+                    <span>{language === 'te' ? 'జెమిని ఆంకాలజీ యాక్టివ్' : 'Gemini Oncology Active'}</span>
                   </div>
                 </div>
               </div>
@@ -497,7 +573,11 @@ ${result.summaryNarrative ? `\n*${result.summaryNarrative}*` : ''}`;
               <input
                 type="text"
                 className="ai-chat-input"
-                placeholder="Ask clinical query or upload oral photo..."
+                placeholder={
+                  language === 'te'
+                    ? 'క్లినికల్ ప్రశ్న అడగండి లేదా నోటి ఫోటోను అప్‌లోడ్ చేయండి...'
+                    : 'Ask clinical query or upload oral photo...'
+                }
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}

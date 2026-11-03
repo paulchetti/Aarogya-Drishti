@@ -29,7 +29,7 @@ export default function CitizenPortalLayout({
   const [teleconsultPatient, setTeleconsultPatient] = useState(null);
   const [isScreeningOpen, setIsScreeningOpen] = useState(false);
 
-  const patientName = user?.name || 'Citizen Rahul';
+  const patientName = user?.name || (language === 'te' ? 'పౌరుడు రాహుల్' : 'Citizen Rahul');
   const patientAvatar =
     user?.avatar ||
     'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80';
@@ -145,13 +145,23 @@ export default function CitizenPortalLayout({
               className="patient-brand-group"
               onClick={() => setActiveModule(null)}
               style={{ cursor: 'pointer' }}
-              title="Aarogya Drishti Home"
+              title={language === 'te' ? 'ఆరోగ్య దృష్టి హోమ్' : 'Aarogya Drishti Home'}
             >
-              <div className="patient-logo-circle">
+              <div
+                className="patient-logo-circle"
+                style={{
+                  borderRadius: '50%',
+                  border: '2.5px solid #f97316',
+                  overflow: 'hidden',
+                  background: '#ffffff',
+                  boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)'
+                }}
+              >
                 <img
                   src="/logo.png"
                   alt="Aarogya Drishti Official Logo"
                   className="patient-logo-img"
+                  style={{ borderRadius: '50%', objectFit: 'contain' }}
                   onError={(e) => {
                     e.currentTarget.src = '/aarogya-logo.jpg';
                   }}
@@ -159,9 +169,12 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-brand-box">
                 <span className="patient-brand-title">
-                  Arogya <span className="brand-orange">Drishti</span>
+                  {language === 'te' ? 'ఆరోగ్య ' : 'Arogya '}
+                  <span className="brand-orange">{language === 'te' ? 'దృష్టి' : 'Drishti'}</span>
                 </span>
-                <span className="patient-brand-sub">CITIZEN CARE PORTAL</span>
+                <span className="patient-brand-sub">
+                  {language === 'te' ? 'పౌర సంరక్షణ పోర్టల్' : 'CITIZEN CARE PORTAL'}
+                </span>
               </div>
             </div>
 
@@ -178,7 +191,7 @@ export default function CitizenPortalLayout({
                 <div className="patient-capsule-info">
                   <span className="patient-capsule-name">{patientName}</span>
                   <span className="patient-capsule-tag">
-                    <span className="tag-dot">●</span> Citizen Portal
+                    <span className="tag-dot">●</span> {language === 'te' ? 'పౌర పోర్టల్' : 'Citizen Portal'}
                   </span>
                 </div>
               </div>
@@ -228,10 +241,10 @@ export default function CitizenPortalLayout({
               <button
                 className="patient-logout-btn"
                 onClick={onLogout}
-                title="Log out of citizen portal"
+                title={language === 'te' ? 'పౌర పోర్టల్ నుండి లాగౌట్ అవ్వండి' : 'Log out of citizen portal'}
               >
                 <LogOut size={15} />
-                <span>Logout</span>
+                <span>{language === 'te' ? 'లాగౌట్' : 'Logout'}</span>
               </button>
             </div>
           </header>
@@ -242,7 +255,9 @@ export default function CitizenPortalLayout({
               <Activity size={18} strokeWidth={2.4} />
             </div>
             <span className="patient-banner-text">
-              Select an Aarogya Drishti citizen healthcare service:
+              {language === 'te'
+                ? 'ఆరోగ్య దృష్టి పౌర ఆరోగ్య సంరక్షణ సేవను ఎంచుకోండి:'
+                : 'Select an Aarogya Drishti citizen healthcare service:'}
             </span>
           </div>
 
@@ -260,10 +275,18 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Patient Intake &amp;<br />Registration
+                  {language === 'te' ? (
+                    <>
+                      రోగి నమోదు &amp;<br />ప్రవేశం
+                    </>
+                  ) : (
+                    <>
+                      Patient Intake &amp;<br />Registration
+                    </>
+                  )}
                 </div>
                 <div className="patient-card-subtitle">
-                  ABHA Registration &amp; Citizen Intake
+                  {language === 'te' ? 'ఆభా (ABHA) నమోదు & పౌర వివరాలు' : 'ABHA Registration & Citizen Intake'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -283,10 +306,18 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  EHR History &amp;<br />Active Prescriptions
+                  {language === 'te' ? (
+                    <>
+                      ఈహెచ్ఆర్ చరిత్ర &amp;<br />మందుల చీటీలు
+                    </>
+                  ) : (
+                    <>
+                      EHR History &amp;<br />Active Prescriptions
+                    </>
+                  )}
                 </div>
                 <div className="patient-card-subtitle">
-                  Health Records &amp; Active Medications
+                  {language === 'te' ? 'ఆరోగ్య రికార్డులు & క్రియాశీల మందులు' : 'Health Records & Active Medications'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -306,10 +337,18 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Scheduled<br />Consultations
+                  {language === 'te' ? (
+                    <>
+                      షెడ్యూల్ చేసిన<br />సంప్రదింపులు
+                    </>
+                  ) : (
+                    <>
+                      Scheduled<br />Consultations
+                    </>
+                  )}
                 </div>
                 <div className="patient-card-subtitle">
-                  Doctor Appointments &amp; Booking
+                  {language === 'te' ? 'వైద్యుల అపాయింట్‌మెంట్లు & బుకింగ్' : 'Doctor Appointments & Booking'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -329,10 +368,18 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Clinical Intake<br />Questionnaire &amp; Triage
+                  {language === 'te' ? (
+                    <>
+                      క్లినికల్ ప్రశ్నాపత్రం &amp;<br />ట్రయాజ్
+                    </>
+                  ) : (
+                    <>
+                      Clinical Intake<br />Questionnaire &amp; Triage
+                    </>
+                  )}
                 </div>
                 <div className="patient-card-subtitle">
-                  Pre-Consultation Symptom Assessment
+                  {language === 'te' ? 'సంప్రదింపుల పూర్వ లక్షణాల అంచనా' : 'Pre-Consultation Symptom Assessment'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -352,10 +399,18 @@ export default function CitizenPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Tele consult<br />suite
+                  {language === 'te' ? (
+                    <>
+                      టెలికన్సల్టేషన్<br />విభాగం
+                    </>
+                  ) : (
+                    <>
+                      Tele consult<br />suite
+                    </>
+                  )}
                 </div>
                 <div className="patient-card-subtitle">
-                  Live Video Consultation Room
+                  {language === 'te' ? 'లైవ్ వీడియో వైద్య సంప్రదింపు గది' : 'Live Video Consultation Room'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -364,7 +419,10 @@ export default function CitizenPortalLayout({
             </div>
 
             {/* ROW 2: COLUMN 3 - Source Image 2: Doctor & Patient Consultation (Replaced Stethoscope) */}
-            <div className="patient-consult-hero-card" title="Aarogya Drishti Clinical Care">
+            <div
+              className="patient-consult-hero-card"
+              title={language === 'te' ? 'ఆరోగ్య దృష్టి క్లినికల్ సంరక్షణ' : 'Aarogya Drishti Clinical Care'}
+            >
               <img
                 src="/doctor-patient-consult.jpg"
                 alt="Doctor examining elderly patient with stethoscope"
@@ -373,7 +431,7 @@ export default function CitizenPortalLayout({
               <div className="patient-consult-hero-overlay">
                 <span className="patient-consult-hero-badge">
                   <span className="consult-badge-dot">●</span>
-                  <span>Aarogya Drishti Care</span>
+                  <span>{language === 'te' ? 'ఆరోగ్య దృష్టి సంరక్షణ' : 'Aarogya Drishti Care'}</span>
                 </span>
               </div>
             </div>
@@ -388,22 +446,39 @@ export default function CitizenPortalLayout({
             <button
               className="patient-back-btn"
               onClick={() => setActiveModule(null)}
-              title="Return to Citizen Portal Home"
+              title={language === 'te' ? 'పౌర పోర్టల్ హోమ్‌కు తిరిగి వెళ్ళండి' : 'Return to Citizen Portal Home'}
             >
               <ArrowLeft size={16} />
-              <span>← Back to Citizen Portal</span>
+              <span>{language === 'te' ? '← పౌర పోర్టల్‌కు తిరిగి వెళ్ళండి' : '← Back to Citizen Portal'}</span>
             </button>
 
             <div className="patient-focused-title-badge">
-              {activeModule === 'intake' && 'Patient Intake & Registration (ABHA)'}
-              {activeModule === 'ehr' && 'EHR History & Active Prescriptions'}
-              {activeModule === 'consultations' && 'Scheduled Consultations'}
-              {activeModule === 'questionnaire' && 'Clinical Intake Questionnaire & Triage'}
-              {activeModule === 'teleconsult' && 'Teleconsultation Suite'}
+              {activeModule === 'intake' &&
+                (language === 'te'
+                  ? 'రోగి నమోదు & ప్రవేశం (ఆభా ABHA)'
+                  : 'Patient Intake & Registration (ABHA)')}
+              {activeModule === 'ehr' &&
+                (language === 'te'
+                  ? 'ఈహెచ్ఆర్ చరిత్ర & క్రియాశీల మందుల చీటీలు'
+                  : 'EHR History & Active Prescriptions')}
+              {activeModule === 'consultations' &&
+                (language === 'te'
+                  ? 'షెడ్యూల్ చేసిన వైద్యుల సంప్రదింపులు'
+                  : 'Scheduled Consultations')}
+              {activeModule === 'questionnaire' &&
+                (language === 'te'
+                  ? 'క్లినికల్ ప్రశ్నాపత్రం & ట్రయాజ్ అంచనా'
+                  : 'Clinical Intake Questionnaire & Triage')}
+              {activeModule === 'teleconsult' &&
+                (language === 'te'
+                  ? 'ఎన్‌క్రిప్టెడ్ వీడియో టెలిహెల్త్ విభాగం'
+                  : 'Teleconsultation Suite')}
             </div>
 
             <div className="patient-focused-actions">
-              <span className="patient-status-indicator">● Active Session</span>
+              <span className="patient-status-indicator">
+                ● {language === 'te' ? 'యాక్టివ్ సెషన్' : 'Active Session'}
+              </span>
             </div>
           </div>
 

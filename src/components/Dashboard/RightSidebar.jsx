@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   UserPlusIcon,
   CameraIcon,
@@ -11,6 +12,8 @@ import {
 } from '../Icons';
 
 export default function RightSidebar({ onActionClick }) {
+  const { language } = useLanguage();
+
   return (
     <aside className="dash-right-col">
       {/* Hero Card: Care Outreach */}
@@ -30,10 +33,23 @@ export default function RightSidebar({ onActionClick }) {
 
         <div className="hero-content">
           <h3>
-            Early Detection <br />
-            <span>Saves Lives</span>
+            {language === 'te' ? (
+              <>
+                ముందస్తు గుర్తింపు <br />
+                <span>ప్రాణాలను కాపాడుతుంది</span>
+              </>
+            ) : (
+              <>
+                Early Detection <br />
+                <span>Saves Lives</span>
+              </>
+            )}
           </h3>
-          <p>Connecting Rural Communities to Specialist Care</p>
+          <p>
+            {language === 'te'
+              ? 'గ్రామీణ ప్రజలను స్పెషలిస్ట్ వైద్యంతో అనుసంధానించడం'
+              : 'Connecting Rural Communities to Specialist Care'}
+          </p>
         </div>
       </div>
 
@@ -43,11 +59,11 @@ export default function RightSidebar({ onActionClick }) {
           type="button"
           className="btn-action-hero orange-grad"
           onClick={() => onActionClick('direct-registration')}
-          title="Direct / Walk-in Registration"
+          title={language === 'te' ? 'ప్రత్యక్ష రోగి నమోదు (వాక్-ఇన్)' : 'Direct / Walk-in Registration'}
         >
           <div className="btn-left">
             <UserPlusIcon className="w-4 h-4" />
-            <span>Direct / Walk-in Registration</span>
+            <span>{language === 'te' ? 'ప్రత్యక్ష రోగి నమోదు (వాక్-ఇన్)' : 'Direct / Walk-in Registration'}</span>
           </div>
           <span className="btn-chevron">›</span>
         </button>
@@ -56,11 +72,11 @@ export default function RightSidebar({ onActionClick }) {
           type="button"
           className="btn-action-hero teal-grad"
           onClick={() => onActionClick('diagnostic-triage')}
-          title="Diagnostic & Triage Assessment"
+          title={language === 'te' ? 'నోటి పరీక్ష & ఏఐ ట్రయాజ్ అంచనా' : 'Diagnostic & Triage Assessment'}
         >
           <div className="btn-left">
             <CameraIcon className="w-4 h-4" />
-            <span>Diagnostic & Triage Assessment</span>
+            <span>{language === 'te' ? 'నోటి పరీక్ష & ఏఐ ట్రయాజ్ అంచనా' : 'Diagnostic & Triage Assessment'}</span>
           </div>
           <span className="btn-chevron">›</span>
         </button>
@@ -69,11 +85,11 @@ export default function RightSidebar({ onActionClick }) {
           type="button"
           className="btn-action-hero white-card"
           onClick={() => onActionClick('initiate-referral')}
-          title="Initiate Referral Request"
+          title={language === 'te' ? 'రెఫరల్ అభ్యర్థన ప్రారంభించండి' : 'Initiate Referral Request'}
         >
           <div className="btn-left">
             <SearchIcon className="w-4 h-4" style={{ color: '#0d9488' }} />
-            <span>Initiate Referral Request</span>
+            <span>{language === 'te' ? 'రెఫరల్ అభ్యర్థన ప్రారంభించండి' : 'Initiate Referral Request'}</span>
           </div>
           <span className="btn-chevron" style={{ color: '#94a3b8' }}>›</span>
         </button>
@@ -82,11 +98,11 @@ export default function RightSidebar({ onActionClick }) {
           type="button"
           className="btn-action-hero white-card"
           onClick={() => onActionClick('appointment-scheduling')}
-          title="Appointment Scheduling & Slot Management"
+          title={language === 'te' ? 'అపాయింట్‌మెంట్లు & షెడ్యూలింగ్' : 'Appointment Scheduling & Slot Management'}
         >
           <div className="btn-left">
             <CalendarIcon className="w-4 h-4" style={{ color: '#ea580c' }} />
-            <span>Appointment Scheduling & Slot Management</span>
+            <span>{language === 'te' ? 'అపాయింట్‌మెంట్లు & షెడ్యూలింగ్' : 'Appointment Scheduling & Slot Management'}</span>
           </div>
           <span className="btn-chevron" style={{ color: '#94a3b8' }}>›</span>
         </button>
@@ -94,42 +110,42 @@ export default function RightSidebar({ onActionClick }) {
 
       {/* Quick Links Card mapped to exact terms */}
       <div className="quick-links-card">
-        <h4>Quick Links</h4>
+        <h4>{language === 'te' ? 'శీఘ్ర లింకులు' : 'Quick Links'}</h4>
         <div className="quick-links-list">
           <button
             type="button"
             className="quick-link-row"
             onClick={() => onActionClick('virtual-consultation-queue')}
-            title="Virtual Consultation Queue"
+            title={language === 'te' ? 'వీడియో టెలికన్సల్టేషన్ క్యూ' : 'Virtual Consultation Queue'}
           >
             <div className="quick-link-icon-circle">
               <AIIcon className="w-4 h-4" />
             </div>
-            <span>Virtual Consultation Queue</span>
+            <span>{language === 'te' ? 'వీడియో టెలికన్సల్టేషన్ క్యూ' : 'Virtual Consultation Queue'}</span>
           </button>
 
           <button
             type="button"
             className="quick-link-row"
             onClick={() => onActionClick('facility-reports')}
-            title="Facility Utilization & Clinical Reports"
+            title={language === 'te' ? 'క్లినికల్ వినియోగం & నివేదికలు' : 'Facility Utilization & Clinical Reports'}
           >
             <div className="quick-link-icon-circle">
               <ReportsIcon className="w-4 h-4" />
             </div>
-            <span>Facility Utilization & Clinical Reports</span>
+            <span>{language === 'te' ? 'క్లినికల్ వినియోగం & నివేదికలు' : 'Facility Utilization & Clinical Reports'}</span>
           </button>
 
           <button
             type="button"
             className="quick-link-row"
             onClick={() => onActionClick('clinician-profile')}
-            title="Clinician Profile & Credentials"
+            title={language === 'te' ? 'వైద్యుల ప్రొఫైల్ & వివరాలు' : 'Clinician Profile & Credentials'}
           >
             <div className="quick-link-icon-circle">
               <HelpIcon className="w-4 h-4" />
             </div>
-            <span>Clinician Profile & Credentials</span>
+            <span>{language === 'te' ? 'వైద్యుల ప్రొఫైల్ & వివరాలు' : 'Clinician Profile & Credentials'}</span>
           </button>
         </div>
       </div>
@@ -141,8 +157,8 @@ export default function RightSidebar({ onActionClick }) {
           <HeartPulseIcon className="w-5 h-5" />
         </div>
         <div className="smiles-text">
-          <strong>Care Continuity Tracking</strong>
-          <span>Primary Health Centre Network</span>
+          <strong>{language === 'te' ? 'నిరంతర సంరక్షణ ట్రాకింగ్' : 'Care Continuity Tracking'}</strong>
+          <span>{language === 'te' ? 'ప్రాథమిక ఆరోగ్య కేంద్ర నెట్‌వర్క్' : 'Primary Health Centre Network'}</span>
         </div>
       </div>
     </aside>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function PatientModal({ isOpen, onClose, onSave }) {
+  const { language } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -36,10 +38,10 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
     e.preventDefault();
     const newPatient = {
       id: `ADP-00${Math.floor(1000 + Math.random() * 9000)}`,
-      name: formData.name || 'New Patient',
+      name: formData.name || (language === 'te' ? 'కొత్త రోగి' : 'New Patient'),
       ageSex: `${formData.age || '40'} / ${formData.sex === 'Female' ? 'F' : 'M'}`,
       village: formData.village,
-      date: 'Today',
+      date: language === 'te' ? 'ఈరోజు' : 'Today',
       status: formData.symptoms.length > 0 ? 'Under Review' : 'Normal',
       statusClass: formData.symptoms.length > 0 ? 'under-review' : 'normal',
       initials: (formData.name || 'NP').slice(0, 2).toUpperCase(),
@@ -52,7 +54,7 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
     <div className="dash-modal-backdrop" onClick={onClose}>
       <div className="dash-modal" onClick={(e) => e.stopPropagation()}>
         <div className="dash-modal-header">
-          <h2>Direct / Walk-in Registration</h2>
+          <h2>{language === 'te' ? 'ప్రత్యక్ష రోగి నమోదు (వాక్-ఇన్)' : 'Direct / Walk-in Registration'}</h2>
           <button type="button" className="close-modal-btn" onClick={onClose}>
             ✕
           </button>
@@ -62,12 +64,12 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Full Name
+                {language === 'te' ? 'పూర్తి పేరు' : 'Full Name'}
               </label>
               <input
                 type="text"
                 required
-                placeholder="Enter patient name"
+                placeholder={language === 'te' ? 'రోగి పేరు నమోదు చేయండి' : 'Enter patient name'}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -75,7 +77,7 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Age
+                {language === 'te' ? 'వయస్సు' : 'Age'}
               </label>
               <input
                 type="number"
@@ -91,21 +93,21 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Sex
+                {language === 'te' ? 'లింగం' : 'Sex'}
               </label>
               <select
                 value={formData.sex}
                 onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white' }}
               >
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-                <option value="Other">Other</option>
+                <option value="Female">{language === 'te' ? 'స్త్రీ (Female)' : 'Female'}</option>
+                <option value="Male">{language === 'te' ? 'పురుషుడు (Male)' : 'Male'}</option>
+                <option value="Other">{language === 'te' ? 'ఇతరులు (Other)' : 'Other'}</option>
               </select>
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                Village / Habitation
+                {language === 'te' ? 'గ్రామం / నివాసం' : 'Village / Habitation'}
               </label>
               <select
                 value={formData.village}
@@ -125,15 +127,15 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
           {/* Exposure History (Compulsory for Oral Cancer Screenings) */}
           <div style={{ marginBottom: '14px' }}>
             <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
-              Exposure History (Habits)
+              {language === 'te' ? 'అలవాట్ల వివరాలు (హ్యాబిట్స్)' : 'Exposure History (Habits)'}
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {[
-                { id: 'smoking', label: 'Smoking (Bidi/Cigarette)' },
-                { id: 'chewing_tobacco', label: 'Chewing Tobacco / Khaini' },
-                { id: 'gutkha', label: 'Gutkha / Pan Masala' },
-                { id: 'areca_nut', label: 'Areca Nut' },
-                { id: 'reverse_smoking', label: 'Reverse Smoking (Adda Poga)' },
+                { id: 'smoking', label: language === 'te' ? 'బీడీ / సిగరెట్ తాగడం' : 'Smoking (Bidi/Cigarette)' },
+                { id: 'chewing_tobacco', label: language === 'te' ? 'పొగాకు నమలడం / ఖైనీ' : 'Chewing Tobacco / Khaini' },
+                { id: 'gutkha', label: language === 'te' ? 'గుట్కా / పాన్ మసాలా' : 'Gutkha / Pan Masala' },
+                { id: 'areca_nut', label: language === 'te' ? 'వక్క (Areca Nut)' : 'Areca Nut' },
+                { id: 'reverse_smoking', label: language === 'te' ? 'రివర్స్ స్మోకింగ్ (అడ్డ పొగ)' : 'Reverse Smoking (Adda Poga)' },
               ].map((habit) => (
                 <button
                   type="button"
@@ -150,25 +152,24 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
                     cursor: 'pointer',
                   }}
                 >
-                  {formData.habits.includes(habit.id) ? '✓ ' : '+ '}
                   {habit.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Symptoms */}
-          <div style={{ marginBottom: '20px' }}>
+          {/* Clinical Symptoms */}
+          <div style={{ marginBottom: '18px' }}>
             <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '6px' }}>
-              Observed Symptoms
+              {language === 'te' ? 'గమనించిన లక్షణాలు (Symptoms Noted)' : 'Symptoms Noted'}
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {[
-                { id: 'white_patch', label: 'Persistent White Patch' },
-                { id: 'red_patch', label: 'Red Patch (Erythroplakia)' },
-                { id: 'ulcer', label: 'Non-healing Ulcer (> 2 weeks)' },
-                { id: 'difficulty_opening', label: 'Restricted Mouth Opening (OSMF)' },
-                { id: 'growth', label: 'Abnormal Growth / Lump' },
+                { id: 'white_patch', label: language === 'te' ? 'తెల్లటి మచ్చ (White Patch)' : 'White Patch' },
+                { id: 'red_patch', label: language === 'te' ? 'ఎర్రటి మచ్చ (Red Patch)' : 'Red Patch' },
+                { id: 'ulcer', label: language === 'te' ? 'తగ్గని పుండు (Ulcer > 14 days)' : 'Ulcer (> 14 days)' },
+                { id: 'trismus', label: language === 'te' ? 'నోరు తెరవలేకపోవడం (Trismus)' : 'Difficulty Opening Mouth' },
+                { id: 'burning', label: language === 'te' ? 'కారంతో మంట (Burning Sensation)' : 'Burning with Spices' },
               ].map((sym) => (
                 <button
                   type="button"
@@ -185,7 +186,6 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
                     cursor: 'pointer',
                   }}
                 >
-                  {formData.symptoms.includes(sym.id) ? '✓ ' : '+ '}
                   {sym.label}
                 </button>
               ))}
@@ -206,7 +206,7 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
                 cursor: 'pointer',
               }}
             >
-              Cancel
+              {language === 'te' ? 'రద్దు చేయండి' : 'Cancel'}
             </button>
             <button
               type="submit"
@@ -221,7 +221,7 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
                 cursor: 'pointer',
               }}
             >
-              Save & Register
+              {language === 'te' ? 'నమోదును భద్రపరచండి →' : 'Save & Register →'}
             </button>
           </div>
         </form>
@@ -229,4 +229,3 @@ export default function PatientModal({ isOpen, onClose, onSave }) {
     </div>
   );
 }
-

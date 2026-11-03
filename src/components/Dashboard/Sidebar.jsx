@@ -56,7 +56,7 @@ export default function Sidebar({
         title={isMenuOpen ? 'Collapse Menu' : 'Open Menu Options'}
       >
         <DashboardIcon />
-        <span className="menu-btn-text">Menu</span>
+        <span className="menu-btn-text">{language === 'te' ? 'మెనూ' : 'Menu'}</span>
         <span className="menu-btn-chevron">{isMenuOpen ? '▲' : '▼'}</span>
       </button>
 
@@ -73,7 +73,9 @@ export default function Sidebar({
       {isMenuOpen && (
         <div className="menu-dropdown-panel-below-logo">
           <div className="menu-dropdown-header">
-            <span className="menu-dropdown-title">{menuTitle}</span>
+            <span className="menu-dropdown-title">
+              {language === 'te' ? (teluguMap[menuTitle] || 'డాష్‌బోర్డ్ ఆప్షన్స్') : menuTitle}
+            </span>
             <button
               type="button"
               className="menu-dropdown-close"

@@ -52,8 +52,8 @@ export default function DashboardNavbar({
           className="dash-brand-logo-img"
         />
         <div className="dash-brand-text">
-          <h1>AAROGYA DRISHTI</h1>
-          <p>{dashboardTitle}</p>
+          <h1>{language === 'te' ? 'ఆరోగ్య దృష్టి' : 'AAROGYA DRISHTI'}</h1>
+          <p>{t(dashboardTitle)}</p>
         </div>
       </div>
 
@@ -217,16 +217,16 @@ export default function DashboardNavbar({
             >
               <div style={{ padding: '8px 16px', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 800 }}>
-                  Switch Dashboard
+                  {language === 'te' ? 'డాష్‌బోర్డ్ మార్చండి' : 'Switch Dashboard'}
                 </div>
               </div>
 
               {[
-                { key: 'phc_dashboard', label: '🏥 PHC Dashboard', sub: 'Primary Health Centre' },
-                { key: 'specialist_dashboard', label: '🔬 Specialist Dashboard', sub: 'Oral Oncology & Review' },
-                { key: 'district_admin_dashboard', label: '🏛️ District Admin Dashboard', sub: 'DMHO & Tribal Health' },
-                { key: 'system_admin_dashboard', label: '🛡️ System Admin Dashboard', sub: 'Security & Cloud Ops' },
-                { key: 'patient', label: '👤 Citizen / Patient Portal', sub: 'ABHA & Care Journey' },
+                { key: 'phc_dashboard', label: language === 'te' ? '🏥 పీహెచ్‌సీ డాష్‌బోర్డ్' : '🏥 PHC Dashboard', sub: language === 'te' ? 'ప్రాథమిక ఆరోగ్య కేంద్రం' : 'Primary Health Centre' },
+                { key: 'specialist_dashboard', label: language === 'te' ? '🔬 స్పెషలిస్ట్ డాష్‌బోర్డ్' : '🔬 Specialist Dashboard', sub: language === 'te' ? 'నోటి ఆంకాలజీ & రివ్యూ' : 'Oral Oncology & Review' },
+                { key: 'district_admin_dashboard', label: language === 'te' ? '🏛️ జిల్లా అడ్మిన్ డాష్‌బోర్డ్' : '🏛️ District Admin Dashboard', sub: language === 'te' ? 'డీఎంహెచ్‌ఓ & గిరిజన ఆరోగ్యం' : 'DMHO & Tribal Health' },
+                { key: 'system_admin_dashboard', label: language === 'te' ? '🛡️ సిస్టమ్ అడ్మిన్ డాష్‌బోర్డ్' : '🛡️ System Admin Dashboard', sub: language === 'te' ? 'సెక్యూరిటీ & క్లౌడ్ కార్యకలాపాలు' : 'Security & Cloud Ops' },
+                { key: 'patient', label: language === 'te' ? '👤 పౌర / రోగి పోర్టల్' : '👤 Citizen / Patient Portal', sub: language === 'te' ? 'ఆభా & సంరక్షణ ప్రయాణం' : 'ABHA & Care Journey' },
               ].map((item) => (
                 <button
                   key={item.key}
@@ -275,7 +275,7 @@ export default function DashboardNavbar({
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 >
-                  🚪 Logout / Exit to Login
+                  🚪 {language === 'te' ? 'లాగౌట్ / లాగిన్‌కు నిష్క్రమించండి' : 'Logout / Exit to Login'}
                 </button>
               </div>
             </div>
