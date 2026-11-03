@@ -37,13 +37,23 @@ import Peer from 'peerjs';
 import { useLanguage } from '../../context/LanguageContext';
 import { TERTIARY_SPECIALIST_CENTER } from '../../services/referralRoutingService';
 
-// Sub-component for playing remote video streams cleanly
+// Sub-component for playing remote video streams with robust autoplay handling
 function RemoteStreamPlayer({ stream, roleName }) {
   const videoRef = useRef(null);
 
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('[RemoteStreamPlayer] Autoplay prevented, retrying muted:', err);
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            videoRef.current.play().catch((e) => console.warn(e));
+          }
+        });
+      }
     }
   }, [stream]);
 
@@ -63,7 +73,7 @@ function RemoteStreamPlayer({ stream, roleName }) {
   );
 }
 
-// Generate an animated Virtual Clinical MediaStream if physical camera is blocked (e.g., HTTP origin on 2nd laptop)
+// Generate an animated Virtual Clinical MediaStream if physical camera is blocked
 function createVirtualClinicianStream(role, displayName) {
   const canvas = document.createElement('canvas');
   canvas.width = 640;
@@ -73,7 +83,6 @@ function createVirtualClinicianStream(role, displayName) {
   let tick = 0;
   const draw = () => {
     tick++;
-    // Dark medical navy background
     const bgGrad = ctx.createLinearGradient(0, 0, 640, 480);
     if (role === 'specialist') {
       bgGrad.addColorStop(0, '#0b1329');
@@ -88,7 +97,6 @@ function createVirtualClinicianStream(role, displayName) {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 640, 480);
 
-    // Subtle grid lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     for (let x = 0; x < 640; x += 40) {
@@ -104,7 +112,6 @@ function createVirtualClinicianStream(role, displayName) {
       ctx.stroke();
     }
 
-    // Avatar Circle with gentle pulsating ring
     const cx = 320;
     const cy = 200;
     const pulse = Math.sin(tick * 0.12) * 5;
@@ -124,14 +131,12 @@ function createVirtualClinicianStream(role, displayName) {
     ctx.fillStyle = role === 'specialist' ? '#f97316' : role === 'phc' ? '#0d9488' : '#ea580c';
     ctx.fill();
 
-    // Initials / Icon
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 32px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(role === 'specialist' ? 'Dr.A' : role === 'phc' ? 'Dr.S' : 'AR', cx, cy);
 
-    // Clinician / Patient Title
     ctx.font = 'bold 20px sans-serif';
     ctx.fillText(displayName, cx, 295);
 
@@ -147,7 +152,6 @@ function createVirtualClinicianStream(role, displayName) {
       325
     );
 
-    // Heartbeat ECG Wave Simulation
     ctx.strokeStyle = role === 'specialist' ? '#f97316' : role === 'phc' ? '#2dd4bf' : '#fb923c';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
@@ -163,7 +167,6 @@ function createVirtualClinicianStream(role, displayName) {
     }
     ctx.stroke();
 
-    // Live Telemetry Banner
     ctx.fillStyle = '#4ade80';
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'left';
@@ -175,12 +178,11 @@ function createVirtualClinicianStream(role, displayName) {
     ctx.fillText(now + ' IST', 610, 36);
   };
 
-  const timer = setInterval(draw, 50); // 20 fps
+  const timer = setInterval(draw, 50);
   draw();
 
   const stream = canvas.captureStream ? canvas.captureStream(20) : null;
 
-  // Add dummy silent audio track so WebRTC media negotiations succeed
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const osc = audioCtx.createOscillator();
@@ -199,21 +201,19 @@ function createVirtualClinicianStream(role, displayName) {
 
 export default function TeleconsultationSuite({
   patientData,
-  currentUserRole = 'doctor', // 'doctor' (PHC) | 'specialist' | 'patient' | 'anm'
+  currentUserRole = 'doctor',
   onEndCall,
 }) {
   const { language, t } = useLanguage();
 
-  // Read URL query parameters if loaded via invite link
   const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
   const initialRoom = urlParams.get('room') || 'paderu-telemed-101';
   const roleFromUrl = urlParams.get('role');
 
-  // Role Normalization
   const resolveRole = (r) => {
     if (r === 'specialist') return 'specialist';
     if (r === 'patient' || r === 'anm') return 'patient';
-    return 'phc'; // default for doctor / phc
+    return 'phc';
   };
 
   const [roomCode, setRoomCode] = useState(initialRoom);
@@ -225,10 +225,10 @@ export default function TeleconsultationSuite({
   const [micOn, setMicOn] = useState(true);
   const [videoOn, setVideoOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [callMode, setCallMode] = useState('3-way'); // '3-way' | '2-way-patient' | '2-way-provider'
-  const [activeSideTab, setActiveSideTab] = useState('clinical'); // 'clinical' | 'biopsy' | 'chat'
+  const [callMode, setCallMode] = useState('3-way');
+  const [activeSideTab, setActiveSideTab] = useState('clinical');
   const [callDuration, setCallDuration] = useState(145);
-  const [cameraMode, setCameraMode] = useState('physical'); // 'physical' | 'virtual'
+  const [cameraMode, setCameraMode] = useState('physical');
   const [showCameraHelpModal, setShowCameraHelpModal] = useState(false);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
 
@@ -236,7 +236,7 @@ export default function TeleconsultationSuite({
   const [activeCameraTile, setActiveCameraTile] = useState(myRole);
 
   // Multi-Device WebRTC / PeerJS State
-  const [webrtcStatus, setWebrtcStatus] = useState('connecting'); // 'connecting' | 'connected' | 'waiting' | 'error'
+  const [webrtcStatus, setWebrtcStatus] = useState('connecting');
   const [webrtcNotice, setWebrtcNotice] = useState('Connecting to WebRTC mesh...');
   const [remoteStreams, setRemoteStreams] = useState({
     specialist: null,
@@ -328,15 +328,13 @@ export default function TeleconsultationSuite({
     return 'Appa Rao & ANM Lakshmi (Village Kiosk)';
   };
 
-  // 1. Bulletproof Stream Acquisition (Physical Webcam with Virtual Stream Fallback)
+  // 1. Initialize Media Stream (Webcam or Virtual Stream)
   const initializeMediaStream = async (roleToUse = myRole) => {
-    // Clean up existing virtual generator if any
     if (virtualCleanupRef.current) {
       virtualCleanupRef.current();
       virtualCleanupRef.current = null;
     }
 
-    // Try physical camera first
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -353,10 +351,9 @@ export default function TeleconsultationSuite({
         return stream;
       }
     } catch (err) {
-      console.warn('Physical camera unavailable (e.g. non-secure HTTP origin). Activating Virtual Clinical Stream:', err.message);
+      console.warn('Physical camera unavailable. Activating Virtual Clinical Stream:', err.message);
     }
 
-    // Fallback: Generate Animated Virtual Clinician Stream
     setCameraMode('virtual');
     const { stream, cleanup } = createVirtualClinicianStream(roleToUse, getRoleDisplayName(roleToUse));
     virtualCleanupRef.current = cleanup;
@@ -367,6 +364,42 @@ export default function TeleconsultationSuite({
     setVideoOn(true);
     setMicOn(true);
     return stream;
+  };
+
+  // Attach Remote Stream Helper (Supports both PeerJS event & Native RTCPeerConnection ontrack)
+  const attachRemoteStream = (role, stream) => {
+    if (!stream) return;
+    console.log('[WebRTC Live Stream Attached!]', role, stream.id);
+    setRemoteStreams((prev) => ({ ...prev, [role]: stream }));
+    setConnectedRoles((prev) => Array.from(new Set([...prev, role])));
+    setWebrtcNotice(`Connected to remote device (${role.toUpperCase()})`);
+  };
+
+  // Helper to attach listeners to ANY call (incoming or outgoing)
+  const setupCallStreamListeners = (call, role) => {
+    if (!call) return;
+
+    // 1. PeerJS stream event
+    call.on('stream', (remoteStream) => {
+      attachRemoteStream(role, remoteStream);
+    });
+
+    // 2. Native RTCPeerConnection ontrack listener (Crucial for bidirectional sync!)
+    if (call.peerConnection) {
+      call.peerConnection.addEventListener('track', (e) => {
+        if (e.streams && e.streams[0]) {
+          attachRemoteStream(role, e.streams[0]);
+        } else if (e.track) {
+          const newStream = new MediaStream([e.track]);
+          attachRemoteStream(role, newStream);
+        }
+      });
+    }
+
+    call.on('close', () => {
+      setRemoteStreams((prev) => ({ ...prev, [role]: null }));
+      setConnectedRoles((prev) => prev.filter((r) => r !== role));
+    });
   };
 
   // 2. Broadcast Data via WebRTC Data Channels (for Chat, Snapshots, Biopsy)
@@ -396,6 +429,13 @@ export default function TeleconsultationSuite({
       if (data.biopsyUrgency) setBiopsyUrgency(data.biopsyUrgency);
       if (data.biopsyNotes) setBiopsyNotes(data.biopsyNotes);
       setActiveSideTab('biopsy');
+    } else if (data.type === 'ping_stream_check') {
+      // Return ping if this peer needs stream
+      const requesterRole = data.role;
+      if (requesterRole && peerRef.current) {
+        const clean = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        dialRemoteRole(peerRef.current, clean, requesterRole, myRole, localStreamRef.current);
+      }
     }
   };
 
@@ -437,7 +477,7 @@ export default function TeleconsultationSuite({
         setWebrtcStatus('connected');
         setWebrtcNotice(`Room "${cleanRoom}" Live • Waiting for or connected to other devices`);
 
-        // Automatically dial the other 2 roles
+        // Automatically dial the other roles
         const otherRoles = ['specialist', 'phc', 'patient'].filter((r) => r !== role);
         otherRoles.forEach((targetRole) => {
           dialRemoteRole(peer, cleanRoom, targetRole, role, stream);
@@ -445,37 +485,27 @@ export default function TeleconsultationSuite({
       });
 
       // Handle Incoming Call from another laptop
-      peer.on('call', (incomingCall) => {
+      peer.on('call', async (incomingCall) => {
         console.log('[Aarogya Drishti PeerJS] Incoming call from:', incomingCall.peer);
-        // Always answer with active stream (physical or virtual)
-        incomingCall.answer(localStreamRef.current || stream);
+        const remoteRole =
+          incomingCall.metadata?.role ||
+          (incomingCall.peer.includes('specialist')
+            ? 'specialist'
+            : incomingCall.peer.includes('phc')
+            ? 'phc'
+            : 'patient');
 
-        incomingCall.on('stream', (remoteStream) => {
-          const remoteRole =
-            incomingCall.metadata?.role ||
-            (incomingCall.peer.includes('specialist')
-              ? 'specialist'
-              : incomingCall.peer.includes('phc')
-              ? 'phc'
-              : 'patient');
+        let myStreamToSend = localStreamRef.current || stream;
+        if (!myStreamToSend) {
+          myStreamToSend = await initializeMediaStream(role);
+        }
 
-          setRemoteStreams((prev) => ({ ...prev, [remoteRole]: remoteStream }));
-          setConnectedRoles((prev) => Array.from(new Set([...prev, remoteRole])));
-          setWebrtcNotice(`Connected to remote device (${remoteRole.toUpperCase()})`);
-        });
+        // Answer with active stream
+        incomingCall.answer(myStreamToSend);
+        activeCallsRef.current[remoteRole] = incomingCall;
 
-        incomingCall.on('close', () => {
-          const remoteRole =
-            incomingCall.metadata?.role ||
-            (incomingCall.peer.includes('specialist')
-              ? 'specialist'
-              : incomingCall.peer.includes('phc')
-              ? 'phc'
-              : 'patient');
-
-          setRemoteStreams((prev) => ({ ...prev, [remoteRole]: null }));
-          setConnectedRoles((prev) => prev.filter((r) => r !== remoteRole));
-        });
+        // Attach dual stream listeners
+        setupCallStreamListeners(incomingCall, remoteRole);
       });
 
       // Handle Incoming WebRTC Data Connection (Chat / Snapshot / Biopsy)
@@ -497,13 +527,17 @@ export default function TeleconsultationSuite({
         conn.on('close', () => {
           delete activeConnsRef.current[remoteRole];
         });
+
+        // Trigger stream check
+        conn.on('open', () => {
+          conn.send({ type: 'handshake', role: role });
+        });
       });
 
       peer.on('error', (err) => {
         console.warn('[Aarogya Drishti PeerJS] Error:', err.type, err.message);
         if (err.type === 'unavailable-id') {
-          // If role already taken, inform user or attempt connecting
-          setWebrtcNotice(`Notice: Role "${role.toUpperCase()}" already registered. If refreshing, click Reconnect.`);
+          setWebrtcNotice(`Role "${role.toUpperCase()}" already registered. If refreshing, click Reconnect.`);
         } else if (err.type === 'peer-unavailable') {
           // Normal: other peers not yet in room
         } else {
@@ -517,7 +551,7 @@ export default function TeleconsultationSuite({
     }
   };
 
-  // Helper to dial a specific role
+  // Helper to dial a specific role (Bidirectional)
   const dialRemoteRole = (peer, room, targetRole, fromRole, stream) => {
     if (!peer || peer.destroyed) return;
     const targetPeerId = `aarogya-${room}-${targetRole}`;
@@ -532,18 +566,7 @@ export default function TeleconsultationSuite({
 
         if (call) {
           activeCallsRef.current[targetRole] = call;
-
-          call.on('stream', (remoteStream) => {
-            console.log('[PeerJS] Received remote stream from', targetRole);
-            setRemoteStreams((prev) => ({ ...prev, [targetRole]: remoteStream }));
-            setConnectedRoles((prev) => Array.from(new Set([...prev, targetRole])));
-            setWebrtcNotice(`Connected to remote device (${targetRole.toUpperCase()})`);
-          });
-
-          call.on('close', () => {
-            setRemoteStreams((prev) => ({ ...prev, [targetRole]: null }));
-            setConnectedRoles((prev) => prev.filter((r) => r !== targetRole));
-          });
+          setupCallStreamListeners(call, targetRole);
         }
       } catch (e) {}
     }
@@ -557,6 +580,8 @@ export default function TeleconsultationSuite({
       if (conn) {
         conn.on('open', () => {
           activeConnsRef.current[targetRole] = conn;
+          // Ping remote peer to verify stream receipt
+          conn.send({ type: 'ping_stream_check', role: fromRole });
         });
         conn.on('data', (data) => {
           handleIncomingData(data);
@@ -583,12 +608,12 @@ export default function TeleconsultationSuite({
       setCallDuration((prev) => prev + 1);
     }, 1000);
 
-    // Simulated speech wave alternation when no real peers speaking
+    // Simulated speech wave alternation
     const speakTimer = setInterval(() => {
       setSpeakingParty((prev) => (prev === 'specialist' ? 'phc' : prev === 'phc' ? 'patient' : 'specialist'));
     }, 4500);
 
-    // Auto-retry dialing remote peers every 4 seconds until connected
+    // Auto-retry dialing remote peers every 3 seconds until connected
     const dialInterval = setInterval(() => {
       if (peerRef.current && !peerRef.current.destroyed) {
         const cleanRoom = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
@@ -599,7 +624,7 @@ export default function TeleconsultationSuite({
           dialRemoteRole(peerRef.current, cleanRoom, targetRole, myRole, localStreamRef.current);
         });
       }
-    }, 4000);
+    }, 3000);
 
     return () => {
       clearInterval(timer);
@@ -1271,7 +1296,7 @@ export default function TeleconsultationSuite({
                 background: '#131d2e',
                 borderRadius: '16px',
                 border:
-                  myRole === 'specialist' || activeCameraTile === 'specialist'
+                  myRole === 'specialist'
                     ? '2.5px solid #f97316'
                     : remoteStreams.specialist
                     ? '2.5px solid #10b981'
@@ -1286,7 +1311,7 @@ export default function TeleconsultationSuite({
               }}
             >
               {/* VIDEO LAYER: Local Camera | Remote Live Stream | Simulated Fallback */}
-              {myRole === 'specialist' || activeCameraTile === 'specialist' ? (
+              {myRole === 'specialist' ? (
                 videoOn ? (
                   <video
                     ref={localVideoRef}
@@ -1378,7 +1403,7 @@ export default function TeleconsultationSuite({
                   background: '#131d2e',
                   borderRadius: '16px',
                   border:
-                    myRole === 'phc' || activeCameraTile === 'phc'
+                    myRole === 'phc'
                       ? '2.5px solid #0d9488'
                       : remoteStreams.phc
                       ? '2.5px solid #10b981'
@@ -1392,7 +1417,7 @@ export default function TeleconsultationSuite({
                   boxShadow: speakingParty === 'phc' ? '0 0 20px rgba(13, 148, 136, 0.3)' : 'none',
                 }}
               >
-                {myRole === 'phc' || activeCameraTile === 'phc' ? (
+                {myRole === 'phc' ? (
                   videoOn ? (
                     <video
                       ref={localVideoRef}
@@ -1483,7 +1508,7 @@ export default function TeleconsultationSuite({
                   background: '#131d2e',
                   borderRadius: '16px',
                   border:
-                    myRole === 'patient' || activeCameraTile === 'patient'
+                    myRole === 'patient'
                       ? '2.5px solid #ea580c'
                       : remoteStreams.patient
                       ? '2.5px solid #10b981'
@@ -1498,7 +1523,7 @@ export default function TeleconsultationSuite({
                   boxShadow: speakingParty === 'patient' ? '0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
                 }}
               >
-                {myRole === 'patient' || activeCameraTile === 'patient' ? (
+                {myRole === 'patient' ? (
                   videoOn ? (
                     <video
                       ref={localVideoRef}
@@ -1826,7 +1851,6 @@ export default function TeleconsultationSuite({
           {/* TAB 1: CLINICAL FINDINGS & ORAL FREEZE-FRAME SNAPSHOT */}
           {activeSideTab === 'clinical' && (
             <div style={{ padding: '16px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {/* Captured Oral Freeze-Frame Card */}
               <div style={{ background: '#131d2e', borderRadius: '12px', padding: '12px', border: '1px solid #1e3a8a' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span style={{ fontSize: '12px', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1848,7 +1872,6 @@ export default function TeleconsultationSuite({
                 </div>
               </div>
 
-              {/* AI Triage & Concordance Banner */}
               <div style={{ background: '#1c1917', border: '1px solid #78350f', borderRadius: '12px', padding: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12px', fontWeight: 800, color: '#fde047' }}>
@@ -1863,7 +1886,6 @@ export default function TeleconsultationSuite({
                 </p>
               </div>
 
-              {/* Exposure Factors */}
               <div style={{ background: '#131d2e', borderRadius: '12px', padding: '12px', border: '1px solid #1e293b' }}>
                 <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   Key Risk Factors & Exposures
