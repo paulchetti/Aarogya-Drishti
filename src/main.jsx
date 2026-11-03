@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Unregister any stale service workers from previously hosted projects on this port
 if ('serviceWorker' in navigator) {
@@ -14,7 +15,9 @@ if ('serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
   </React.StrictMode>
 );
 

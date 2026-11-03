@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Header({ onOpenDashboard }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { language, toggleLanguage, t } = useLanguage();
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
@@ -96,7 +98,32 @@ export default function Header({ onOpenDashboard }) {
         </span>
       </a>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Language Switcher Pill */}
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          style={{
+            background: language === 'te' ? '#ffedd5' : '#ffffff',
+            color: language === 'te' ? '#c2410c' : '#334155',
+            border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+            borderRadius: '22px',
+            padding: '7px 14px',
+            fontSize: '0.82rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+            transition: 'all 0.15s ease',
+          }}
+          title="Switch language between English and Telugu (ఒకే టచ్‌తో తెలుగు మార్చండి)"
+        >
+          <span>🌐</span>
+          <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+        </button>
+
         {onOpenDashboard && (
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button

@@ -18,11 +18,13 @@ import ClinicalQuestionnaireView from '../clinical/ClinicalQuestionnaireView';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 import ScreeningModal from '../Dashboard/ScreeningModal';
 import AIChatBot from '../Dashboard/AIChatBot';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function CitizenPortalLayout({
   user,
   onLogout
 }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeModule, setActiveModule] = useState(null); // null = dashboard, or 'intake' | 'ehr' | 'consultations' | 'questionnaire' | 'teleconsult'
   const [teleconsultPatient, setTeleconsultPatient] = useState(null);
   const [isScreeningOpen, setIsScreeningOpen] = useState(false);
@@ -181,6 +183,28 @@ export default function CitizenPortalLayout({
                 </div>
               </div>
 
+              {/* One-touch Telugu Switcher */}
+              <button
+                className="patient-logout-btn"
+                onClick={toggleLanguage}
+                title="Switch between English and Telugu (ఒకే టచ్‌తో తెలుగు మార్చండి)"
+                style={{
+                  background: language === 'te' ? '#ffedd5' : '#ffffff',
+                  color: language === 'te' ? '#c2410c' : '#334155',
+                  border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+                  fontWeight: 800,
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <span>🌐</span>
+                <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+              </button>
+
               <button
                 className="patient-logout-btn"
                 onClick={() => setIsScreeningOpen(true)}
@@ -199,7 +223,7 @@ export default function CitizenPortalLayout({
                   boxShadow: '0 2px 6px rgba(234, 88, 12, 0.25)',
                 }}
               >
-                <span>✨ AI Oral Screening</span>
+                <span>✨ {language === 'te' ? 'ఏఐ నోటి స్క్రీనింగ్' : 'AI Oral Screening'}</span>
               </button>
               <button
                 className="patient-logout-btn"

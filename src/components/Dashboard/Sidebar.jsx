@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   DashboardIcon,
   UserPlusIcon,
@@ -19,6 +20,19 @@ export default function Sidebar({
   menuTitle = 'PHC Dashboard Options',
   customItems = null,
 }) {
+  const { language } = useLanguage();
+
+  const teluguMap = {
+    'Direct / Walk-in Registration': 'ప్రత్యక్ష రోగి నమోదు (రిజిస్ట్రేషన్)',
+    'EHR Clinical Documentation': 'ఈహెచ్ఆర్ క్లినికల్ రికార్డులు',
+    'Diagnostic & Triage Assessment': 'నోటి పరీక్ష & ఏఐ ట్రయాజ్ అంచనా',
+    'Care Continuity Tracking': 'నిరంతర సంరక్షణ & ఫాలో-అప్',
+    'Appointment Scheduling & Slot Management': 'అపాయింట్‌మెంట్లు & షెడ్యూలింగ్',
+    'Facility Utilization & Clinical Reports': 'క్లినికల్ వినియోగం & నివేదికలు',
+    'Virtual Consultation Queue': 'వీడియో టెలికన్సల్టేషన్ క్యూ',
+    'Clinician Profile & Credentials': 'వైద్యుల ప్రొఫైల్ & వివరాలు',
+  };
+
   const defaultItems = [
     { name: 'Direct / Walk-in Registration', icon: <UserPlusIcon /> },
     { name: 'EHR Clinical Documentation', icon: <HistoryIcon /> },
@@ -82,7 +96,9 @@ export default function Sidebar({
                 title={item.name}
               >
                 <span className="dropdown-item-icon">{item.icon}</span>
-                <span className="dropdown-item-text">{item.name}</span>
+                <span className="dropdown-item-text">
+                  {language === 'te' && teluguMap[item.name] ? teluguMap[item.name] : item.name}
+                </span>
               </button>
             ))}
           </nav>

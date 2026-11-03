@@ -9,6 +9,20 @@
   --cream: #fffaf6;
 }
 
+/* Accessibility Font Scale Classes */
+.app-font-large {
+  font-size: 108%;
+}
+
+.app-font-xlarge {
+  font-size: 118%;
+}
+
+.lang-toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
 * {
   box-sizing: border-box;
 }

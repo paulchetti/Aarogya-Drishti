@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BellIcon } from '../Icons';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function DashboardNavbar({
   dashboardTitle = 'PHC Dashboard',
@@ -12,6 +13,7 @@ export default function DashboardNavbar({
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const { language, toggleLanguage, isOffline, fontSize, setFontSize } = useLanguage();
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -57,6 +59,99 @@ export default function DashboardNavbar({
 
       {/* Right side actions */}
       <div className="dash-top-actions">
+        {/* Language Switcher Button (One-Touch Telugu ⇄ English) */}
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="lang-toggle-btn"
+          style={{
+            background: language === 'te' ? '#ffedd5' : '#f8fafc',
+            color: language === 'te' ? '#c2410c' : '#0f172a',
+            border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+            borderRadius: '20px',
+            padding: '5px 12px',
+            fontSize: '11.5px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+            transition: 'all 0.15s ease',
+          }}
+          title="Switch between English and Telugu (ఒకే టచ్‌తో తెలుగు మార్చండి)"
+        >
+          <span style={{ fontSize: '13px' }}>🌐</span>
+          <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+        </button>
+
+        {/* Network & Edge Sync Telemetry Badge */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: isOffline ? '#fee2e2' : '#ecfdf5',
+            color: isOffline ? '#b91c1c' : '#047857',
+            border: `1px solid ${isOffline ? '#fca5a5' : '#a7f3d0'}`,
+            borderRadius: '20px',
+            padding: '4px 9px',
+            fontSize: '10.5px',
+            fontWeight: 700,
+          }}
+          title={isOffline ? 'Offline Edge Storage Active' : 'Connected to ABDM State Gateway'}
+        >
+          <span style={{ fontSize: '8px' }}>{isOffline ? '🔴' : '🟢'}</span>
+          <span>{isOffline ? 'Offline Edge' : 'ABDM Cloud'}</span>
+        </div>
+
+        {/* Accessibility Font Sizing Toggle */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '16px',
+            padding: '2px 4px',
+            gap: '2px',
+          }}
+          title="Accessibility Font Sizing (A- / A+)"
+        >
+          <button
+            type="button"
+            onClick={() => setFontSize('normal')}
+            style={{
+              border: 'none',
+              background: fontSize === 'normal' ? '#0d9488' : 'transparent',
+              color: fontSize === 'normal' ? '#fff' : '#64748b',
+              borderRadius: '10px',
+              padding: '2px 6px',
+              fontSize: '10px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            A
+          </button>
+          <button
+            type="button"
+            onClick={() => setFontSize('large')}
+            style={{
+              border: 'none',
+              background: fontSize === 'large' ? '#0d9488' : 'transparent',
+              color: fontSize === 'large' ? '#fff' : '#64748b',
+              borderRadius: '10px',
+              padding: '2px 6px',
+              fontSize: '11px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            A+
+          </button>
+        </div>
+
         {/* Full Screen Toggle Button */}
         <button
           type="button"

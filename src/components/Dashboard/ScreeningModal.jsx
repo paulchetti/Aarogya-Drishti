@@ -5,8 +5,10 @@ import {
   analyzeOralLesionWithGemini,
   getOfflineClinicalEvaluation,
 } from '../../services/geminiOralCancerService';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function ScreeningModal({ isOpen = true, onClose, onComplete, patient }) {
+  const { language, toggleLanguage, t, isOffline, speakText } = useLanguage();
   const [selectedSite, setSelectedSite] = useState(patient?.site || 'Buccal Mucosa (Cheek)');
   const [selectedHabit, setSelectedHabit] = useState('Tobacco Chewing (Gutkha/Khaini/Paan)');
   const [patientId, setPatientId] = useState(patient?.id || patient?.abhaId || 'ADP-2026-4412');
@@ -401,7 +403,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
-                  Oral Cancer AI Diagnostic Screening
+                  {language === 'te' ? 'నోటి క్యాన్సర్ ఏఐ స్క్రీనింగ్ & పరీక్ష' : 'Oral Cancer AI Diagnostic Screening'}
                 </h2>
                 <span
                   style={{
@@ -416,13 +418,51 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                 >
                   ✨ Gemini AI Multimodal Active
                 </span>
+                <span
+                  style={{
+                    background: isOffline ? '#fee2e2' : '#f0fdf4',
+                    color: isOffline ? '#991b1b' : '#15803d',
+                    border: `1px solid ${isOffline ? '#fca5a5' : '#bbf7d0'}`,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '10.5px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {isOffline ? '📡 ' + t('offlineStatus') : '🟢 ' + t('onlineStatus')}
+                </span>
               </div>
               <span style={{ fontSize: '11.5px', color: '#0d9488', fontWeight: 600, display: 'block', marginTop: '2px' }}>
-                WHO Classification (5th Ed) • NOCR India • ScienceDirect Oncology Meta-Analysis
+                {language === 'te'
+                  ? 'ఐటీడీఏ పాడేరు • డబ్ల్యూహెచ్‌ఓ వర్గీకరణ • ఎన్‌వోసీఆర్ ఇండియా మార్గదర్శకాలు'
+                  : 'WHO Classification (5th Ed) • NOCR India • ScienceDirect Oncology Meta-Analysis'}
               </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* One-touch Language Switcher in Modal */}
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                style={{
+                  background: language === 'te' ? '#ffedd5' : '#f8fafc',
+                  color: language === 'te' ? '#c2410c' : '#0f172a',
+                  border: `1.5px solid ${language === 'te' ? '#f97316' : '#cbd5e1'}`,
+                  borderRadius: '16px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+                title="Switch between English and Telugu"
+              >
+                <span>🌐</span>
+                <span>{language === 'te' ? 'తెలుగు' : 'English / తెలుగు'}</span>
+              </button>
+
               <button type="button" className="close-modal-btn" onClick={handleModalClose}>
                 ✕
               </button>
@@ -434,6 +474,58 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
 
           {step === 1 ? (
             <div style={{ marginTop: '12px' }}>
+              {/* HACKATHON 2026 COMPULSORY JURY DEMONSTRATION CASE PRESET (G. MADUGULA) */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                  border: '1.5px solid #f59e0b',
+                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.15)',
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: '11.5px', fontWeight: 800, color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🎯</span>
+                    <span>{language === 'te' ? 'హ్యాకథాన్ జ్యూరీ డెమో కేస్ (జి. మాడుగుల):' : 'AAROHAN 2026 JURY DEMO CASE:'}</span>
+                  </div>
+                  <div style={{ fontSize: '10.5px', color: '#b45309', marginTop: '2px' }}>
+                    {language === 'te'
+                      ? 'జి. మాడుగుల మండలానికి చెందిన 46 ఏళ్ల రోగి • తగ్గని తెల్లటి బుగ్గ మచ్చ (ల్యూకోప్లాకియా) & పొగాకు నమలే అలవాటు.'
+                      : '46-year-old male from G. Madugula with persistent white cheek patch (buccal leukoplakia) & tobacco-chewing history.'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPatientId('ADP-GM-4601 (G. Madugula)');
+                    setPatientAgeSex(language === 'te' ? '46 సంవత్సరాలు / పురుషుడు (జి. మాడుగుల)' : '46 Yrs / Male (G. Madugula)');
+                    setSelectedSite('Buccal Mucosa (Cheek)');
+                    setSelectedHabit('Tobacco Chewing (Gutkha/Khaini/Paan)');
+                    handleLoadSample('sample_buccal.jpg', 'Buccal Mucosa (Cheek)', 'Tobacco Chewing (Gutkha/Khaini/Paan)');
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 13px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(180, 83, 9, 0.3)',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  ⚡ {language === 'te' ? 'జి. మాడుగుల కేస్‌ను లోడ్ చేయండి' : 'Load G. Madugula Case →'}
+                </button>
+              </div>
 
               {/* Patient Metadata Grid */}
               <div
@@ -529,7 +621,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                   }}
                 >
                   <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>
-                    Select Oral Cavity Anatomical Site for Examination:
+                    {language === 'te' ? 'పరీక్ష కోసం నోటి శరీర భాగాన్ని ఎంచుకోండి:' : 'Select Oral Cavity Anatomical Site for Examination:'}
                   </label>
 
                   {/* Camera Selector Dropdown */}
@@ -565,29 +657,29 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                   {[
-                    'Buccal Mucosa (Cheek)',
-                    'Lateral Tongue',
-                    'Gingiva / Gums',
-                    'Hard & Soft Palate',
-                    'Floor of Mouth',
-                    'Labial Mucosa / Lower Lip',
-                  ].map((site) => (
+                    { en: 'Buccal Mucosa (Cheek)', te: 'బుక్కల్ మ్యూకోసా (బుగ్గ లోపల)' },
+                    { en: 'Lateral Tongue', te: 'నాలుక ప్రక్క అంచులు' },
+                    { en: 'Gingiva / Gums', te: 'చిగుళ్ళు (గమ్స్)' },
+                    { en: 'Hard & Soft Palate', te: 'అంగిలి (తాలవ్యము)' },
+                    { en: 'Floor of Mouth', te: 'నోటి నేల (నాలుక కింద)' },
+                    { en: 'Labial Mucosa / Lower Lip', te: 'క్రింది పెదవి లోపలి భాగం' },
+                  ].map((siteObj) => (
                     <button
-                      key={site}
+                      key={siteObj.en}
                       type="button"
-                      onClick={() => setSelectedSite(site)}
+                      onClick={() => setSelectedSite(siteObj.en)}
                       style={{
                         padding: '5px 10px',
                         borderRadius: '8px',
                         fontSize: '11px',
                         fontWeight: 600,
-                        border: selectedSite === site ? '1.5px solid #0d9488' : '1px solid #cbd5e1',
-                        background: selectedSite === site ? '#ccfbf1' : '#f8fafc',
-                        color: selectedSite === site ? '#0f766e' : '#475569',
+                        border: selectedSite === siteObj.en ? '1.5px solid #0d9488' : '1px solid #cbd5e1',
+                        background: selectedSite === siteObj.en ? '#ccfbf1' : '#f8fafc',
+                        color: selectedSite === siteObj.en ? '#0f766e' : '#475569',
                         cursor: 'pointer',
                       }}
                     >
-                      {site}
+                      {language === 'te' ? siteObj.te : siteObj.en}
                     </button>
                   ))}
                 </div>
@@ -1011,7 +1103,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                       gap: '4px',
                     }}
                   >
-                    📁 Upload Photo from Device
+                    📁 {language === 'te' ? 'పరికరం నుండి ఫోటోను ఎంచుకోండి' : 'Upload Photo from Device'}
                     <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
                   </label>
                 </div>
@@ -1032,7 +1124,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                           cursor: 'pointer',
                         }}
                       >
-                        Retake Photo
+                        {language === 'te' ? 'మళ్ళీ ఫోటో తీయండి' : 'Retake Photo'}
                       </button>
                       <button
                         type="button"
@@ -1056,12 +1148,12 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                         {analyzing ? (
                           <>
                             <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            <span>Analyzing with Gemini AI...</span>
+                            <span>{language === 'te' ? 'జెమినీ ఏఐ విశ్లేషిస్తోంది...' : 'Analyzing with Gemini AI...'}</span>
                           </>
                         ) : (
                           <>
                             <span>✨</span>
-                            <span>Analyze Oral Lesion with Gemini AI →</span>
+                            <span>{language === 'te' ? 'జెమినీ ఏఐతో నోటి పుండును విశ్లేషించండి →' : 'Analyze Oral Lesion with Gemini AI →'}</span>
                           </>
                         )}
                       </button>
@@ -1090,7 +1182,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                       }}
                     >
                       <span>📸</span>
-                      <span>Capture Oral Photo</span>
+                      <span>{language === 'te' ? 'నోటి ఫోటో తీయండి' : 'Capture Oral Photo'}</span>
                     </button>
                   )}
                 </div>
@@ -1450,7 +1542,35 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                       cursor: 'pointer',
                     }}
                   >
-                    🖨️ Print Clinical Summary
+                    🖨️ {language === 'te' ? 'క్లినికల్ నివేదికను ప్రింట్ చేయండి' : 'Print Clinical Summary'}
+                  </button>
+
+                  {/* Accessibility Voice Guidance (Telugu / English Audio) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const advice = language === 'te'
+                        ? `రోగికి క్లినికల్ సలహా: ${geminiResult?.clinicalImpression || ''}. ట్రయాజ్ వర్గీకరణ: ${geminiResult?.classification || ''}. సిఫార్సు చేసిన చర్య: పాడేరు ఏరియా ఆసుపత్రి ఆంకాలజీ విభాగానికి తక్షణ రిఫరల్ మరియు బయాప్సీ. పొగాకు మరియు గుట్కా వాడకాన్ని వెంటనే మానేయండి.`
+                        : `Clinical guidance for patient: ${geminiResult?.clinicalImpression || ''}. Classification: ${geminiResult?.classification || ''}. Recommendation: Urgent referral to Area Hospital Paderu for oncology review and indicated biopsy. Stop all tobacco and areca nut habits immediately.`;
+                      speakText(advice);
+                    }}
+                    style={{
+                      padding: '7px 13px',
+                      borderRadius: '8px',
+                      border: '1px solid #16a34a',
+                      background: '#f0fdf4',
+                      color: '#15803d',
+                      fontWeight: 800,
+                      fontSize: '11.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                    title="Audio Guidance (రోగికి ఆడియో సూచన)"
+                  >
+                    <span>🔊</span>
+                    <span>{language === 'te' ? 'సలహాను వినండి (ఆడియో)' : 'Listen to Advice (Audio)'}</span>
                   </button>
 
                   <button
@@ -1466,7 +1586,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                       cursor: 'pointer',
                     }}
                   >
-                    Log Routine Follow-up
+                    {language === 'te' ? 'సాధారణ తనిఖీని నమోదు చేయండి' : 'Log Routine Follow-up'}
                   </button>
 
                   <button
@@ -1484,7 +1604,7 @@ export default function ScreeningModal({ isOpen = true, onClose, onComplete, pat
                       boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)',
                     }}
                   >
-                    Initiate Urgent Referral Request →
+                    {language === 'te' ? 'అత్యవసర రిఫరల్ పంపండి →' : 'Initiate Urgent Referral Request →'}
                   </button>
                 </div>
               </div>
