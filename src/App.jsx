@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLanguage } from './context/LanguageContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import AuthCard from './components/AuthCard';
@@ -25,6 +26,7 @@ export default function App() {
   // 'phc_dashboard' | 'specialist_dashboard' | 'district_admin_dashboard' | 'system_admin_dashboard' | 'anm_portal' | 'patient' | 'doctor'
   const [toast, setToast] = useState({ message: '', visible: false });
   const toastTimerRef = useRef(null);
+  const { language, toggleLanguage, t } = useLanguage();
 
   useEffect(() => {
     let title = 'Aarogya Drishti | Primary Health Centre (PHC) Dashboard';
@@ -196,16 +198,40 @@ export default function App() {
         gap: '8px',
       }}
     >
+      <button
+        type="button"
+        onClick={toggleLanguage}
+        style={{
+          background: language === 'te' ? '#ffedd5' : '#eff6ff',
+          color: language === 'te' ? '#c2410c' : '#0052cc',
+          border: `1.5px solid ${language === 'te' ? '#f97316' : '#93c5fd'}`,
+          borderRadius: '16px',
+          padding: '4px 10px',
+          fontSize: '11px',
+          fontWeight: 800,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          boxShadow: '0 2px 5px rgba(0,0,0,0.06)',
+          transition: 'all 0.15s ease',
+        }}
+        title="Switch language between English and Telugu"
+      >
+        <span>🌐</span>
+        <span>{language === 'te' ? 'తెలుగు (Active)' : 'English | తెలుగు'}</span>
+      </button>
+
       <span style={{ fontSize: '11px', fontWeight: 800, color: '#0d9488', textTransform: 'uppercase' }}>
-        Switch:
+        {language === 'te' ? 'పోర్టల్:' : 'Portal:'}
       </span>
       {[
-        { key: 'phc_dashboard', label: '🏥 PHC' },
-        { key: 'specialist_dashboard', label: '🔬 Specialist' },
-        { key: 'district_admin_dashboard', label: '🏛️ District Admin' },
-        { key: 'system_admin_dashboard', label: '🛡️ System Admin' },
-        { key: 'anm_portal', label: '👩‍⚕️ ANM / Field' },
-        { key: 'patient', label: '👤 Citizen' },
+        { key: 'phc_dashboard', label: language === 'te' ? '🏥 పీహెచ్‌సీ' : '🏥 PHC' },
+        { key: 'specialist_dashboard', label: language === 'te' ? '🔬 స్పెషలిస్ట్' : '🔬 Specialist' },
+        { key: 'district_admin_dashboard', label: language === 'te' ? '🏛️ జిల్లా అడ్మిన్' : '🏛️ District Admin' },
+        { key: 'system_admin_dashboard', label: language === 'te' ? '🛡️ సిస్టమ్ అడ్మిన్' : '🛡️ System Admin' },
+        { key: 'anm_portal', label: language === 'te' ? '👩‍⚕️ ఏఎన్‌ఎం / ఫీల్డ్' : '👩‍⚕️ ANM / Field' },
+        { key: 'patient', label: language === 'te' ? '👤 పౌరుడు' : '👤 Citizen' },
       ].map((tab) => (
         <button
           key={tab.key}
@@ -239,7 +265,7 @@ export default function App() {
           cursor: 'pointer',
         }}
       >
-        🚪 Login
+        {language === 'te' ? '🚪 లాగిన్' : '🚪 Login'}
       </button>
     </div>
   );

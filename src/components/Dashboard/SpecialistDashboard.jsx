@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
@@ -24,6 +25,7 @@ import {
 } from '../Icons';
 
 export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogout }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -47,41 +49,41 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
   const specialistStats = [
     {
-      title: 'Incoming PHC Referrals',
+      title: language === 'te' ? 'వచ్చిన పీహెచ్‌సీ రిఫరల్స్' : 'Incoming PHC Referrals',
       value: '42',
       trend: '↑ 14%',
       trendColor: 'green',
-      subtext: 'vs. last week',
+      subtext: language === 'te' ? 'గత వారంతో పోలిస్తే' : 'vs. last week',
       icon: <ReferralIcon className="w-5 h-5" />,
       colorClass: 'orange',
       cardBorder: 'orange-bottom',
     },
     {
-      title: 'Teleconsultations Scheduled',
+      title: language === 'te' ? 'షెడ్యూల్ చేసిన టెలికన్సల్టేషన్లు' : 'Teleconsultations Scheduled',
       value: '18',
       trend: '↑ 8%',
       trendColor: 'green',
-      subtext: 'for today',
+      subtext: language === 'te' ? 'నేటి కొరకు' : 'for today',
       icon: <AIIcon className="w-5 h-5" />,
       colorClass: 'teal',
       cardBorder: 'teal-bottom',
     },
     {
-      title: 'Biopsy Recommendations Pending',
+      title: language === 'te' ? 'పెండింగ్‌లో ఉన్న బయాప్సీ సిఫార్సులు' : 'Biopsy Recommendations Pending',
       value: '9',
-      trend: 'High Priority',
+      trend: language === 'te' ? 'హై ప్రయారిటీ' : 'High Priority',
       trendColor: 'amber',
-      subtext: 'requires approval',
+      subtext: language === 'te' ? 'ఆమోదం అవసరం' : 'requires approval',
       icon: <WarningIcon className="w-5 h-5" />,
       colorClass: 'amber',
       cardBorder: 'amber-bottom',
     },
     {
-      title: 'Confirmed Case Closures',
+      title: language === 'te' ? 'ధృవీకరించబడిన కేసు పరిష్కారాలు' : 'Confirmed Case Closures',
       value: '64',
       trend: '↑ 22%',
       trendColor: 'green',
-      subtext: 'this month',
+      subtext: language === 'te' ? 'ఈ నెలలో' : 'this month',
       icon: <TargetIcon className="w-5 h-5" />,
       colorClass: 'blue',
       cardBorder: 'blue-bottom',
@@ -236,7 +238,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
           <div className="dash-facility-badge">
             <span className="badge-dot" style={{ backgroundColor: '#f97316' }}>●</span>
-            <span>Specialist Dashboard • Area Hospital Paderu Tele-Review Center</span>
+            <span>{language === 'te' ? 'స్పెషలిస్ట్ డాష్‌బోర్డ్ • ఏరియా ఆసుపత్రి పాడేరు టెలి-రివ్యూ కేంద్రం' : 'Specialist Dashboard • Area Hospital Paderu Tele-Review Center'}</span>
           </div>
         </div>
 
@@ -255,8 +257,8 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <>
                 {/* Welcome Banner */}
                 <WelcomeBanner
-                  doctorName="Dr. Ananya Varma, MD"
-                  roleSubtitle="Specialist Dashboard • Head of Oral Oncology & Tertiary Review"
+                  doctorName={language === 'te' ? 'డాక్టర్ అనన్య వర్మ, MD' : 'Dr. Ananya Varma, MD'}
+                  roleSubtitle={language === 'te' ? 'స్పెషలిస్ట్ డాష్‌బోర్డ్ • ఓరల్ ఆంకాలజీ విభాగం & టెర్షియరీ రివ్యూ' : 'Specialist Dashboard • Head of Oral Oncology & Tertiary Review'}
                   photoUrl="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=640&q=85"
                 />
 
@@ -269,8 +271,8 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <div className="chart-card">
                 <div className="chart-header">
                   <div className="chart-title-wrap">
-                    <h3>Specialist Referral Triage & Teleconsults</h3>
-                    <p>Weekly referrals triaged from 11 ITDA Paderu PHCs</p>
+                    <h3>{language === 'te' ? 'స్పెషలిస్ట్ రెఫరల్ ట్రయాజ్ & టెలికన్సల్ట్స్' : 'Specialist Referral Triage & Teleconsults'}</h3>
+                    <p>{language === 'te' ? '11 ఐటీడీఏ పాడేరు పీహెచ్‌సీల నుండి వచ్చిన వారపు రెఫరల్స్' : 'Weekly referrals triaged from 11 ITDA Paderu PHCs'}</p>
                   </div>
                   <span className="chart-badge" style={{ backgroundColor: '#ffedd5', color: '#c2410c' }}>
                     +18% Monthly Inflow
@@ -342,8 +344,8 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <div className="chart-card">
                 <div className="chart-header">
                   <div className="chart-title-wrap">
-                    <h3>Lesion Staging & Histopathology Distribution</h3>
-                    <p>Current active referred cohort breakdown</p>
+                    <h3>{language === 'te' ? 'లెసియన్ దశలు & హిస్టోపాథాలజీ పంపిణీ' : 'Lesion Staging & Histopathology Distribution'}</h3>
+                    <p>{language === 'te' ? 'ప్రస్తుతం రిఫర్ చేయబడిన కేసుల విభజన' : 'Current active referred cohort breakdown'}</p>
                   </div>
                 </div>
 
@@ -429,7 +431,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               <div className="table-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                    Inbound Referral Triage Queue (High-Acuity Cases)
+                    {language === 'te' ? 'వచ్చిన రిఫరల్ ట్రయాజ్ క్యూ (తీవ్రమైన అత్యవసర కేసులు)' : 'Inbound Referral Triage Queue (High-Acuity Cases)'}
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
                     Triaged high-acuity priority cases awaiting oncological diagnosis, lab workups & clinical encounter notes
@@ -449,13 +451,13 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                 <table className="patient-table">
                   <thead>
                     <tr>
-                      <th>Ref ID</th>
-                      <th>Patient Name</th>
-                      <th>Referring PHC</th>
-                      <th>Suspected Lesion</th>
-                      <th>AI Confidence</th>
-                      <th>Triage Status</th>
-                      <th style={{ textAlign: 'right' }}>Specialist Action</th>
+                      <th>{language === 'te' ? 'రిఫరల్ ఐడీ' : 'Ref ID'}</th>
+                      <th>{language === 'te' ? 'రోగి పేరు' : 'Patient Name'}</th>
+                      <th>{language === 'te' ? 'రిఫర్ చేసిన పీహెచ్‌సీ' : 'Referring PHC'}</th>
+                      <th>{language === 'te' ? 'అనుమానిత గాయం' : 'Suspected Lesion'}</th>
+                      <th>{language === 'te' ? 'ఏఐ కచ్చితత్వం' : 'AI Confidence'}</th>
+                      <th>{language === 'te' ? 'ట్రయాజ్ స్థితి' : 'Triage Status'}</th>
+                      <th style={{ textAlign: 'right' }}>{language === 'te' ? 'స్పెషలిస్ట్ చర్య' : 'Specialist Action'}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -503,7 +505,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                               marginRight: '6px',
                             }}
                           >
-                            <span>📹 3-Way Video</span>
+                            <span>📹 {language === 'te' ? '3-వే వీడియో' : '3-Way Video'}</span>
                           </button>
                           <button
                             type="button"
@@ -526,7 +528,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
                               gap: '5px',
                             }}
                           >
-                            <span>🔬 Review</span>
+                            <span>🔬 {language === 'te' ? 'సమీక్షించండి' : 'Review'}</span>
                           </button>
                         </td>
                       </tr>
@@ -558,10 +560,10 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
 
               <div className="hero-content">
                 <h3>
-                  Tertiary Review <br />
-                  <span>Saves Lives</span>
+                  {language === 'te' ? <>స్పెషలిస్ట్ సమీక్ష <br /></> : <>Tertiary Review <br /></>}
+                  <span>{language === 'te' ? 'ప్రాణాలను కాపాడుతుంది' : 'Saves Lives'}</span>
                 </h3>
-                <p>Connecting Tribal PHCs to Advanced Oncology Care</p>
+                <p>{language === 'te' ? 'గిరిజన పీహెచ్‌సీలను ఆధునిక ఆంకాలజీ సంరక్షణతో అనుసంధానించడం' : 'Connecting Tribal PHCs to Advanced Oncology Care'}</p>
               </div>
             </div>
 
@@ -575,7 +577,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               >
                 <div className="btn-left">
                   <AIIcon className="w-4 h-4" />
-                  <span>Telehealth Video Gateway</span>
+                  <span>{language === 'te' ? 'టెలిహెల్త్ వీడియో గేట్‌వే' : 'Telehealth Video Gateway'}</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -588,7 +590,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               >
                 <div className="btn-left">
                   <CameraIcon className="w-4 h-4" />
-                  <span>Diagnostic Orders & Labs</span>
+                  <span>{language === 'te' ? 'రోగనిర్ధారణ ఆర్డర్లు & ల్యాబ్‌లు' : 'Diagnostic Orders & Labs'}</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>
@@ -602,7 +604,7 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
               >
                 <div className="btn-left">
                   <ReferralIcon className="w-4 h-4" />
-                  <span>Inter-Provider Feedback</span>
+                  <span>{language === 'te' ? 'పీహెచ్‌సీకి క్లినికల్ ఫీడ్‌బ్యాక్' : 'Inter-Provider Feedback'}</span>
                 </div>
                 <span className="btn-chevron">›</span>
               </button>

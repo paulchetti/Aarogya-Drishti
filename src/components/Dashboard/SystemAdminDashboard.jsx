@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
@@ -18,6 +19,7 @@ import {
 } from '../Icons';
 
 export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLogout }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -34,7 +36,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
 
   const systemStats = [
     {
-      title: 'Active Authenticated Clinicians',
+      title: language === 'te' ? 'క్రియాశీల వైద్యులు & సిబ్బంది' : 'Active Authenticated Clinicians',
       value: '1,420',
       trend: '↑ 8%',
       trendColor: 'green',
@@ -44,7 +46,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
       cardBorder: 'orange-bottom',
     },
     {
-      title: 'Edge Cache Offline Batches',
+      title: language === 'te' ? 'ఆఫ్‌లైన్ ఎడ్జ్ సింక్ బ్యాచ్‌లు' : 'Edge Cache Offline Batches',
       value: '342',
       trend: '100% Synced',
       trendColor: 'green',
@@ -54,7 +56,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
       cardBorder: 'teal-bottom',
     },
     {
-      title: 'AI Model Inferences Today',
+      title: language === 'te' ? 'నేటి AI మోడల్ విశ్లేషణలు' : 'AI Model Inferences Today',
       value: '864',
       trend: 'Avg 420ms',
       trendColor: 'amber',
@@ -64,7 +66,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
       cardBorder: 'amber-bottom',
     },
     {
-      title: 'Security Compliance Index',
+      title: language === 'te' ? 'భద్రతా సమ్మతి సూచిక' : 'Security Compliance Index',
       value: '100%',
       trend: 'Zero Breaches',
       trendColor: 'green',
@@ -381,7 +383,7 @@ export default function SystemAdminDashboard({ onToast, onSwitchDashboard, onLog
               <div className="table-header">
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-                    Identity and Access Management (IAM) & System Audit Event Log
+                    {language === 'te' ? 'ఐడెంటిటీ & యాక్సెస్ మేనేజ్‌మెంట్ (IAM) & సిస్టమ్ ఆడిట్ ఈవెంట్ లాగ్' : 'Identity and Access Management (IAM) & System Audit Event Log'}
                   </h3>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
                     Immutable cryptographic audit trail & provisioning console adhering to ABDM, DISHA & HIPAA guidelines

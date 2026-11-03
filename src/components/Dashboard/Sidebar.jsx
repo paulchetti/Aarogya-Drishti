@@ -20,7 +20,7 @@ export default function Sidebar({
   menuTitle = 'PHC Dashboard Options',
   customItems = null,
 }) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   const teluguMap = {
     'Direct / Walk-in Registration': 'ప్రత్యక్ష రోగి నమోదు (రిజిస్ట్రేషన్)',
@@ -74,7 +74,7 @@ export default function Sidebar({
         <div className="menu-dropdown-panel-below-logo">
           <div className="menu-dropdown-header">
             <span className="menu-dropdown-title">
-              {language === 'te' ? (teluguMap[menuTitle] || 'డాష్‌బోర్డ్ ఆప్షన్స్') : menuTitle}
+              {language === 'te' ? (t(menuTitle) || teluguMap[menuTitle] || menuTitle) : menuTitle}
             </span>
             <button
               type="button"
@@ -99,7 +99,7 @@ export default function Sidebar({
               >
                 <span className="dropdown-item-icon">{item.icon}</span>
                 <span className="dropdown-item-text">
-                  {language === 'te' && teluguMap[item.name] ? teluguMap[item.name] : item.name}
+                  {language === 'te' ? (t(item.name) || teluguMap[item.name] || item.name) : item.name}
                 </span>
               </button>
             ))}

@@ -566,3 +566,4 @@ export function getSpecialistReferrals() {
   const all = getAllPatients();
   return all.filter((p) => p.status === 'referred_to_specialist' && p.referral);
 }
+

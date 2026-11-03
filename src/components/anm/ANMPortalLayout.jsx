@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import './anmPortal.css';
 import {
   UserPlus,
@@ -30,9 +31,11 @@ import ANMVisitScheduleView from './ANMVisitScheduleView';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 
 export default function ANMPortalLayout({
+
   user,
   onLogout
 }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeModule, setActiveModule] = useState(null);
   // null = main dashboard grid, or:
   // 'enrollment' | 'directory' | 'catchment' | 'schedule' | 'followups' | 'resolved' | 'morbidity' | 'analytics' | 'live_teleconsult'
@@ -171,7 +174,7 @@ export default function ANMPortalLayout({
                 <span className="patient-brand-title">
                   Arogya <span className="brand-orange">Drishti</span>
                 </span>
-                <span className="patient-brand-sub">ANM &amp; VILLAGE HEALTH WORKER PORTAL</span>
+                <span className="patient-brand-sub">{language === 'te' ? 'ఏఎన్‌ఎం & గ్రామ ఆరోగ్య కార్యకర్త పోర్టల్' : 'ANM & VILLAGE HEALTH WORKER PORTAL'}</span>
               </div>
             </div>
 
@@ -188,7 +191,7 @@ export default function ANMPortalLayout({
                 <div className="patient-capsule-info">
                   <span className="patient-capsule-name">{workerName}</span>
                   <span className="patient-capsule-tag">
-                    <span className="tag-dot">●</span> ANM Field Worker | Paderu
+                    <span className="tag-dot">●</span> {language === 'te' ? 'ఏఎన్‌ఎం ఫీల్డ్ వర్కర్ | పాడేరు' : 'ANM Field Worker | Paderu'}
                   </span>
                 </div>
               </div>
@@ -199,7 +202,7 @@ export default function ANMPortalLayout({
                 title="Log out of ANM portal"
               >
                 <LogOut size={15} />
-                <span>Logout</span>
+                <span>{language === 'te' ? 'లాగౌట్' : 'Logout'}</span>
               </button>
             </div>
           </header>
@@ -210,7 +213,7 @@ export default function ANMPortalLayout({
               <Activity size={18} strokeWidth={2.4} />
             </div>
             <span className="patient-banner-text">
-              Select an Aarogya Drishti frontline village health service:
+              {language === 'te' ? 'ఆరోగ్య దృష్టి గ్రామ ఆరోగ్య సంరక్షణ సేవను ఎంచుకోండి:' : 'Select an Aarogya Drishti frontline village health service:'}
             </span>
           </div>
 
@@ -222,7 +225,7 @@ export default function ANMPortalLayout({
               </div>
               <div>
                 <div className="anm-metric-val">4,820</div>
-                <div className="anm-metric-lbl">Catchment Population</div>
+                <div className="anm-metric-lbl">{language === 'te' ? 'కేటాయించిన జనాభా' : 'Catchment Population'}</div>
               </div>
             </div>
 
@@ -232,7 +235,7 @@ export default function ANMPortalLayout({
               </div>
               <div>
                 <div className="anm-metric-val">3,940</div>
-                <div className="anm-metric-lbl">Registered Citizens (81.7%)</div>
+                <div className="anm-metric-lbl">{language === 'te' ? 'నమోదైన పౌరులు (81.7%)' : 'Registered Citizens (81.7%)'}</div>
               </div>
             </div>
 
@@ -241,8 +244,8 @@ export default function ANMPortalLayout({
                 <AlertCircle size={18} />
               </div>
               <div>
-                <div className="anm-metric-val">5 Alerts</div>
-                <div className="anm-metric-lbl">Pending Follow-ups</div>
+                <div className="anm-metric-val">{language === 'te' ? '5 అలర్ట్‌లు' : '5 Alerts'}</div>
+                <div className="anm-metric-lbl">{language === 'te' ? 'పెండింగ్ ఫాలో-అప్‌లు' : 'Pending Follow-ups'}</div>
               </div>
             </div>
 
@@ -251,8 +254,8 @@ export default function ANMPortalLayout({
                 <CheckCircle2 size={18} />
               </div>
               <div>
-                <div className="anm-metric-val">52 Cases</div>
-                <div className="anm-metric-lbl">Resolved This Quarter</div>
+                <div className="anm-metric-val">{language === 'te' ? '52 కేసులు' : '52 Cases'}</div>
+                <div className="anm-metric-lbl">{language === 'te' ? 'ఈ త్రైమాసికంలో పరిష్కారం' : 'Resolved This Quarter'}</div>
               </div>
             </div>
           </div>
@@ -271,10 +274,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Patient Enrollment &amp;<br />Demographics Intake
+                  {language === 'te' ? <>రోగి నమోదు &amp;<br />వివరాల నమోదు</> : <>Patient Enrollment &amp;<br />Demographics Intake</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Citizen Intake &amp; ABHA Generation
+                  {language === 'te' ? 'పౌరుల వివరాలు & ఆభా ఐడీ సృష్టి' : 'Citizen Intake & ABHA Generation'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -294,10 +297,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Patient Directory &amp;<br />Longitudinal Search
+                  {language === 'te' ? <>గ్రామ రోగుల డైరెక్టరీ &amp;<br />శోధన</> : <>Patient Directory &amp;<br />Longitudinal Search</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Roster of 3,940 Village Citizens
+                  {language === 'te' ? '3,940 మంది గ్రామ పౌరుల జాబితా' : 'Roster of 3,940 Village Citizens'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -317,10 +320,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Assigned Catchment<br />Population
+                  {language === 'te' ? <>కేటాయించిన జనాభా<br />వివరాలు</> : <>Assigned Catchment<br />Population</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  5 Wards, Demographics &amp; ASHA Links
+                  {language === 'te' ? '5 వార్డులు, జనాభా & ఆశా లింకులు' : '5 Wards, Demographics & ASHA Links'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -340,10 +343,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Visit &amp; Screening<br />Daily Schedule
+                  {language === 'te' ? <>గ్రామ పర్యటన &amp; స్క్రీనింగ్<br />రోజువారీ షెడ్యూల్</> : <>Visit &amp; Screening<br />Daily Schedule</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  VHND, NCD Itinerary &amp; Camps
+                  {language === 'te' ? 'గ్రామ ఆరోగ్య పోషకాహార దినం & క్యాంపులు' : 'VHND, NCD Itinerary & Camps'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -363,10 +366,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Pending Follow-ups<br />&amp; Overdue Alerts
+                  {language === 'te' ? <>పెండింగ్ ఫాలో-అప్‌లు<br />&amp; ఫీల్డ్ అలర్ట్‌లు</> : <>Pending Follow-ups<br />&amp; Overdue Alerts</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Vitals Rechecks, ANC &amp; Vaccines Due
+                  {language === 'te' ? 'రక్తపోటు, గర్భిణుల & టీకాల తనిఖీ' : 'Vitals Rechecks, ANC & Vaccines Due'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -386,10 +389,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Resolved Cases &amp;<br />Treatment Outcomes
+                  {language === 'te' ? <>పరిష్కరించబడిన కేసులు &amp;<br />చికిత్స ఫలితాలు</> : <>Resolved Cases &amp;<br />Treatment Outcomes</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Cured Infections &amp; Stabilized NCDs
+                  {language === 'te' ? 'నయమైన ఇన్ఫెక్షన్లు & నియంత్రిత వ్యాధులు' : 'Cured Infections & Stabilized NCDs'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -409,10 +412,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Epidemiological<br />Morbidity Trends
+                  {language === 'te' ? <>వ్యాధి పోకడలు &amp;<br />సర్వైలెన్స్</> : <>Epidemiological<br />Morbidity Trends</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Surveillance Curves &amp; Outbreak Rates
+                  {language === 'te' ? 'వ్యాధి వ్యాప్తి గ్రాఫ్‌లు & హెచ్చరికలు' : 'Surveillance Curves & Outbreak Rates'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -432,10 +435,10 @@ export default function ANMPortalLayout({
               </div>
               <div className="patient-card-text-group">
                 <div className="patient-card-title">
-                  Field Analytics<br />&amp; Progress Reports
+                  {language === 'te' ? <>ఫీల్డ్ హెల్త్ అనలిటిక్స్<br />&amp; పురోగతి నివేదికలు</> : <>Field Analytics<br />&amp; Progress Reports</>}
                 </div>
                 <div className="patient-card-subtitle">
-                  Monthly MPR, KPIs &amp; CSV Export
+                  {language === 'te' ? 'నెలవారీ MPR నివేదిక, లక్ష్యాలు & ఎగుమతి' : 'Monthly MPR, KPIs & CSV Export'}
                 </div>
               </div>
               <div className="patient-card-arrow-circle">
@@ -456,23 +459,23 @@ export default function ANMPortalLayout({
               title="Return to ANM Portal Home"
             >
               <ArrowLeft size={16} />
-              <span>← Back to ANM Portal</span>
+              <span>{language === 'te' ? '← ఏఎన్‌ఎం పోర్టల్‌కు తిరిగి వెళ్ళండి' : '← Back to ANM Portal'}</span>
             </button>
 
             <div className="patient-focused-title-badge">
-              {activeModule === 'enrollment' && 'Patient Enrollment & Demographics Intake'}
-              {activeModule === 'directory' && 'Patient Directory & Longitudinal Search'}
-              {activeModule === 'catchment' && 'Assigned Catchment Population & Habitation Demographics'}
-              {activeModule === 'schedule' && 'Frontline Visit & Screening Schedule Itinerary'}
-              {activeModule === 'followups' && 'Pending Patient Follow-ups & Overdue Field Alerts'}
-              {activeModule === 'resolved' && 'Resolved Cases & Patient Treatment Outcomes'}
-              {activeModule === 'morbidity' && 'Epidemiological Morbidity Trends & Surveillance'}
-              {activeModule === 'analytics' && 'Field Health Analytics & Monthly Progress Reports (MPR)'}
-              {activeModule === 'live_teleconsult' && 'Live Video Teleconsultation Suite'}
+              {activeModule === 'enrollment' && (language === 'te' ? 'రోగి నమోదు & వివరాల నమోదు' : 'Patient Enrollment & Demographics Intake')}
+              {activeModule === 'directory' && (language === 'te' ? 'గ్రామ రోగుల డైరెక్టరీ & శోధన' : 'Patient Directory & Longitudinal Search')}
+              {activeModule === 'catchment' && (language === 'te' ? 'కేటాయించిన జనాభా & ఆవాసాల వివరాలు' : 'Assigned Catchment Population & Habitation Demographics')}
+              {activeModule === 'schedule' && (language === 'te' ? 'గ్రామ పర్యటన & స్క్రీనింగ్ రోజువారీ షెడ్యూల్' : 'Frontline Visit & Screening Schedule Itinerary')}
+              {activeModule === 'followups' && (language === 'te' ? 'పెండింగ్ ఫాలో-అప్‌లు & ఫీల్డ్ అలర్ట్‌లు' : 'Pending Patient Follow-ups & Overdue Field Alerts')}
+              {activeModule === 'resolved' && (language === 'te' ? 'పరిష్కరించబడిన కేసులు & చికిత్స ఫలితాలు' : 'Resolved Cases & Patient Treatment Outcomes')}
+              {activeModule === 'morbidity' && (language === 'te' ? 'వ్యాధి పోకడలు & సర్వైలెన్స్' : 'Epidemiological Morbidity Trends & Surveillance')}
+              {activeModule === 'analytics' && (language === 'te' ? 'ఫీల్డ్ హెల్త్ అనలిటిక్స్ & పురోగతి నివేదికలు' : 'Field Health Analytics & Monthly Progress Reports (MPR)')}
+              {activeModule === 'live_teleconsult' && (language === 'te' ? 'లైవ్ వీడియో టెలికన్సల్టేషన్ విభాగం' : 'Live Video Teleconsultation Suite')}
             </div>
 
             <div className="patient-focused-actions">
-              <span className="patient-status-indicator">● Active Session • Sub-Centre Paderu</span>
+              <span className="patient-status-indicator">{language === 'te' ? '● యాక్టివ్ సెషన్ • సబ్-సెంటర్ పాడేరు' : '● Active Session • Sub-Centre Paderu'}</span>
             </div>
           </div>
 

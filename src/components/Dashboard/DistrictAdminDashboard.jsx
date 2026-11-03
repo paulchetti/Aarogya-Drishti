@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
 import WelcomeBanner from './WelcomeBanner';
@@ -19,6 +20,7 @@ import {
 } from '../Icons';
 
 export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onLogout }) {
+  const { language, toggleLanguage, t } = useLanguage();
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -35,7 +37,7 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
 
   const districtStats = [
     {
-      title: 'Total District Screenings',
+      title: language === 'te' ? 'మొత్తం జిల్లా స్క్రీనింగ్‌లు' : 'Total District Screenings',
       value: '14,820',
       trend: '↑ 24%',
       trendColor: 'green',
@@ -45,7 +47,7 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
       cardBorder: 'orange-bottom',
     },
     {
-      title: 'Active Outbound Referrals',
+      title: language === 'te' ? 'క్రియాశీల రిఫరల్స్' : 'Active Outbound Referrals',
       value: '186',
       trend: '↑ 12%',
       trendColor: 'green',
@@ -55,7 +57,7 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
       cardBorder: 'teal-bottom',
     },
     {
-      title: 'High-Risk Habit Screening Rate',
+      title: language === 'te' ? 'హై-రిస్క్ అలవాట్ల స్క్రీనింగ్ రేటు' : 'High-Risk Habit Screening Rate',
       value: '78.6%',
       trend: 'Target 85%',
       trendColor: 'amber',
@@ -65,7 +67,7 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
       cardBorder: 'amber-bottom',
     },
     {
-      title: 'Care Continuity Adherence',
+      title: language === 'te' ? 'నిరంతర సంరక్షణ అనుసరణ' : 'Care Continuity Adherence',
       value: '94.2%',
       trend: '↑ 4.1%',
       trendColor: 'green',
@@ -419,11 +421,11 @@ export default function DistrictAdminDashboard({ onToast, onSwitchDashboard, onL
                 <table className="patient-table">
                   <thead>
                     <tr>
-                      <th>Mandal</th>
+                      <th>{language === 'te' ? 'మండలం' : 'Mandal'}</th>
                       <th>Primary Health Centre</th>
                       <th>Medical Officer In-Charge</th>
                       <th>Screened / Target</th>
-                      <th>Coverage %</th>
+                      <th>{language === 'te' ? 'కవరేజ్ %' : 'Coverage %'}</th>
                       <th>Red-Flag Triage</th>
                       <th>Van Fleet Status</th>
                       <th style={{ textAlign: 'right' }}>Mandal Action</th>

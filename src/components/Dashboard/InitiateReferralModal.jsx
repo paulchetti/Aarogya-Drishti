@@ -477,3 +477,4 @@ export default function InitiateReferralModal({ isOpen, patient, onClose, onRefe
     </div>
   );
 }
+
