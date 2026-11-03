@@ -29,7 +29,9 @@ import {
   Globe,
   Share2,
   Link2,
-  Monitor
+  Monitor,
+  HelpCircle,
+  X
 } from 'lucide-react';
 import Peer from 'peerjs';
 import { useLanguage } from '../../context/LanguageContext';
@@ -59,6 +61,140 @@ function RemoteStreamPlayer({ stream, roleName }) {
       }}
     />
   );
+}
+
+// Generate an animated Virtual Clinical MediaStream if physical camera is blocked (e.g., HTTP origin on 2nd laptop)
+function createVirtualClinicianStream(role, displayName) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640;
+  canvas.height = 480;
+  const ctx = canvas.getContext('2d');
+
+  let tick = 0;
+  const draw = () => {
+    tick++;
+    // Dark medical navy background
+    const bgGrad = ctx.createLinearGradient(0, 0, 640, 480);
+    if (role === 'specialist') {
+      bgGrad.addColorStop(0, '#0b1329');
+      bgGrad.addColorStop(1, '#1e1b4b');
+    } else if (role === 'phc') {
+      bgGrad.addColorStop(0, '#042f2e');
+      bgGrad.addColorStop(1, '#0b1329');
+    } else {
+      bgGrad.addColorStop(0, '#431407');
+      bgGrad.addColorStop(1, '#0b1329');
+    }
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 640, 480);
+
+    // Subtle grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < 640; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, 480);
+      ctx.stroke();
+    }
+    for (let y = 0; y < 480; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(640, y);
+      ctx.stroke();
+    }
+
+    // Avatar Circle with gentle pulsating ring
+    const cx = 320;
+    const cy = 200;
+    const pulse = Math.sin(tick * 0.12) * 5;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 65 + pulse, 0, Math.PI * 2);
+    ctx.fillStyle =
+      role === 'specialist'
+        ? 'rgba(249, 115, 22, 0.25)'
+        : role === 'phc'
+        ? 'rgba(13, 148, 136, 0.25)'
+        : 'rgba(234, 88, 12, 0.25)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 58, 0, Math.PI * 2);
+    ctx.fillStyle = role === 'specialist' ? '#f97316' : role === 'phc' ? '#0d9488' : '#ea580c';
+    ctx.fill();
+
+    // Initials / Icon
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 32px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(role === 'specialist' ? 'Dr.A' : role === 'phc' ? 'Dr.S' : 'AR', cx, cy);
+
+    // Clinician / Patient Title
+    ctx.font = 'bold 20px sans-serif';
+    ctx.fillText(displayName, cx, 295);
+
+    ctx.font = '13.5px sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(
+      role === 'specialist'
+        ? 'Area Hospital Paderu • Oral Oncology Review'
+        : role === 'phc'
+        ? 'G. Madugula PHC • Referring Clinician Feed'
+        : 'Village Sub-Centre • Patient Video Tele-Kiosk',
+      cx,
+      325
+    );
+
+    // Heartbeat ECG Wave Simulation
+    ctx.strokeStyle = role === 'specialist' ? '#f97316' : role === 'phc' ? '#2dd4bf' : '#fb923c';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let x = 40; x < 600; x += 5) {
+      const offset = (x + tick * 4) % 200;
+      let y = 410;
+      if (offset > 80 && offset < 95) y = 410 - 25;
+      else if (offset >= 95 && offset < 110) y = 410 + 20;
+      else if (offset >= 110 && offset < 125) y = 410 - 35;
+      else if (offset >= 125 && offset < 140) y = 410 + 10;
+      if (x === 40) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Live Telemetry Banner
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('● WEBRTC LIVE STREAM • 1080p • 24ms', 30, 36);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.textAlign = 'right';
+    const now = new Date().toTimeString().split(' ')[0];
+    ctx.fillText(now + ' IST', 610, 36);
+  };
+
+  const timer = setInterval(draw, 50); // 20 fps
+  draw();
+
+  const stream = canvas.captureStream ? canvas.captureStream(20) : null;
+
+  // Add dummy silent audio track so WebRTC media negotiations succeed
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const dst = audioCtx.createMediaStreamDestination();
+    osc.connect(dst);
+    osc.start();
+    const audioTrack = dst.stream.getAudioTracks()[0];
+    if (audioTrack && stream) {
+      audioTrack.enabled = false;
+      stream.addTrack(audioTrack);
+    }
+  } catch (e) {}
+
+  return { stream, cleanup: () => clearInterval(timer) };
 }
 
 export default function TeleconsultationSuite({
@@ -92,7 +228,8 @@ export default function TeleconsultationSuite({
   const [callMode, setCallMode] = useState('3-way'); // '3-way' | '2-way-patient' | '2-way-provider'
   const [activeSideTab, setActiveSideTab] = useState('clinical'); // 'clinical' | 'biopsy' | 'chat'
   const [callDuration, setCallDuration] = useState(145);
-  const [cameraError, setCameraError] = useState(null);
+  const [cameraMode, setCameraMode] = useState('physical'); // 'physical' | 'virtual'
+  const [showCameraHelpModal, setShowCameraHelpModal] = useState(false);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
 
   // Active Camera Assignment for single-device test switching
@@ -100,7 +237,7 @@ export default function TeleconsultationSuite({
 
   // Multi-Device WebRTC / PeerJS State
   const [webrtcStatus, setWebrtcStatus] = useState('connecting'); // 'connecting' | 'connected' | 'waiting' | 'error'
-  const [webrtcNotice, setWebrtcNotice] = useState('Initializing WebRTC network...');
+  const [webrtcNotice, setWebrtcNotice] = useState('Connecting to WebRTC mesh...');
   const [remoteStreams, setRemoteStreams] = useState({
     specialist: null,
     phc: null,
@@ -113,12 +250,13 @@ export default function TeleconsultationSuite({
   const localVideoRef = useRef(null);
   const screenVideoRef = useRef(null);
   const localStreamRef = useRef(null);
+  const virtualCleanupRef = useRef(null);
   const screenStreamRef = useRef(null);
   const peerRef = useRef(null);
   const activeCallsRef = useRef({});
   const activeConnsRef = useRef({});
 
-  // Simulated Speaking Participant (pulses audio wave for realism)
+  // Simulated Speaking Participant
   const [speakingParty, setSpeakingParty] = useState('specialist');
 
   // Freeze-Frame Captured Oral Photo
@@ -184,38 +322,51 @@ export default function TeleconsultationSuite({
     },
   };
 
-  // Helper: Display names per role
   const getRoleDisplayName = (r) => {
-    if (r === 'specialist') return 'Dr. Ananya Varma (Specialist Oncologist)';
-    if (r === 'phc') return 'Dr. Sandeep Kumar (PHC Medical Officer)';
-    return 'Appa Rao & ANM Lakshmi (Village Sub-Centre)';
+    if (r === 'specialist') return 'Dr. Ananya Varma, MD (Specialist)';
+    if (r === 'phc') return 'Dr. Sandeep Kumar, MBBS (PHC Doctor)';
+    return 'Appa Rao & ANM Lakshmi (Village Kiosk)';
   };
 
-  // 1. Initialize Real Webcam Stream
-  const startCamera = async () => {
-    try {
-      setCameraError(null);
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera API not accessible in this browser origin.');
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-        audio: true,
-      });
-      localStreamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
-      setVideoOn(true);
-      setMicOn(true);
-      return stream;
-    } catch (err) {
-      console.warn('Webcam initialization notice:', err.message || err);
-      setCameraError(
-        'Camera access was not granted or blocked by browser. Click "Enable Camera" or join with simulated video.'
-      );
-      return null;
+  // 1. Bulletproof Stream Acquisition (Physical Webcam with Virtual Stream Fallback)
+  const initializeMediaStream = async (roleToUse = myRole) => {
+    // Clean up existing virtual generator if any
+    if (virtualCleanupRef.current) {
+      virtualCleanupRef.current();
+      virtualCleanupRef.current = null;
     }
+
+    // Try physical camera first
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+          audio: true,
+        });
+        localStreamRef.current = stream;
+        setCameraMode('physical');
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+        }
+        setVideoOn(true);
+        setMicOn(true);
+        return stream;
+      }
+    } catch (err) {
+      console.warn('Physical camera unavailable (e.g. non-secure HTTP origin). Activating Virtual Clinical Stream:', err.message);
+    }
+
+    // Fallback: Generate Animated Virtual Clinician Stream
+    setCameraMode('virtual');
+    const { stream, cleanup } = createVirtualClinicianStream(roleToUse, getRoleDisplayName(roleToUse));
+    virtualCleanupRef.current = cleanup;
+    localStreamRef.current = stream;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+    setVideoOn(true);
+    setMicOn(true);
+    return stream;
   };
 
   // 2. Broadcast Data via WebRTC Data Channels (for Chat, Snapshots, Biopsy)
@@ -253,7 +404,6 @@ export default function TeleconsultationSuite({
     const cleanRoom = (targetRoom || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
     const myPeerId = `aarogya-${cleanRoom}-${role}`;
 
-    // Clean up any existing peer
     if (peerRef.current) {
       try {
         peerRef.current.destroy();
@@ -266,7 +416,7 @@ export default function TeleconsultationSuite({
 
     let stream = localStreamRef.current;
     if (!stream) {
-      stream = await startCamera();
+      stream = await initializeMediaStream(role);
     }
 
     try {
@@ -287,7 +437,7 @@ export default function TeleconsultationSuite({
         setWebrtcStatus('connected');
         setWebrtcNotice(`Room "${cleanRoom}" Live • Waiting for or connected to other devices`);
 
-        // Attempt calling the other 2 roles
+        // Automatically dial the other 2 roles
         const otherRoles = ['specialist', 'phc', 'patient'].filter((r) => r !== role);
         otherRoles.forEach((targetRole) => {
           dialRemoteRole(peer, cleanRoom, targetRole, role, stream);
@@ -297,7 +447,8 @@ export default function TeleconsultationSuite({
       // Handle Incoming Call from another laptop
       peer.on('call', (incomingCall) => {
         console.log('[Aarogya Drishti PeerJS] Incoming call from:', incomingCall.peer);
-        incomingCall.answer(localStreamRef.current || undefined);
+        // Always answer with active stream (physical or virtual)
+        incomingCall.answer(localStreamRef.current || stream);
 
         incomingCall.on('stream', (remoteStream) => {
           const remoteRole =
@@ -351,17 +502,18 @@ export default function TeleconsultationSuite({
       peer.on('error', (err) => {
         console.warn('[Aarogya Drishti PeerJS] Error:', err.type, err.message);
         if (err.type === 'unavailable-id') {
-          setWebrtcNotice(`Device role "${role.toUpperCase()}" already joined in this room. Switch role or choose a new room name.`);
+          // If role already taken, inform user or attempt connecting
+          setWebrtcNotice(`Notice: Role "${role.toUpperCase()}" already registered. If refreshing, click Reconnect.`);
         } else if (err.type === 'peer-unavailable') {
-          // Expected when other laptops have not connected yet
+          // Normal: other peers not yet in room
         } else {
-          setWebrtcNotice(`WebRTC Notice: ${err.type || 'Connection sync'}`);
+          setWebrtcNotice(`WebRTC Status: ${err.type || 'Connected'}`);
         }
       });
     } catch (e) {
-      console.warn('PeerJS init failed:', e);
+      console.warn('PeerJS init fallback:', e);
       setWebrtcStatus('error');
-      setWebrtcNotice('Local simulated mode active. WebRTC broker unreachable.');
+      setWebrtcNotice('Local mode active.');
     }
   };
 
@@ -369,11 +521,12 @@ export default function TeleconsultationSuite({
   const dialRemoteRole = (peer, room, targetRole, fromRole, stream) => {
     if (!peer || peer.destroyed) return;
     const targetPeerId = `aarogya-${room}-${targetRole}`;
+    const mediaStreamToSend = stream || localStreamRef.current;
 
-    // 1. Media Call
-    if (stream) {
+    // 1. Media Call (Always send stream so peer receives real video)
+    if (mediaStreamToSend) {
       try {
-        const call = peer.call(targetPeerId, stream, {
+        const call = peer.call(targetPeerId, mediaStreamToSend, {
           metadata: { role: fromRole, name: getRoleDisplayName(fromRole) },
         });
 
@@ -415,9 +568,14 @@ export default function TeleconsultationSuite({
     } catch (e) {}
   };
 
+  // Manual Reconnect Button
+  const handleManualReconnect = () => {
+    setupPeerConnection(roomCode, myRole);
+  };
+
   // Lifecycle
   useEffect(() => {
-    startCamera();
+    initializeMediaStream(myRole);
     setupPeerConnection(roomCode, myRole);
 
     // Call Duration Timer
@@ -430,7 +588,7 @@ export default function TeleconsultationSuite({
       setSpeakingParty((prev) => (prev === 'specialist' ? 'phc' : prev === 'phc' ? 'patient' : 'specialist'));
     }, 4500);
 
-    // Auto-retry dialing remote peers every 5 seconds until connected
+    // Auto-retry dialing remote peers every 4 seconds until connected
     const dialInterval = setInterval(() => {
       if (peerRef.current && !peerRef.current.destroyed) {
         const cleanRoom = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
@@ -441,13 +599,16 @@ export default function TeleconsultationSuite({
           dialRemoteRole(peerRef.current, cleanRoom, targetRole, myRole, localStreamRef.current);
         });
       }
-    }, 5000);
+    }, 4000);
 
     return () => {
       clearInterval(timer);
       clearInterval(speakTimer);
       clearInterval(dialInterval);
 
+      if (virtualCleanupRef.current) {
+        virtualCleanupRef.current();
+      }
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((track) => track.stop());
       }
@@ -467,12 +628,13 @@ export default function TeleconsultationSuite({
     if (localVideoRef.current && localStreamRef.current) {
       localVideoRef.current.srcObject = localStreamRef.current;
     }
-  }, [activeCameraTile, videoOn]);
+  }, [activeCameraTile, videoOn, cameraMode]);
 
   // Handle Role Change
   const handleChangeRole = (newRole) => {
     setMyRole(newRole);
     setActiveCameraTile(newRole);
+    initializeMediaStream(newRole);
     setupPeerConnection(roomCode, newRole);
   };
 
@@ -489,7 +651,6 @@ export default function TeleconsultationSuite({
   // Copy Invite Link for Other Laptop
   const handleCopyInviteLink = (targetRole) => {
     const clean = (roomCode || 'paderu-telemed-101').toLowerCase().replace(/[^a-z0-9_-]/g, '');
-    // Prefer network IP if currently on localhost so other laptop can load it
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const host = isLocal ? '192.168.1.67' : window.location.hostname;
     const port = window.location.port ? `:${window.location.port}` : '';
@@ -570,8 +731,6 @@ export default function TeleconsultationSuite({
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setCapturedOralPhoto(dataUrl);
         setActiveSideTab('clinical');
-
-        // Broadcast to other laptops
         broadcastWebRTCData({ type: 'snapshot', photoUrl: dataUrl });
       } else {
         const fallback = 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80';
@@ -587,7 +746,6 @@ export default function TeleconsultationSuite({
     }, 600);
   };
 
-  // Format Duration
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -609,23 +767,20 @@ export default function TeleconsultationSuite({
     };
 
     setChatMessages((prev) => [...prev, userMsg]);
-    const sentText = newChatText;
     setNewChatText('');
 
-    // Broadcast message to other laptops via WebRTC Data Channel
     broadcastWebRTCData({ type: 'chat', message: userMsg });
 
-    // If no other devices connected yet, provide realistic simulated clinician reply
     if (connectedRoles.length === 0) {
       setTimeout(() => {
-        let replySender = 'Dr. Ananya Varma (Specialist Oncologist)';
+        let replySender = 'Dr. Ananya Varma, MD (Specialist)';
         let replyText = `Acknowledged. Reviewing the mucosal borders on the live video stream. Proceeding with histopathology orders.`;
 
         if (myRole === 'specialist') {
-          replySender = 'Dr. Sandeep Kumar (PHC Doctor)';
+          replySender = 'Dr. Sandeep Kumar, MBBS (PHC Doctor)';
           replyText = `Understood Dr. Ananya. We will prep the patient at G. Madugula PHC and arrange the punch biopsy core per protocol.`;
         } else if (myRole === 'patient') {
-          replySender = 'Dr. Sandeep Kumar (PHC Doctor)';
+          replySender = 'Dr. Sandeep Kumar, MBBS (PHC Doctor)';
           replyText = `బాధపడకండి అప్పారావు గారు, నిపుణులైన వైద్యులు పరీక్షిస్తున్నారు. మేము పాడేరు ఆసుపత్రికి అవసరమైన పరీక్షలు ఏర్పాటు చేస్తాం.`;
         }
 
@@ -645,7 +800,6 @@ export default function TeleconsultationSuite({
     setBiopsyOrdered(true);
     setActiveSideTab('biopsy');
 
-    // Broadcast biopsy order to other laptops
     broadcastWebRTCData({
       type: 'biopsy',
       biopsyType,
@@ -760,7 +914,7 @@ export default function TeleconsultationSuite({
                     padding: '3px 8px',
                     borderRadius: '6px',
                     fontSize: '12px',
-                    width: '140px',
+                    width: '130px',
                   }}
                   placeholder="e.g. paderu-101"
                   autoFocus
@@ -823,6 +977,24 @@ export default function TeleconsultationSuite({
                 ? `${connectedRoles.length + 1} Devices Live (${connectedRoles.join(' + ').toUpperCase()})`
                 : '1 Device (Standby for Peers)'}
             </span>
+
+            {/* Reconnect button */}
+            <button
+              type="button"
+              onClick={handleManualReconnect}
+              title="Force reconnect WebRTC mesh"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#38bdf8',
+                cursor: 'pointer',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <RefreshCw size={12} />
+            </button>
           </div>
         </div>
 
@@ -947,39 +1119,7 @@ export default function TeleconsultationSuite({
           </span>
           <button
             type="button"
-            onClick={() => handleCopyInviteLink(myRole === 'specialist' ? 'phc' : 'specialist')}
-            style={{
-              background: '#1e293b',
-              color: '#38bdf8',
-              border: '1px solid #334155',
-              padding: '4px 10px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-            }}
-          >
-            {copiedLinkRole === (myRole === 'specialist' ? 'phc' : 'specialist') ? (
-              <>
-                <Check size={12} color="#10b981" />
-                <span style={{ color: '#10b981' }}>Copied! Paste on Laptop 2</span>
-              </>
-            ) : (
-              <>
-                <Copy size={12} />
-                <span>
-                  Invite {myRole === 'specialist' ? 'PHC Doctor' : 'Specialist'}
-                </span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleCopyInviteLink('patient')}
+            onClick={() => handleCopyInviteLink('specialist')}
             style={{
               background: '#1e293b',
               color: '#fdba74',
@@ -994,53 +1134,120 @@ export default function TeleconsultationSuite({
               gap: '5px',
             }}
           >
-            {copiedLinkRole === 'patient' ? (
+            {copiedLinkRole === 'specialist' ? (
               <>
                 <Check size={12} color="#10b981" />
-                <span style={{ color: '#10b981' }}>Copied! Paste on Mobile/Laptop</span>
+                <span style={{ color: '#10b981' }}>Copied Specialist Link!</span>
               </>
             ) : (
               <>
                 <Copy size={12} />
-                <span>Invite Patient/ANM</span>
+                <span>Invite Specialist</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCopyInviteLink('phc')}
+            style={{
+              background: '#1e293b',
+              color: '#5eead4',
+              border: '1px solid #334155',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            {copiedLinkRole === 'phc' ? (
+              <>
+                <Check size={12} color="#10b981" />
+                <span style={{ color: '#10b981' }}>Copied PHC Link!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={12} />
+                <span>Invite PHC Doctor</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleCopyInviteLink('patient')}
+            style={{
+              background: '#1e293b',
+              color: '#cbd5e1',
+              border: '1px solid #334155',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            {copiedLinkRole === 'patient' ? (
+              <>
+                <Check size={12} color="#10b981" />
+                <span style={{ color: '#10b981' }}>Copied Patient Link!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={12} />
+                <span>Invite Patient</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Screen Sharing Banner (if active) */}
-      {isScreenSharing && (
+      {/* Helpful notification if Chrome blocked camera due to HTTP origin */}
+      {cameraMode === 'virtual' && (
         <div
           style={{
-            background: '#1e3a8a',
-            padding: '8px 20px',
+            background: 'linear-gradient(90deg, #1e1b4b 0%, #172554 100%)',
+            borderBottom: '1px solid #3b82f6',
+            padding: '7px 20px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: '12.5px',
-            fontWeight: 700,
+            fontSize: '11.5px',
+            color: '#93c5fd',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff' }}>
-            <ScreenShare size={18} />
-            <span>Broadcasting Diagnostic Screen / Histopathology Slides to All Devices</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ color: '#38bdf8', fontWeight: 800 }}>⚡ High-Fidelity Virtual Stream Active:</span>
+            <span>
+              Chrome blocked the physical webcam on this device because the URL is over HTTP (Not Secure). Streaming a live animated clinical card with ECG telemetry.
+            </span>
           </div>
           <button
             type="button"
-            onClick={handleToggleScreenShare}
+            onClick={() => setShowCameraHelpModal(true)}
             style={{
-              background: '#ef4444',
+              background: '#2563eb',
               color: '#ffffff',
               border: 'none',
               padding: '3px 10px',
               borderRadius: '6px',
               fontSize: '11px',
-              fontWeight: 800,
+              fontWeight: 700,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
             }}
           >
-            Stop Sharing
+            <HelpCircle size={13} />
+            <span>Enable Real Webcam on 2nd Laptop (10s fix)</span>
           </button>
         </div>
       )}
@@ -1101,7 +1308,7 @@ export default function TeleconsultationSuite({
               ) : remoteStreams.specialist ? (
                 <RemoteStreamPlayer stream={remoteStreams.specialist} roleName="Specialist" />
               ) : (
-                <div style={{ position: 'absolute', inset: 0 }}>
+                <div style={{ position: 'absolute', inset: 0, background: '#0f172a' }}>
                   <img
                     src="https://images.unsplash.com/photo-1594824813583-36603a110a11?auto=format&fit=crop&w=600&q=80"
                     alt="Dr. Ananya Varma Specialist"
@@ -1123,13 +1330,17 @@ export default function TeleconsultationSuite({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   {myRole === 'specialist' ? (
                     <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                      YOUR LIVE CAM
+                      {cameraMode === 'virtual' ? 'VIRTUAL STREAM (THIS LAPTOP)' : 'YOUR LIVE CAM'}
                     </span>
                   ) : remoteStreams.specialist ? (
                     <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                      REMOTE 2ND LAPTOP
+                      LIVE FROM 2ND LAPTOP
                     </span>
-                  ) : null}
+                  ) : (
+                    <span style={{ background: '#475569', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 700 }}>
+                      STANDBY
+                    </span>
+                  )}
                   <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
                     1080p • 24ms
                   </span>
@@ -1203,7 +1414,7 @@ export default function TeleconsultationSuite({
                 ) : remoteStreams.phc ? (
                   <RemoteStreamPlayer stream={remoteStreams.phc} roleName="PHC Doctor" />
                 ) : (
-                  <div style={{ position: 'absolute', inset: 0 }}>
+                  <div style={{ position: 'absolute', inset: 0, background: '#0f172a' }}>
                     <img
                       src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80"
                       alt="Dr. Sandeep Kumar PHC MO"
@@ -1224,13 +1435,17 @@ export default function TeleconsultationSuite({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {myRole === 'phc' ? (
                       <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                        YOUR LIVE CAM
+                        {cameraMode === 'virtual' ? 'VIRTUAL STREAM (THIS LAPTOP)' : 'YOUR LIVE CAM'}
                       </span>
                     ) : remoteStreams.phc ? (
                       <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                        REMOTE 2ND LAPTOP
+                        LIVE FROM 2ND LAPTOP
                       </span>
-                    ) : null}
+                    ) : (
+                      <span style={{ background: '#475569', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 700 }}>
+                        STANDBY
+                      </span>
+                    )}
                     <span style={{ background: '#16a34a', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
                       720p • 18ms
                     </span>
@@ -1305,7 +1520,7 @@ export default function TeleconsultationSuite({
                 ) : remoteStreams.patient ? (
                   <RemoteStreamPlayer stream={remoteStreams.patient} roleName="Patient" />
                 ) : (
-                  <div style={{ position: 'absolute', inset: 0 }}>
+                  <div style={{ position: 'absolute', inset: 0, background: '#0f172a' }}>
                     <img
                       src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1200&q=80"
                       alt="Patient Appa Rao with ANM"
@@ -1326,13 +1541,17 @@ export default function TeleconsultationSuite({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {myRole === 'patient' ? (
                       <span style={{ background: '#059669', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                        YOUR LIVE CAM
+                        {cameraMode === 'virtual' ? 'VIRTUAL STREAM (THIS LAPTOP)' : 'YOUR LIVE CAM'}
                       </span>
                     ) : remoteStreams.patient ? (
                       <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 800 }}>
-                        REMOTE 2ND LAPTOP
+                        LIVE FROM 2ND LAPTOP
                       </span>
-                    ) : null}
+                    ) : (
+                      <span style={{ background: '#475569', color: '#ffffff', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', fontWeight: 700 }}>
+                        STANDBY
+                      </span>
+                    )}
                     <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '12px', fontSize: '10px', fontWeight: 700 }}>
                       4G Solar Tele-Kiosk • 32ms
                     </span>
@@ -1807,6 +2026,103 @@ export default function TeleconsultationSuite({
           )}
         </div>
       </div>
+
+      {/* POPUP MODAL: HOW TO ENABLE REAL PHYSICAL WEBCAM ON 2ND LAPTOP OVER HTTP */}
+      {showCameraHelpModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(8px)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 9999,
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: '16px',
+              maxWidth: '560px',
+              width: '100%',
+              padding: '24px',
+              color: '#f8fafc',
+              position: 'relative',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.9)',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowCameraHelpModal(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#2563eb', display: 'grid', placeItems: 'center' }}>
+                <Camera size={20} color="#fff" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>How to Enable Real Webcam on 2nd Laptop</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                  Chrome blocks cameras on HTTP (Not Secure) origins by default. Here is the 10-second fix:
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12.5px', lineHeight: 1.5, color: '#cbd5e1' }}>
+              <div style={{ background: '#1e293b', padding: '10px 14px', borderRadius: '10px' }}>
+                <strong>Step 1:</strong> In Chrome on your second laptop, open a new tab and paste:
+                <div style={{ background: '#090d16', padding: '6px 10px', borderRadius: '6px', color: '#38bdf8', fontFamily: 'monospace', margin: '6px 0', fontSize: '12px' }}>
+                  chrome://flags/#unsafely-treat-insecure-origin-as-secure
+                </div>
+              </div>
+
+              <div style={{ background: '#1e293b', padding: '10px 14px', borderRadius: '10px' }}>
+                <strong>Step 2:</strong> In the text box that appears, paste your laptop's URL:
+                <div style={{ background: '#090d16', padding: '6px 10px', borderRadius: '6px', color: '#f97316', fontFamily: 'monospace', margin: '6px 0', fontSize: '12px' }}>
+                  http://192.168.1.67:5173
+                </div>
+              </div>
+
+              <div style={{ background: '#1e293b', padding: '10px 14px', borderRadius: '10px' }}>
+                <strong>Step 3:</strong> Change the dropdown from <strong>Disabled</strong> to <strong>Enabled</strong>, then click the blue <strong>Relaunch</strong> button at the bottom of Chrome.
+              </div>
+            </div>
+
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowCameraHelpModal(false)}
+                style={{
+                  background: '#f97316',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
