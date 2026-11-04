@@ -151,7 +151,12 @@ export default function RightSidebar({ onActionClick }) {
       </div>
 
       {/* Care Continuity Tracking Card */}
-      <div className="healthy-smiles-card">
+      <div
+        className="healthy-smiles-card"
+        onClick={() => onActionClick('care-continuity')}
+        style={{ cursor: 'pointer' }}
+        title={language === 'te' ? 'నిరంతర సంరక్షణ & లాంగిట్యూడినల్ రికార్డులు' : 'Care Continuity & Longitudinal Records'}
+      >
         <div className="smiles-bg-wave" />
         <div className="smiles-icon-box">
           <HeartPulseIcon className="w-5 h-5" />

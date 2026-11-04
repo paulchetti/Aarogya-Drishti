@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { registerPatient } from '../../services/referralRoutingService';
 import {
   UserPlus,
   CheckCircle,
@@ -109,6 +110,42 @@ export default function ANMPatientEnrollmentView({ onStartTeleconsult }) {
     setRecentEnrolled([newRecord, ...recentEnrolled]);
     setCreatedEnrollment(newRecord);
     showNotification(`Successfully enrolled ${newRecord.name} with ABHA ID: ${newRecord.abhaId}`);
+
+    // Persist into central ITDA Paderu clinical registry (Module A)
+    registerPatient({
+      name: formData.name,
+      guardian: formData.guardianName || 'Family Head',
+      gender: formData.gender,
+      age: parseInt(formData.age, 10),
+      contact: formData.phone,
+      habitation: formData.hamlet,
+      village: 'Paderu',
+      mandal: 'Paderu',
+      abhaId: generatedAbha,
+      exposureHistory: [
+        {
+          type: formData.tobaccoUse !== 'No' ? 'tobacco_chewing' : 'none',
+          label: formData.tobaccoUse !== 'No' ? 'Chewing Tobacco / Gutkha' : 'No Habit Reported',
+          durationYears: 5,
+          active: formData.tobaccoUse !== 'No',
+        },
+      ],
+      symptoms: [
+        {
+          type: 'general_checkup',
+          label: formData.chronicConditions !== 'None' ? formData.chronicConditions : 'Routine NCD Screening',
+          durationWeeks: 2,
+        },
+      ],
+      consents: {
+        examinationConsent: true,
+        imagingConsent: true,
+        teleconsultConsent: true,
+        dataProcessingConsent: true,
+        timestamp: new Date().toISOString(),
+      },
+      actor: 'ANM Lakshmi Devi (Field Outreach)',
+    });
 
     // Reset Form
     setFormData({

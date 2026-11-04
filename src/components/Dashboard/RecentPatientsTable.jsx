@@ -1,85 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-
-const admissions = [
-  {
-    id: 'ADP-001248',
-    name: 'Lakshmi Devi',
-    ageSex: '42 / F',
-    village: 'Gudem',
-    date: '15 Apr 2025',
-    status: 'Normal',
-    statusClass: 'normal',
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    id: 'ADP-001247',
-    name: 'Ramesh Babu',
-    ageSex: '37 / M',
-    village: 'Chintapalli',
-    date: '15 Apr 2025',
-    status: 'Under Review',
-    statusClass: 'under-review',
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    id: 'ADP-001246',
-    name: 'Savitri',
-    ageSex: '28 / F',
-    village: 'Koyyuru',
-    date: '14 Apr 2025',
-    status: 'Suspicious',
-    statusClass: 'suspicious',
-    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    id: 'ADP-001245',
-    name: 'Mohan Rao',
-    ageSex: '56 / M',
-    village: 'Paderu',
-    date: '14 Apr 2025',
-    status: 'Normal',
-    statusClass: 'normal',
-    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    id: 'ADP-001244',
-    name: 'Anitha',
-    ageSex: '33 / F',
-    village: 'Araku',
-    date: '13 Apr 2025',
-    status: 'Follow-up',
-    statusClass: 'follow-up',
-    photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80',
-  },
-];
+import { getAllPatients } from '../../services/referralRoutingService';
 
 const statusTranslations = {
-  'Normal': 'సాధారణం (Normal)',
+  Normal: 'సాధారణం (Normal)',
   'Under Review': 'సమీక్షలో ఉంది (Review)',
-  'Suspicious': 'అనుమానాస్పదం (Suspicious)',
+  Suspicious: 'అనుమానాస్పదం (Suspicious)',
   'Follow-up': 'ఫాలో-అప్ (Follow-up)',
+  'Referred to Specialist': 'స్పెషలిస్ట్‌కు రిఫర్ చేయబడింది',
+  'Biopsy Authorized': 'బయాప్సీ ఆమోదించబడింది',
 };
 
 export default function RecentPatientsTable({ onViewPatient }) {
   const { language } = useLanguage();
+  const [patients, setPatients] = useState(() => getAllPatients());
+
+  // Listen to cross-portal registry updates (Module A, D, F)
+  useEffect(() => {
+    const handleUpdate = () => {
+      setPatients(getAllPatients());
+    };
+
+    window.addEventListener('aarogya_patients_updated', handleUpdate);
+    return () => window.removeEventListener('aarogya_patients_updated', handleUpdate);
+  }, []);
+
+  const getDisplayStatus = (p) => {
+    if (p.status === 'referred_to_specialist') {
+      return { label: 'Referred to Specialist', class: 'suspicious' };
+    }
+    if (p.status === 'biopsy_endorsed') {
+      return { label: 'Biopsy Authorized', class: 'follow-up' };
+    }
+    if (p.aiAssessment?.finding === 'suspicious_finding') {
+      return { label: 'Suspicious', class: 'suspicious' };
+    }
+    if (p.symptoms && p.symptoms.length > 0) {
+      return { label: 'Under Review', class: 'under-review' };
+    }
+    return { label: 'Normal', class: 'normal' };
+  };
 
   return (
     <div className="table-card">
       <div className="table-header">
-        <h3>
-          {language === 'te' ? 'ఇటీవలి నమోదులు / రిజిస్ట్రేషన్లు' : 'Recent Admissions / Registrations'}
-        </h3>
-        <a
-          href="#view-all"
+        <div>
+          <h3 style={{ margin: 0 }}>
+            {language === 'te' ? 'ఇటీవలి నమోదులు / రిజిస్ట్రేషన్లు' : 'Recent Admissions & Longitudinal Registry'}
+          </h3>
+          <small style={{ color: '#64748b', fontSize: '0.74rem' }}>
+            Live sync across Village Hamlets, PHC Doctor Triage & Area Hospital Paderu
+          </small>
+        </div>
+        <button
+          type="button"
           className="view-all-link"
-          onClick={(e) => {
-            e.preventDefault();
-            if (onViewPatient) onViewPatient(null);
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          onClick={() => {
+            if (onViewPatient) onViewPatient(patients[0]);
           }}
         >
-          {language === 'te' ? 'అన్ని నమోదులు చూడండి' : 'View All Admissions / Registrations'} <span>→</span>
-        </a>
+          {language === 'te' ? 'అన్ని నమోదులు చూడండి' : 'View All Registry Patients'} <span>→</span>
+        </button>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
@@ -89,50 +71,74 @@ export default function RecentPatientsTable({ onViewPatient }) {
               <th>{language === 'te' ? 'రోగి ఐడి' : 'Patient ID'}</th>
               <th>{language === 'te' ? 'పేరు' : 'Name'}</th>
               <th>{language === 'te' ? 'వయస్సు / లింగం' : 'Age / Sex'}</th>
-              <th>{language === 'te' ? 'గ్రామం' : 'Village'}</th>
-              <th>{language === 'te' ? 'స్క్రీనింగ్ తేదీ' : 'Screening Date'}</th>
+              <th>{language === 'te' ? 'గ్రామం / మండలం' : 'Village / Mandal'}</th>
+              <th>{language === 'te' ? 'నమోదు తేదీ' : 'Registration Date'}</th>
               <th>{language === 'te' ? 'స్థితి' : 'Status'}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {admissions.map((p) => (
-              <tr key={p.id}>
-                <td style={{ fontWeight: 600, color: '#475569' }}>{p.id}</td>
-                <td>
-                  <div className="patient-name-col">
-                    <div className="patient-avatar-thumb">
-                      <img
-                        src={p.photo}
-                        alt={p.name}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
+            {patients.map((p) => {
+              const statusObj = getDisplayStatus(p);
+              return (
+                <tr key={p.id} style={{ cursor: 'pointer' }} onClick={() => onViewPatient && onViewPatient(p)}>
+                  <td style={{ fontWeight: 700, color: '#334155' }}>
+                    <div>{p.id}</div>
+                    <small style={{ color: '#94a3b8', fontSize: '0.7rem' }}>{p.abhaId || 'ABHA Registered'}</small>
+                  </td>
+                  <td>
+                    <div className="patient-name-col">
+                      <div
+                        className="patient-avatar-thumb"
+                        style={{
+                          background: p.gender === 'Female' ? '#fdf2f8' : '#eff6ff',
+                          color: p.gender === 'Female' ? '#db2777' : '#2563eb',
+                          fontWeight: 800,
+                          display: 'grid',
+                          placeItems: 'center',
+                          fontSize: '0.76rem',
+                          borderRadius: '8px',
+                          width: '32px',
+                          height: '32px',
                         }}
-                      />
+                      >
+                        {p.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{p.name}</span>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                          {p.exposureHistory?.[0]?.label || 'No known habits'}
+                        </div>
+                      </div>
                     </div>
-                    <span>{p.name}</span>
-                  </div>
-                </td>
-                <td>{p.ageSex}</td>
-                <td>{p.village}</td>
-                <td style={{ color: '#64748b' }}>{p.date}</td>
-                <td>
-                  <span className={`status-pill ${p.statusClass}`}>
-                    {language === 'te' ? (statusTranslations[p.status] || p.status) : p.status}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="action-dots-btn"
-                    aria-label="Options"
-                    onClick={() => onViewPatient && onViewPatient(p)}
-                  >
-                    ⋮
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td>{p.ageSex}</td>
+                  <td>
+                    <div>{p.village}</div>
+                    <small style={{ color: '#0d9488', fontWeight: 600 }}>{p.mandal}</small>
+                  </td>
+                  <td style={{ color: '#64748b', fontSize: '0.78rem' }}>{p.registeredDate}</td>
+                  <td>
+                    <span className={`status-pill ${statusObj.class}`}>
+                      {language === 'te' ? statusTranslations[statusObj.label] || statusObj.label : statusObj.label}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="action-dots-btn"
+                      aria-label="Options"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onViewPatient) onViewPatient(p);
+                      }}
+                    >
+                      ⋮
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

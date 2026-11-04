@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import DashboardNavbar from './DashboardNavbar';
 import Sidebar from './Sidebar';
@@ -6,7 +6,11 @@ import WelcomeBanner from './WelcomeBanner';
 import StatCards from './StatCards';
 import AIChatBot from './AIChatBot';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
-import { getAllPatients } from '../../services/referralRoutingService';
+import {
+  getAllPatients,
+  getSpecialistReferrals,
+  updateSpecialistReview,
+} from '../../services/referralRoutingService';
 import '../../styles/dashboard.css';
 import {
   AIIcon,
@@ -250,6 +254,50 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
       labDestination: 'King George Hospital (KGH) Visakhapatnam',
     },
   ]);
+
+  // Synchronize Live Inbound Referrals from ITDA Paderu Network (Module D & F)
+  useEffect(() => {
+    const syncReferrals = () => {
+      const liveReferrals = getSpecialistReferrals();
+      if (liveReferrals.length > 0) {
+        const mapped = liveReferrals.map((p) => ({
+          id: p.referral?.referralId || `REF-${p.id}`,
+          patientId: p.id,
+          name: p.name,
+          ageSex: p.ageSex,
+          phc: p.assignedPhc?.name || 'G. Madugula PHC',
+          doctor: p.referral?.referringDoctor || 'Dr. Sandeep Kumar, MBBS',
+          lesion: p.symptoms?.[0]?.label || 'Suspicious Oral Mucosal Lesion',
+          risk: p.aiAssessment?.classification?.includes('High') ? 'High Suspicion' : 'Moderate Risk',
+          riskClass: 'suspicious',
+          aiConfidence: `${p.aiAssessment?.concordanceScore || 89}%`,
+          triageDate: p.referral?.referralDate || 'Today',
+          status: p.status === 'biopsy_endorsed' ? 'Biopsy Endorsed' : 'Urgent Review',
+          statusClass: p.status === 'biopsy_endorsed' ? 'follow-up' : 'under-review',
+          habits: p.exposureHistory?.map((h) => h.label).join(', ') || 'Habit history recorded',
+          opening: p.symptoms?.find((s) => s.type === 'trismus')?.label || '32 mm',
+          lesionImg:
+            p.oralPhotos?.[0]?.url ||
+            'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80',
+          doctorNotes: p.referral?.clinicalRationale || 'Referred for urgent oncology review and biopsy.',
+          biopsyEndorsed: p.status === 'biopsy_endorsed',
+          tnmStage: p.referral?.tnmStage || 'cT2 N0 M0',
+          biopsyType: p.referral?.biopsyType || '4mm Punch Biopsy',
+          labDestination: 'Area Hospital Paderu Oral Pathology Lab',
+        }));
+
+        setReferralQueue((prev) => {
+          const ids = new Set(mapped.map((m) => m.patientId));
+          const rest = prev.filter((item) => !ids.has(item.patientId));
+          return [...mapped, ...rest];
+        });
+      }
+    };
+
+    syncReferrals();
+    window.addEventListener('aarogya_patients_updated', syncReferrals);
+    return () => window.removeEventListener('aarogya_patients_updated', syncReferrals);
+  }, []);
 
   // Diagnostic Orders Data
   const [diagnosticOrders, setDiagnosticOrders] = useState([
@@ -623,6 +671,14 @@ export default function SpecialistDashboard({ onToast, onSwitchDashboard, onLogo
     };
 
     setDiagnosticOrders((prev) => [newOrder, ...prev]);
+
+    // Persist into central ITDA registry (Module D, G, H)
+    updateSpecialistReview(caseItem.patientId || caseItem.id, {
+      tnmStage: reviewFormData.tnmStage,
+      biopsyType: reviewFormData.biopsyType,
+      labDestination: reviewFormData.labDestination,
+      specialistName: 'Dr. Ananya Varma, MD (Surgical Oncology)',
+    });
 
     if (onToast) {
       onToast(`Biopsy authorized & e-signed for ${caseItem.name}! Requisition sent to ${caseItem.phc}.`);

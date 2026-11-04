@@ -12,6 +12,10 @@ import PatientModal from './PatientModal';
 import ScreeningModal from './ScreeningModal';
 import AIChatBot from './AIChatBot';
 import InitiateReferralModal from './InitiateReferralModal';
+import AppointmentSchedulingModal from './AppointmentSchedulingModal';
+import FacilityUtilizationReportModal from './FacilityUtilizationReportModal';
+import ClinicianProfileModal from './ClinicianProfileModal';
+import CareContinuityModal from './CareContinuityModal';
 import TeleconsultationSuite from '../clinical/TeleconsultationSuite';
 import { getAllPatients } from '../../services/referralRoutingService';
 
@@ -21,6 +25,10 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+  const [isFacilityReportModalOpen, setIsFacilityReportModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isNavigationModalOpen, setIsNavigationModalOpen] = useState(false);
   const [isTelehealthOpen, setIsTelehealthOpen] = useState(() => {
     const p = new URLSearchParams(window.location.search);
     return p.get('teleconsult') === 'true' || !!p.get('room');
@@ -35,12 +43,22 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
       setIsPatientModalOpen(true);
     } else if (navName === 'Diagnostic & Triage Assessment') {
       setIsScreeningModalOpen(true);
-    } else if (navName === 'Care Continuity Tracking' || navName === 'Inbound Referral Triage Queue') {
+    } else if (navName === 'Care Continuity Tracking' || navName === 'EHR Clinical Documentation') {
       setSelectedPatient(defaultDemoPatient);
-      setIsReferralModalOpen(true);
+      setIsNavigationModalOpen(true);
+    } else if (navName === 'Appointment Scheduling & Slot Management') {
+      setSelectedPatient(defaultDemoPatient);
+      setIsAppointmentModalOpen(true);
+    } else if (navName === 'Facility Utilization & Clinical Reports') {
+      setIsFacilityReportModalOpen(true);
+    } else if (navName === 'Clinician Profile & Credentials') {
+      setIsProfileModalOpen(true);
     } else if (navName === 'Virtual Consultation Queue') {
       setSelectedPatient(defaultDemoPatient);
       setIsTelehealthOpen(true);
+    } else if (navName === 'Inbound Referral Triage Queue') {
+      setSelectedPatient(defaultDemoPatient);
+      setIsReferralModalOpen(true);
     } else if (onToast) {
       onToast(`Navigating to ${navName}`);
     }
@@ -59,17 +77,22 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
         setIsReferralModalOpen(true);
         break;
       case 'appointment-scheduling':
-        if (onToast) onToast('Opening Appointment Scheduling & Slot Management...');
+        setSelectedPatient(defaultDemoPatient);
+        setIsAppointmentModalOpen(true);
         break;
       case 'virtual-consultation-queue':
         setSelectedPatient(defaultDemoPatient);
         setIsTelehealthOpen(true);
         break;
       case 'facility-reports':
-        if (onToast) onToast('Generating Facility Utilization & Clinical Reports...');
+        setIsFacilityReportModalOpen(true);
         break;
       case 'clinician-profile':
-        if (onToast) onToast('Viewing Clinician Profile & Credentials for Dr. Sandeep Kumar...');
+        setIsProfileModalOpen(true);
+        break;
+      case 'care-continuity':
+        setSelectedPatient(defaultDemoPatient);
+        setIsNavigationModalOpen(true);
         break;
       default:
         break;
@@ -207,6 +230,45 @@ export default function PHCDashboard({ onToast, onSwitchDashboard, onLogout }) {
           setSelectedPatient(pt);
           setIsTelehealthOpen(true);
         }}
+      />
+
+      {/* Appointment Scheduling & Slot Management Modal (Modules E & F) */}
+      <AppointmentSchedulingModal
+        isOpen={isAppointmentModalOpen}
+        initialPatient={selectedPatient || defaultDemoPatient}
+        onClose={() => setIsAppointmentModalOpen(false)}
+        onAppointmentBooked={(confirmation) => {
+          if (onToast) {
+            onToast(
+              `Appointment ${confirmation.tokenNumber} scheduled with ${confirmation.doctor} for ${confirmation.slotDate}!`
+            );
+          }
+        }}
+        onLaunchTelehealth={(pt) => {
+          setSelectedPatient(pt);
+          setIsTelehealthOpen(true);
+        }}
+      />
+
+      {/* Facility Utilization & Clinical Reports Modal (Module J) */}
+      <FacilityUtilizationReportModal
+        isOpen={isFacilityReportModalOpen}
+        onClose={() => setIsFacilityReportModalOpen(false)}
+      />
+
+      {/* Clinician Profile & ABHA Credentials Modal */}
+      <ClinicianProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onSwitchDashboard={onSwitchDashboard}
+        onLogout={onLogout}
+      />
+
+      {/* Care Continuity Tracking & Longitudinal Patient Navigation Console (Modules H & I) */}
+      <CareContinuityModal
+        isOpen={isNavigationModalOpen}
+        initialPatient={selectedPatient || defaultDemoPatient}
+        onClose={() => setIsNavigationModalOpen(false)}
       />
 
       {/* AI Clinical Copilot Chatbot */}
